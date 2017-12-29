@@ -185,14 +185,22 @@ func (h *SearchHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer cancel()
 
 	// request
-	resp, err := h.client.Index.Search(ctx, searchRequest)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"req": req,
-		}).Error("failed to search documents")
-
-		Error(w, err.Error(), http.StatusServiceUnavailable)
-		return
+	//resp, err := h.client.Index.Search(ctx, searchRequest)
+	//if err != nil {
+	//	log.WithFields(log.Fields{
+	//		"req": req,
+	//	}).Error("failed to search documents")
+	//
+	//	Error(w, err.Error(), http.StatusServiceUnavailable)
+	//	return
+	//}
+	searchResult, err := h.client.Index.Search(ctx, searchRequest)
+	resp := struct {
+		SearchResult *bleve.SearchResult `json:"search_result,omitempty"`
+		Error        error               `json:"error,omitempty"`
+	}{
+		SearchResult: searchResult,
+		Error:        err,
 	}
 
 	// output response

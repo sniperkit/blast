@@ -69,7 +69,14 @@ func runEDeleteDocumentCmd(cmd *cobra.Command, args []string) error {
 	defer cancel()
 
 	// delete document from index
-	resp, _ := c.Index.DeleteDocument(ctx, deleteDocumentCmdOpts.id)
+	id, err := c.Index.DeleteDocument(ctx, deleteDocumentCmdOpts.id)
+	resp := struct {
+		Id    string `json:"id,omitempty"`
+		Error error  `json:"error,omitempty"`
+	}{
+		Id:    id,
+		Error: err,
+	}
 
 	// output response
 	switch rootCmdOpts.outputFormat {

@@ -62,14 +62,24 @@ func (h *GetDocumentHandler) ServeHTTP(w http.ResponseWriter, req *http.Request)
 	defer cancel()
 
 	// request
-	resp, err := h.client.Index.GetDocument(ctx, vars["id"])
-	if err != nil {
-		log.WithFields(log.Fields{
-			"req": req,
-		}).Error("failed to get document")
-
-		Error(w, err.Error(), http.StatusServiceUnavailable)
-		return
+	//resp, err := h.client.Index.GetDocument(ctx, vars["id"])
+	//if err != nil {
+	//	log.WithFields(log.Fields{
+	//		"req": req,
+	//	}).Error("failed to get document")
+	//
+	//	Error(w, err.Error(), http.StatusServiceUnavailable)
+	//	return
+	//}
+	id, fields, err := h.client.Index.GetDocument(ctx, vars["id"])
+	resp := struct {
+		Id     string                 `json:"id,omitempty"`
+		Fields map[string]interface{} `json:"fields,omitempty"`
+		Error  error                  `json:"error,omitempty"`
+	}{
+		Id:     id,
+		Fields: fields,
+		Error:  err,
 	}
 
 	// request

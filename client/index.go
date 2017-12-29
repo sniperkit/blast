@@ -23,12 +23,12 @@ import (
 )
 
 type Index interface {
-	GetIndexInfo(ctx context.Context, indexPath bool, indexMapping bool, indexType bool, kvstore bool, kvconfig bool, opts ...grpc.CallOption) (*GetIndexInfoResponse, error)
-	PutDocument(ctx context.Context, id string, fields map[string]interface{}, opts ...grpc.CallOption) (*PutDocumentResponse, error)
-	GetDocument(ctx context.Context, id string, opts ...grpc.CallOption) (*GetDocumentResponse, error)
-	DeleteDocument(ctx context.Context, id string, opts ...grpc.CallOption) (*DeleteDocumentResponse, error)
-	Bulk(ctx context.Context, requests []map[string]interface{}, batchSize int32, opts ...grpc.CallOption) (*BulkResponse, error)
-	Search(ctx context.Context, searchRequest *bleve.SearchRequest, opts ...grpc.CallOption) (*SearchResponse, error)
+	GetIndexInfo(ctx context.Context, indexPath bool, indexMapping bool, indexType bool, kvstore bool, kvconfig bool, opts ...grpc.CallOption) (string, *mapping.IndexMappingImpl, string, string, map[string]interface{}, error)
+	PutDocument(ctx context.Context, id string, fields map[string]interface{}, opts ...grpc.CallOption) (string, map[string]interface{}, error)
+	GetDocument(ctx context.Context, id string, opts ...grpc.CallOption) (string, map[string]interface{}, error)
+	DeleteDocument(ctx context.Context, id string, opts ...grpc.CallOption) (string, error)
+	Bulk(ctx context.Context, requests []map[string]interface{}, batchSize int32, opts ...grpc.CallOption) (int32, int32, int32, int32, error)
+	Search(ctx context.Context, searchRequest *bleve.SearchRequest, opts ...grpc.CallOption) (*bleve.SearchResult, error)
 }
 
 type index struct {
@@ -43,7 +43,7 @@ func NewIndex(c *BlastClient) Index {
 	}
 }
 
-func (i *index) GetIndexInfo(ctx context.Context, indexPath bool, indexMapping bool, indexType bool, kvstore bool, kvconfig bool, opts ...grpc.CallOption) (*GetIndexInfoResponse, error) {
+func (i *index) GetIndexInfo(ctx context.Context, indexPath bool, indexMapping bool, indexType bool, kvstore bool, kvconfig bool, opts ...grpc.CallOption) (string, *mapping.IndexMappingImpl, string, string, map[string]interface{}, error) {
 	protoReq := &proto.GetIndexInfoRequest{
 		IndexMapping: indexMapping,
 		IndexType:    indexType,
@@ -51,31 +51,28 @@ func (i *index) GetIndexInfo(ctx context.Context, indexPath bool, indexMapping b
 		Kvconfig:     kvconfig,
 	}
 
-	protoResp, _ := i.client.GetIndexInfo(ctx, protoReq, opts...)
+	protoResp, err := i.client.GetIndexInfo(ctx, protoReq, opts...)
+	if err != nil {
+		return "", nil, "", "", nil, err
+	}
 
 	im, err := proto.UnmarshalAny(protoResp.IndexMapping)
 	if err != nil {
-		return nil, err
+		return "", nil, "", "", nil, err
 	}
 
 	kvc, err := proto.UnmarshalAny(protoResp.Kvconfig)
 	if err != nil {
-		return nil, err
+		return "", nil, "", "", nil, err
 	}
 
-	return &GetIndexInfoResponse{
-		IndexPath:    protoResp.IndexPath,
-		IndexMapping: im.(*mapping.IndexMappingImpl),
-		IndexType:    protoResp.IndexType,
-		Kvstore:      protoResp.Kvstore,
-		Kvconfig:     *kvc.(*map[string]interface{}),
-	}, nil
+	return protoResp.IndexPath, im.(*mapping.IndexMappingImpl), protoResp.IndexType, protoResp.Kvstore, *kvc.(*map[string]interface{}), nil
 }
 
-func (i *index) PutDocument(ctx context.Context, id string, fields map[string]interface{}, opts ...grpc.CallOption) (*PutDocumentResponse, error) {
+func (i *index) PutDocument(ctx context.Context, id string, fields map[string]interface{}, opts ...grpc.CallOption) (string, map[string]interface{}, error) {
 	fieldAny, err := proto.MarshalAny(fields)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	protoReq := &proto.PutDocumentRequest{
@@ -83,11 +80,14 @@ func (i *index) PutDocument(ctx context.Context, id string, fields map[string]in
 		Fields: &fieldAny,
 	}
 
-	protoResp, _ := i.client.PutDocument(ctx, protoReq, opts...)
+	protoResp, err := i.client.PutDocument(ctx, protoReq, opts...)
+	if err != nil {
+		return "", nil, err
+	}
 
 	fieldsTmp, err := proto.UnmarshalAny(protoResp.Fields)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	var fieldsPut map[string]interface{}
@@ -95,24 +95,22 @@ func (i *index) PutDocument(ctx context.Context, id string, fields map[string]in
 		fieldsPut = *fieldsTmp.(*map[string]interface{})
 	}
 
-	return &PutDocumentResponse{
-		Id:        id,
-		Fields:    fieldsPut,
-		Succeeded: protoResp.Succeeded,
-		Message:   protoResp.Message,
-	}, nil
+	return protoResp.Id, fieldsPut, nil
 }
 
-func (i *index) GetDocument(ctx context.Context, id string, opts ...grpc.CallOption) (*GetDocumentResponse, error) {
+func (i *index) GetDocument(ctx context.Context, id string, opts ...grpc.CallOption) (string, map[string]interface{}, error) {
 	protoReq := &proto.GetDocumentRequest{
 		Id: id,
 	}
 
-	protoResp, _ := i.client.GetDocument(ctx, protoReq, opts...)
+	protoResp, err := i.client.GetDocument(ctx, protoReq, opts...)
+	if err != nil {
+		return "", nil, err
+	}
 
 	fieldsTmp, err := proto.UnmarshalAny(protoResp.Fields)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	var fields map[string]interface{}
@@ -120,29 +118,23 @@ func (i *index) GetDocument(ctx context.Context, id string, opts ...grpc.CallOpt
 		fields = *fieldsTmp.(*map[string]interface{})
 	}
 
-	return &GetDocumentResponse{
-		Id:        id,
-		Fields:    fields,
-		Succeeded: protoResp.Succeeded,
-		Message:   protoResp.Message,
-	}, nil
+	return protoResp.Id, fields, nil
 }
 
-func (i *index) DeleteDocument(ctx context.Context, id string, opts ...grpc.CallOption) (*DeleteDocumentResponse, error) {
+func (i *index) DeleteDocument(ctx context.Context, id string, opts ...grpc.CallOption) (string, error) {
 	protoReq := &proto.DeleteDocumentRequest{
 		Id: id,
 	}
 
-	protoResp, _ := i.client.DeleteDocument(ctx, protoReq, opts...)
+	protoResp, err := i.client.DeleteDocument(ctx, protoReq, opts...)
+	if err != nil {
+		return "", err
+	}
 
-	return &DeleteDocumentResponse{
-		Id:        id,
-		Succeeded: protoResp.Succeeded,
-		Message:   protoResp.Message,
-	}, nil
+	return protoResp.Id, nil
 }
 
-func (i *index) Bulk(ctx context.Context, requests []map[string]interface{}, batchSize int32, opts ...grpc.CallOption) (*BulkResponse, error) {
+func (i *index) Bulk(ctx context.Context, requests []map[string]interface{}, batchSize int32, opts ...grpc.CallOption) (int32, int32, int32, int32, error) {
 	updateRequests := make([]*proto.BulkRequest_UpdateRequest, 0)
 	for _, updateRequest := range requests {
 		r := &proto.BulkRequest_UpdateRequest{}
@@ -168,7 +160,7 @@ func (i *index) Bulk(ctx context.Context, requests []map[string]interface{}, bat
 			if _, ok := document["fields"]; ok {
 				fields, err := proto.MarshalAny(document["fields"].(map[string]interface{}))
 				if err != nil {
-					return nil, err
+					continue
 				}
 				d.Fields = &fields
 			}
@@ -186,19 +178,13 @@ func (i *index) Bulk(ctx context.Context, requests []map[string]interface{}, bat
 
 	protoResp, err := i.client.Bulk(ctx, protoReq, opts...)
 	if err != nil {
-		return nil, err
+		return 0, 0, 0, 0, err
 	}
 
-	return &BulkResponse{
-		PutCount:      protoResp.PutCount,
-		PutErrorCount: protoResp.PutErrorCount,
-		DeleteCount:   protoResp.DeleteCount,
-		Succeeded:     protoResp.Succeeded,
-		Message:       protoResp.Message,
-	}, nil
+	return protoResp.PutCount, protoResp.PutErrorCount, protoResp.DeleteCount, protoResp.MethodErrorCount, nil
 }
 
-func (i *index) Search(ctx context.Context, searchRequest *bleve.SearchRequest, opts ...grpc.CallOption) (*SearchResponse, error) {
+func (i *index) Search(ctx context.Context, searchRequest *bleve.SearchRequest, opts ...grpc.CallOption) (*bleve.SearchResult, error) {
 	searchResultAny, err := proto.MarshalAny(searchRequest)
 	if err != nil {
 		return nil, err
@@ -215,9 +201,5 @@ func (i *index) Search(ctx context.Context, searchRequest *bleve.SearchRequest, 
 
 	searchResult, err := proto.UnmarshalAny(protoResp.SearchResult)
 
-	return &SearchResponse{
-		SearchResult: searchResult.(*bleve.SearchResult),
-		Succeeded:    protoResp.Succeeded,
-		Message:      protoResp.Message,
-	}, err
+	return searchResult.(*bleve.SearchResult), err
 }

@@ -110,14 +110,24 @@ func (h *PutDocumentHandler) ServeHTTP(w http.ResponseWriter, req *http.Request)
 	defer cancel()
 
 	// request
-	resp, err := h.client.Index.PutDocument(ctx, id, fields)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"req": req,
-		}).Error("failed to put document")
-
-		Error(w, err.Error(), http.StatusServiceUnavailable)
-		return
+	//resp, err := h.client.Index.PutDocument(ctx, id, fields)
+	//if err != nil {
+	//	log.WithFields(log.Fields{
+	//		"req": req,
+	//	}).Error("failed to put document")
+	//
+	//	Error(w, err.Error(), http.StatusServiceUnavailable)
+	//	return
+	//}
+	putId, putFields, err := h.client.Index.PutDocument(ctx, id, fields)
+	resp := struct {
+		Id     string                 `json:"id,omitempty"`
+		Fields map[string]interface{} `json:"fields,omitempty"`
+		Error  error                  `json:"error,omitempty"`
+	}{
+		Id:     putId,
+		Fields: putFields,
+		Error:  err,
 	}
 
 	// output response

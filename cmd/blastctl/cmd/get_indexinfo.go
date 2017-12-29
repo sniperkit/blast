@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/blevesearch/bleve/mapping"
 	"github.com/mosuka/blast/client"
 	"github.com/spf13/cobra"
 	"time"
@@ -80,7 +81,22 @@ func runEGetIndexCmd(cmd *cobra.Command, args []string) error {
 	defer cancel()
 
 	// get document from index
-	resp, _ := c.Index.GetIndexInfo(ctx, getIndexCmdOpts.indexPath, getIndexCmdOpts.indexMapping, getIndexCmdOpts.indexType, getIndexCmdOpts.kvstore, getIndexCmdOpts.kvconfig)
+	indexPath, indexMapping, indexType, kvstore, kvconfig, err := c.Index.GetIndexInfo(ctx, getIndexCmdOpts.indexPath, getIndexCmdOpts.indexMapping, getIndexCmdOpts.indexType, getIndexCmdOpts.kvstore, getIndexCmdOpts.kvconfig)
+	resp := struct {
+		IndexPath    string                    `json:"index_path,omitempty"`
+		IndexMapping *mapping.IndexMappingImpl `json:"index_mapping,omitempty"`
+		IndexType    string                    `json:"index_type,omitempty"`
+		Kvstore      string                    `json:"kvstore,omitempty"`
+		Kvconfig     map[string]interface{}    `json:"kvconfig,omitempty"`
+		Error        error                     `json:"error,omitempty"`
+	}{
+		IndexPath:    indexPath,
+		IndexMapping: indexMapping,
+		IndexType:    indexType,
+		Kvstore:      kvstore,
+		Kvconfig:     kvconfig,
+		Error:        err,
+	}
 
 	// output response
 	switch rootCmdOpts.outputFormat {

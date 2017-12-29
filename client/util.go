@@ -26,11 +26,12 @@ type DeleteDocumentResponse struct {
 }
 
 type BulkResponse struct {
-	PutCount      int32  `json:"put_count"`
-	PutErrorCount int32  `json:"put_error_count"`
-	DeleteCount   int32  `json:"delete_count"`
-	Succeeded     bool   `json:"succeeded"`
-	Message       string `json:"message,omitempty"`
+	PutCount         int32  `json:"put_count"`
+	PutErrorCount    int32  `json:"put_error_count"`
+	DeleteCount      int32  `json:"delete_count"`
+	MethodErrorCount int32  `json:"delete_count"`
+	Succeeded        bool   `json:"succeeded"`
+	Message          string `json:"message,omitempty"`
 }
 
 type SearchResponse struct {

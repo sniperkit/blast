@@ -12,37 +12,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+GOARCH = amd64
+GOOS = linux
 VERSION = 0.1.0
 
 LDFLAGS = -ldflags "-X \"github.com/mosuka/blast/version.Version=${VERSION}\""
 
-GO := GO15VENDOREXPERIMENT=1 go
+GO := CGO_ENABLED=0 GO15VENDOREXPERIMENT=1 go
 PACKAGES = $(shell $(GO) list ./... | grep -v '/vendor/')
 PROTOBUFS = $(shell find . -name '*.proto' | sort --unique | grep -v /vendor/)
 TARGET_PACKAGES = $(shell find . -name 'main.go' -print0 | xargs -0 -n1 dirname | sort --unique | grep -v /vendor/)
+
 BUILD_TAGS = "-tags=''"
 #BUILD_TAGS = "-tags=lang"
 
-vendoring:
+.PHONY: vendor
+vendor:
 	@echo ">> vendoring dependencies"
 	gvt restore
 
+.PHONY: protoc
 protoc:
 	@echo ">> generating proto3 code"
 	@for proto_file in $(PROTOBUFS); do echo $$proto_file; protoc --go_out=plugins=grpc:. $$proto_file; done
 
+.PHONY: format
 format:
 	@echo ">> formatting code"
 	@$(GO) fmt $(PACKAGES)
 
+.PHONY: test
 test:
-	@echo ">> running all tests"
+	@echo ">> running tests"
 	@$(GO) test $(PACKAGES)
 
+.PHONY: build
 build:
 	@echo ">> building binaries"
-	@for target_pkg in $(TARGET_PACKAGES); do echo $$target_pkg; $(GO) build ${BUILD_TAGS} ${LDFLAGS} -o ./bin/`basename $$target_pkg` $$target_pkg; done
+	@for target_pkg in $(TARGET_PACKAGES); do echo $$target_pkg; GOARCH=$(GOARCH) GOOS=$(GOOS) $(GO) build ${BUILD_TAGS} ${LDFLAGS} -o ./bin/`basename $$target_pkg` $$target_pkg; done
 
+.PHONY: install
 install:
 	@echo ">> installing binaries"
-	@for target_pkg in $(TARGET_PACKAGES); do echo $$target_pkg; $(GO) install ${BUILD_TAGS} ${LDFLAGS} $$target_pkg; done
+	@for target_pkg in $(TARGET_PACKAGES); do echo $$target_pkg; GOARCH=$(GOARCH) GOOS=$(GOOS) $(GO) install ${BUILD_TAGS} ${LDFLAGS} $$target_pkg; done

@@ -120,15 +120,31 @@ func (h *BulkHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(requestTimeout)*time.Millisecond)
 	defer cancel()
 
-	// update documents to index in bulk
-	resp, err := h.client.Index.Bulk(ctx, requests, int32(batchSize))
-	if err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Error("failed to index documents in bulk")
+	//// update documents to index in bulk
+	//resp, err := h.client.Index.Bulk(ctx, requests, int32(batchSize))
+	//if err != nil {
+	//	log.WithFields(log.Fields{
+	//		"err": err,
+	//	}).Error("failed to index documents in bulk")
+	//
+	//	Error(w, err.Error(), http.StatusServiceUnavailable)
+	//	return
+	//}
 
-		Error(w, err.Error(), http.StatusServiceUnavailable)
-		return
+	// request
+	putCount, putErrorCount, deleteCount, methodErrorCount, err := h.client.Index.Bulk(ctx, requests, int32(batchSize))
+	resp := struct {
+		PutCount         int32 `json:"put_count,omitempty"`
+		PutErrorCount    int32 `json:"put_error_count,omitempty"`
+		DeleteCount      int32 `json:"delete_count,omitempty"`
+		MethodErrorCount int32 `json:"method_error_count,omitempty"`
+		Error            error `json:"error,omitempty"`
+	}{
+		PutCount:         putCount,
+		PutErrorCount:    putErrorCount,
+		DeleteCount:      deleteCount,
+		MethodErrorCount: methodErrorCount,
+		Error:            err,
 	}
 
 	// output response

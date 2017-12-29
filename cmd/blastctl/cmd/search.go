@@ -165,7 +165,14 @@ func runESearchCmd(cmd *cobra.Command, args []string) error {
 	defer cancel()
 
 	// search documents from index
-	resp, _ := c.Index.Search(ctx, searchRequest)
+	searchResult, err := c.Index.Search(ctx, searchRequest)
+	resp := struct {
+		SearchResult *bleve.SearchResult `json:"search_result,omitempty"`
+		Error        error               `json:"error,omitempty"`
+	}{
+		SearchResult: searchResult,
+		Error:        err,
+	}
 
 	// output response
 	switch rootCmdOpts.outputFormat {

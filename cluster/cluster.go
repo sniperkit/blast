@@ -8,7 +8,6 @@ import (
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/clientv3/clientv3util"
 	"github.com/pkg/errors"
-	//log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
 )
@@ -38,7 +37,6 @@ type BlastCluster interface {
 	GetNumberOfShards(ctx context.Context, collection string) (int, error)
 	PutNode(ctx context.Context, collection string, node string) error
 	DeleteNode(ctx context.Context, collection string, node string) error
-	//Watch(ctx context.Context, cluster string) error
 	Watch(ctx context.Context, cluster string) clientv3.WatchChan
 	Close() error
 }

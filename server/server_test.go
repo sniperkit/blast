@@ -32,10 +32,6 @@ func TestBlastServer(t *testing.T) {
 	indexType := "upside_down"
 	kvstore := "boltdb"
 	kvconfigPath := dir + "/../etc/kvconfig.json"
-	etcdEndpoints := []string{}
-	etcdDialTimeout := 5000
-	etcdRequestTimeout := 5000
-	cluster := ""
 
 	indexMappingFile, err := os.Open(indexMappingPath)
 	if err != nil {
@@ -59,7 +55,7 @@ func TestBlastServer(t *testing.T) {
 		t.Errorf("could not load kvconfig %v", err)
 	}
 
-	blastServer, err := NewBlastServer(port, indexPath, indexMapping, indexType, kvstore, kvconfig, etcdEndpoints, etcdDialTimeout, etcdRequestTimeout, cluster)
+	blastServer, err := NewBlastServer(port, indexPath, indexMapping, indexType, kvstore, kvconfig)
 
 	if blastServer == nil {
 		t.Fatalf("unexpected error. expected not nil, actual %v", blastServer)

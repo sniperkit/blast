@@ -99,18 +99,24 @@ func runECollectionClusterCmd(cmd *cobra.Command, args []string) error {
 	}
 	defer c.Close()
 
-	resp := struct {
-		Succeeded bool `json:"succeeded"`
-	}{
-		Succeeded: true,
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(createCollectionCmdOpts.etcdRequestTimeout)*time.Millisecond)
 	defer cancel()
 
 	err = c.CreateCollection(ctx, createCollectionCmdOpts.name, indexMapping, createCollectionCmdOpts.indexType, createCollectionCmdOpts.kvstore, kvconfig, createCollectionCmdOpts.numberOfShards)
-	if err != nil {
-		resp.Succeeded = false
+	resp := struct {
+		IndexMapping   *mapping.IndexMappingImpl `json:"index_mapping,omitempty"`
+		IndexType      string                    `json:"index_type,omitempty"`
+		Kvstore        string                    `json:"kvstore,omitempty"`
+		Kvconfig       map[string]interface{}    `json:"kvconfig,omitempty"`
+		NumberOfShards int                       `json:"number_of_shards,omitempty"`
+		Error          error                     `json:"error,omitempty"`
+	}{
+		IndexMapping:   indexMapping,
+		IndexType:      createCollectionCmdOpts.indexType,
+		Kvstore:        createCollectionCmdOpts.kvstore,
+		Kvconfig:       kvconfig,
+		NumberOfShards: createCollectionCmdOpts.numberOfShards,
+		Error:          err,
 	}
 
 	// output response

@@ -120,7 +120,16 @@ func runEPutDocumentCmd(cmd *cobra.Command, args []string) error {
 	defer cancel()
 
 	// put document to index
-	resp, _ := c.Index.PutDocument(ctx, id, fields)
+	putId, putFields, err := c.Index.PutDocument(ctx, id, fields)
+	resp := struct {
+		Id     string                 `json:"id,omitempty"`
+		Fields map[string]interface{} `json:"fields,omitempty"`
+		Error  error                  `json:"error,omitempty"`
+	}{
+		Id:     putId,
+		Fields: putFields,
+		Error:  err,
+	}
 
 	// output response
 	switch rootCmdOpts.outputFormat {

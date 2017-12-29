@@ -69,7 +69,16 @@ func runEGetDocumentCmd(cmd *cobra.Command, args []string) error {
 	defer cancel()
 
 	// get document from index
-	resp, _ := c.Index.GetDocument(ctx, getDocumentCmdOpts.id)
+	id, fields, err := c.Index.GetDocument(ctx, getDocumentCmdOpts.id)
+	resp := struct {
+		Id     string                 `json:"id,omitempty"`
+		Fields map[string]interface{} `json:"fields,omitempty"`
+		Error  error                  `json:"error,omitempty"`
+	}{
+		Id:     id,
+		Fields: fields,
+		Error:  err,
+	}
 
 	// output response
 	switch rootCmdOpts.outputFormat {

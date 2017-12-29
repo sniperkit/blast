@@ -99,6 +99,9 @@ func runEEditCollectionCmd(cmd *cobra.Command, args []string) error {
 	}
 	defer c.Close()
 
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(editCollectionCmdOpts.etcdRequestTimeout)*time.Millisecond)
+	defer cancel()
+
 	resp := struct {
 		IndexMapping   *mapping.IndexMappingImpl `json:"index_mapping,omitempty"`
 		IndexType      string                    `json:"index_type,omitempty"`
@@ -106,9 +109,6 @@ func runEEditCollectionCmd(cmd *cobra.Command, args []string) error {
 		Kvconfig       map[string]interface{}    `json:"kvconfig,omitempty"`
 		NumberOfShards int                       `json:"number_of_shards,omitempty"`
 	}{}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(editCollectionCmdOpts.etcdRequestTimeout)*time.Millisecond)
-	defer cancel()
 
 	if cmd.Flag("index-mapping").Changed {
 		err := c.PutIndexMapping(ctx, editCollectionCmdOpts.name, indexMapping)

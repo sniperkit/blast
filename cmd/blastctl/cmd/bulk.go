@@ -110,7 +110,20 @@ func runEBulkCmd(cmd *cobra.Command, args []string) error {
 	defer cancel()
 
 	// update documents to index in bulk
-	resp, _ := c.Index.Bulk(ctx, requests, int32(batchSize))
+	putCount, putErrorCount, deleteCount, methodErrorCount, err := c.Index.Bulk(ctx, requests, int32(batchSize))
+	resp := struct {
+		PutCount         int32 `json:"put_count,omitempty"`
+		PutErrorCount    int32 `json:"put_error_count,omitempty"`
+		DeleteCount      int32 `json:"delete_count,omitempty"`
+		MethodErrorCount int32 `json:"method_error_count,omitempty"`
+		Error            error `json:"error,omitempty"`
+	}{
+		PutCount:         putCount,
+		PutErrorCount:    putErrorCount,
+		DeleteCount:      deleteCount,
+		MethodErrorCount: methodErrorCount,
+		Error:            err,
+	}
 
 	// output request
 	switch rootCmdOpts.outputFormat {

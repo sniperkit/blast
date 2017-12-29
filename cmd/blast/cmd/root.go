@@ -171,47 +171,57 @@ func persistentPreRunERootCmd(cmd *cobra.Command, args []string) error {
 }
 
 func runERootCmd(cmd *cobra.Command, args []string) error {
-	indexMapping := mapping.NewIndexMapping()
-	if viper.GetString("index_mapping") != "" {
-		file, err := os.Open(viper.GetString("index_mapping"))
-		if err != nil {
-			return err
-		}
-		defer file.Close()
+	var blastServer *server.BlastServer
+	var err error
 
-		indexMapping, err = util.NewIndexMapping(file)
-		if err != nil {
-			return err
+	if len(viper.GetStringSlice("etcd_endpoints")) > 0 {
+		blastServer, err = server.NewBlastServerInClusterMode(
+			viper.GetInt("port"),
+			viper.GetString("index_path"),
+			viper.GetStringSlice("etcd_endpoints"),
+			viper.GetInt("etcd_dial_timeout"),
+			viper.GetInt("etcd_request_timeout"),
+			viper.GetString("collection"),
+		)
+	} else {
+		indexMapping := mapping.NewIndexMapping()
+		if viper.GetString("index_mapping") != "" {
+			file, err := os.Open(viper.GetString("index_mapping"))
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+
+			indexMapping, err = util.NewIndexMapping(file)
+			if err != nil {
+				return err
+			}
 		}
+
+		kvconfig := make(map[string]interface{})
+		if viper.GetString("kvconfig") != "" {
+			file, err := os.Open(viper.GetString("kvconfig"))
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+
+			kvconfig, err = util.NewKvconfig(file)
+			if err != nil {
+				return err
+			}
+		}
+
+		blastServer, err = server.NewBlastServer(
+			viper.GetInt("port"),
+			viper.GetString("index_path"),
+			indexMapping,
+			viper.GetString("index_type"),
+			viper.GetString("kvstore"),
+			kvconfig,
+		)
 	}
 
-	kvconfig := make(map[string]interface{})
-	if viper.GetString("kvconfig") != "" {
-		file, err := os.Open(viper.GetString("kvconfig"))
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-
-		kvconfig, err = util.NewKvconfig(file)
-		if err != nil {
-			return err
-		}
-	}
-
-	blastServer, err := server.NewBlastServer(
-		viper.GetInt("port"),
-		viper.GetString("index_path"),
-		indexMapping,
-		viper.GetString("index_type"),
-		viper.GetString("kvstore"),
-		kvconfig,
-		viper.GetStringSlice("etcd_endpoints"),
-		viper.GetInt("etcd_dial_timeout"),
-		viper.GetInt("etcd_request_timeout"),
-		viper.GetString("collection"),
-		//viper.GetString("shard"),
-	)
 	if err != nil {
 		log.Fatal("server initialization error")
 		return nil
@@ -219,6 +229,7 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 
 	err = blastServer.Start()
 	if err != nil {
+		log.Fatal("server initialization error")
 		return nil
 	}
 

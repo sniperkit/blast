@@ -21,7 +21,6 @@ import (
 	"github.com/mosuka/blast/cluster"
 	"github.com/mosuka/blast/proto"
 	"github.com/mosuka/blast/service"
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"net"
@@ -40,96 +39,75 @@ type BlastServer struct {
 	node       string
 }
 
-func NewBlastServer(port int,
-	indexPath string, indexMapping *mapping.IndexMappingImpl, indexType string, kvstore string, kvconfig map[string]interface{},
-	etcdEndpoints []string, etcdDialTimeout int, etcdRequestTimeout int, collection string) (*BlastServer, error) {
+func NewBlastServerInClusterMode(port int, indexPath string, etcdEndpoints []string, etcdDialTimeout int, etcdRequestTimeout int, collection string) (*BlastServer, error) {
 
-	hostname, err := os.Hostname()
+	blastCluster, err := cluster.NewBlastCluster(etcdEndpoints, etcdDialTimeout)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"error": err.Error(),
-		}).Error("failed to get the hostname")
+		log.Error(err.Error())
 		return nil, err
 	}
-	log.WithFields(log.Fields{
-		"hostname": hostname,
-	}).Info("got the hostname")
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(etcdRequestTimeout)*time.Millisecond)
+	defer cancel()
+
+	// fetch index mapping
+	indexMapping, err := blastCluster.GetIndexMapping(ctx, collection)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+
+	// fetch index type
+	indexType, err := blastCluster.GetIndexType(ctx, collection)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+
+	// fetch kvstore
+	kvstore, err := blastCluster.GetKvstore(ctx, collection)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+
+	// fetch kvconfig
+	kvconfig, err := blastCluster.GetKvconfig(ctx, collection)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+
+	blastServer, err := NewBlastServer(port, indexPath, indexMapping, indexType, kvstore, kvconfig)
+	if err != nil {
+		return nil, err
+	}
+
+	blastServer.collection = collection
+	blastServer.BlastCluster = blastCluster
+
+	return blastServer, nil
+}
+
+func NewBlastServer(port int, indexPath string, indexMapping *mapping.IndexMappingImpl, indexType string, kvstore string, kvconfig map[string]interface{}) (*BlastServer, error) {
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
 
 	node := fmt.Sprintf("%s:%d", hostname, port)
-	log.WithFields(log.Fields{
-		"node": node,
-	}).Info("determine the node")
-
-	var blastCluster cluster.BlastCluster
-	if len(etcdEndpoints) > 0 {
-		blastCluster, err = cluster.NewBlastCluster(etcdEndpoints, etcdDialTimeout)
-		if err != nil {
-			log.WithFields(log.Fields{
-				"error": err.Error(),
-			}).Error("failed to connect the cluster")
-			return nil, err
-		}
-
-		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(etcdRequestTimeout)*time.Millisecond)
-		defer cancel()
-
-		// fetch index mapping
-		fetchedIndexMapping, err := blastCluster.GetIndexMapping(ctx, collection)
-		if err != nil {
-			log.WithFields(log.Fields{
-				"error": err.Error(),
-			}).Error("failed to fetch the index mapping")
-			return nil, errors.New("failed to fetch the index mapping")
-		}
-		indexMapping = fetchedIndexMapping
-		log.Info("succeeded in fetch the index mapping")
-
-		// fetch index type
-		fetchedIndexType, err := blastCluster.GetIndexType(ctx, collection)
-		if err != nil {
-			log.WithFields(log.Fields{
-				"error": err.Error(),
-			}).Error("failed to fetch the index type")
-			return nil, errors.New("failed to fetch the index type")
-		}
-		indexType = fetchedIndexType
-		log.Info("succeeded in fetch the index type")
-
-		// fetch kvstore
-		fetchedKvstore, err := blastCluster.GetKvstore(ctx, collection)
-		if err != nil {
-			log.WithFields(log.Fields{
-				"error": err.Error(),
-			}).Error("failed to fetch the kvstore")
-			return nil, errors.New("failed to fetch the kvstore")
-		}
-		kvstore = fetchedKvstore
-		log.Info("succeeded in fetch the kvstore")
-
-		// fetch kvconfig
-		fetchedKvconfig, err := blastCluster.GetKvconfig(ctx, collection)
-		if err != nil {
-			log.WithFields(log.Fields{
-				"error": err.Error(),
-			}).Error("failed to fetch the kvconfig")
-			return nil, errors.New("failed to fetch the kvconfig")
-		}
-		kvconfig = fetchedKvconfig
-		log.Info("succeeded in fetch the kvconfig")
-	}
 
 	svr := grpc.NewServer()
 	svc := service.NewBlastService(indexPath, indexMapping, indexType, kvstore, kvconfig)
 	proto.RegisterIndexServer(svr, svc)
 
 	return &BlastServer{
-		BlastCluster: blastCluster,
-		hostname:     hostname,
-		port:         port,
-		server:       svr,
-		service:      svc,
-		collection:   collection,
-		node:         node,
+		hostname: hostname,
+		port:     port,
+		server:   svr,
+		service:  svc,
+		node:     node,
 	}, nil
 }
 
@@ -138,20 +116,13 @@ func (s *BlastServer) Start() error {
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", s.port))
 	if err != nil {
 		log.WithFields(log.Fields{
-			"port":  s.port,
-			"error": err.Error(),
-		}).Error("failed to create the listener")
+			"port": s.port,
+		}).Error(err.Error())
 		return err
 	}
-	log.WithFields(log.Fields{
-		"port": s.port,
-	}).Info("created the listener")
 
 	if s.BlastCluster != nil {
 		s.watchCollection()
-		log.WithFields(log.Fields{
-			"collection": s.collection,
-		}).Info("watching the cluster information has been started")
 	}
 
 	// start server
@@ -160,18 +131,12 @@ func (s *BlastServer) Start() error {
 		s.server.Serve(listener)
 		return
 	}()
-	log.Info("server has been started")
 
 	if s.BlastCluster != nil {
 		err := s.joinCluster()
 		if err != nil {
-			log.WithFields(log.Fields{
-				"error": err.Error(),
-			}).Error("failed to join the collection")
-		} else {
-			log.WithFields(log.Fields{
-				"collection": s.collection,
-			}).Info("server has been joined the collection")
+			log.Error(err.Error())
+			return err
 		}
 	}
 
@@ -182,34 +147,21 @@ func (s *BlastServer) Stop() error {
 	if s.BlastCluster != nil {
 		err := s.leaveCluster()
 		if err != nil {
-			log.WithFields(log.Fields{
-				"error": err.Error(),
-			}).Error("failed to leave the collection")
-		} else {
-			log.WithFields(log.Fields{
-				"collection": s.collection,
-			}).Info("server has been left the collection")
+			log.Error(err.Error())
 		}
 
 		err = s.BlastCluster.Close()
 		if err != nil {
-			log.WithFields(log.Fields{
-				"error": err.Error(),
-			}).Error("failed to disconnect the cluster")
+			log.Error(err.Error())
 		}
 	}
 
 	err := s.service.CloseIndex()
 	if err != nil {
-		log.WithFields(log.Fields{
-			"error": err.Error(),
-		}).Error("failed to close the index")
+		log.Error(err.Error())
 	}
-	log.Info("closed the index")
 
 	s.server.GracefulStop()
-
-	log.Info("the blast server has been stopped")
 
 	return err
 }

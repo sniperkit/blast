@@ -17,6 +17,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"github.com/blevesearch/bleve/mapping"
 	"github.com/mosuka/blast/client"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -92,14 +93,30 @@ func (h *GetIndexInfoHandler) ServeHTTP(w http.ResponseWriter, req *http.Request
 	defer cancel()
 
 	// request
-	resp, err := h.client.Index.GetIndexInfo(ctx, indexPath, indexMapping, indexType, kvstore, kvconfig)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Error("failed to get index")
-
-		Error(w, err.Error(), http.StatusServiceUnavailable)
-		return
+	//resp, err := h.client.Index.GetIndexInfo(ctx, indexPath, indexMapping, indexType, kvstore, kvconfig)
+	//if err != nil {
+	//	log.WithFields(log.Fields{
+	//		"err": err,
+	//	}).Error("failed to get index")
+	//
+	//	Error(w, err.Error(), http.StatusServiceUnavailable)
+	//	return
+	//}
+	indexPathResp, indexMappingResp, indexTypeResp, kvstoreResp, kvconfigResp, err := h.client.Index.GetIndexInfo(ctx, indexPath, indexMapping, indexType, kvstore, kvconfig)
+	resp := struct {
+		IndexPath    string                    `json:"index_path,omitempty"`
+		IndexMapping *mapping.IndexMappingImpl `json:"index_mapping,omitempty"`
+		IndexType    string                    `json:"index_type,omitempty"`
+		Kvstore      string                    `json:"kvstore,omitempty"`
+		Kvconfig     map[string]interface{}    `json:"kvconfig,omitempty"`
+		Error        error                     `json:"error,omitempty"`
+	}{
+		IndexPath:    indexPathResp,
+		IndexMapping: indexMappingResp,
+		IndexType:    indexTypeResp,
+		Kvstore:      kvstoreResp,
+		Kvconfig:     kvconfigResp,
+		Error:        err,
 	}
 
 	// output response

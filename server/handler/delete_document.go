@@ -62,15 +62,24 @@ func (h *DeleteDocumentHandler) ServeHTTP(w http.ResponseWriter, req *http.Reque
 	defer cancel()
 
 	// request
-	resp, err := h.client.Index.DeleteDocument(ctx, vars["id"])
-	if err != nil {
-		log.WithFields(log.Fields{
-			"req": req,
-		}).Error("failed to delete document")
-
-		Error(w, err.Error(), http.StatusServiceUnavailable)
-		return
+	id, err := h.client.Index.DeleteDocument(ctx, vars["id"])
+	resp := struct {
+		Id    string `json:"id,omitempty"`
+		Error error  `json:"error,omitempty"`
+	}{
+		Id:    id,
+		Error: err,
 	}
+
+	//resp, err := h.client.Index.DeleteDocument(ctx, vars["id"])
+	//if err != nil {
+	//	log.WithFields(log.Fields{
+	//		"req": req,
+	//	}).Error("failed to delete document")
+	//
+	//	Error(w, err.Error(), http.StatusServiceUnavailable)
+	//	return
+	//}
 
 	// output response
 	output, err := json.MarshalIndent(resp, "", "  ")
