@@ -103,7 +103,6 @@ func persistentPreRunERootCmd(cmd *cobra.Command, args []string) error {
 			TimestampFormat:  time.RFC3339,
 			DisableSorting:   false,
 			QuoteEmptyFields: true,
-			QuoteCharacter:   "\"",
 		})
 	case "color":
 		log.SetFormatter(&log.TextFormatter{
@@ -114,7 +113,6 @@ func persistentPreRunERootCmd(cmd *cobra.Command, args []string) error {
 			TimestampFormat:  time.RFC3339,
 			DisableSorting:   false,
 			QuoteEmptyFields: true,
-			QuoteCharacter:   "\"",
 		})
 	case "json":
 		log.SetFormatter(&log.JSONFormatter{
@@ -135,7 +133,6 @@ func persistentPreRunERootCmd(cmd *cobra.Command, args []string) error {
 			TimestampFormat:  time.RFC3339,
 			DisableSorting:   false,
 			QuoteEmptyFields: true,
-			QuoteCharacter:   "\"",
 		})
 	}
 
@@ -265,13 +262,11 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("HTTP")
 
 		err = grpcServer.Stop()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("gRPC")
 
 		return nil
 	}
