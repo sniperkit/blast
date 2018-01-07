@@ -29,10 +29,10 @@ import (
 )
 
 type SearchHandler struct {
-	client *client.BlastClient
+	client *client.GRPCClient
 }
 
-func NewSearchHandler(c *client.BlastClient) *SearchHandler {
+func NewSearchHandler(c *client.GRPCClient) *SearchHandler {
 	return &SearchHandler{
 		client: c,
 	}
@@ -185,16 +185,7 @@ func (h *SearchHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer cancel()
 
 	// request
-	//resp, err := h.client.Index.Search(ctx, searchRequest)
-	//if err != nil {
-	//	log.WithFields(log.Fields{
-	//		"req": req,
-	//	}).Error("failed to search documents")
-	//
-	//	Error(w, err.Error(), http.StatusServiceUnavailable)
-	//	return
-	//}
-	searchResult, err := h.client.Index.Search(ctx, searchRequest)
+	searchResult, err := h.client.Search(ctx, searchRequest)
 	resp := struct {
 		SearchResult *bleve.SearchResult `json:"search_result,omitempty"`
 		Error        error               `json:"error,omitempty"`

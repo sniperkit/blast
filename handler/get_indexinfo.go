@@ -26,10 +26,10 @@ import (
 )
 
 type GetIndexInfoHandler struct {
-	client *client.BlastClient
+	client *client.GRPCClient
 }
 
-func NewGetIndexInfoHandler(c *client.BlastClient) *GetIndexInfoHandler {
+func NewGetIndexInfoHandler(c *client.GRPCClient) *GetIndexInfoHandler {
 	return &GetIndexInfoHandler{
 		client: c,
 	}
@@ -37,7 +37,13 @@ func NewGetIndexInfoHandler(c *client.BlastClient) *GetIndexInfoHandler {
 
 func (h *GetIndexInfoHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	log.WithFields(log.Fields{
-		"req": req,
+		"host":           req.Host,
+		"uri":            req.RequestURI,
+		"method":         req.Method,
+		"content_length": req.ContentLength,
+		"remote_addr":    req.RemoteAddr,
+		"header":         req.Header,
+		"url":            req.URL,
 	}).Info("")
 
 	var indexPath bool
@@ -93,16 +99,7 @@ func (h *GetIndexInfoHandler) ServeHTTP(w http.ResponseWriter, req *http.Request
 	defer cancel()
 
 	// request
-	//resp, err := h.client.Index.GetIndexInfo(ctx, indexPath, indexMapping, indexType, kvstore, kvconfig)
-	//if err != nil {
-	//	log.WithFields(log.Fields{
-	//		"err": err,
-	//	}).Error("failed to get index")
-	//
-	//	Error(w, err.Error(), http.StatusServiceUnavailable)
-	//	return
-	//}
-	indexPathResp, indexMappingResp, indexTypeResp, kvstoreResp, kvconfigResp, err := h.client.Index.GetIndexInfo(ctx, indexPath, indexMapping, indexType, kvstore, kvconfig)
+	indexPathResp, indexMappingResp, indexTypeResp, kvstoreResp, kvconfigResp, err := h.client.GetIndexInfo(ctx, indexPath, indexMapping, indexType, kvstore, kvconfig)
 	resp := struct {
 		IndexPath    string                    `json:"index_path,omitempty"`
 		IndexMapping *mapping.IndexMappingImpl `json:"index_mapping,omitempty"`

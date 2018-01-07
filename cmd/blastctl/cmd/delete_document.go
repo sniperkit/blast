@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"github.com/mosuka/blast/client"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 	"time"
 )
 
@@ -50,15 +51,8 @@ func runEDeleteDocumentCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("required flag: --%s", cmd.Flag("id").Name)
 	}
 
-	// create client config
-	cfg := client.Config{
-		Server:      deleteDocumentCmdOpts.server,
-		DialTimeout: time.Duration(deleteDocumentCmdOpts.dialTimeout) * time.Millisecond,
-		Context:     context.Background(),
-	}
-
 	// create client
-	c, err := client.NewBlastClient(&cfg)
+	c, err := client.NewGRPCClient(context.Background(), deleteDocumentCmdOpts.server, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
@@ -69,7 +63,7 @@ func runEDeleteDocumentCmd(cmd *cobra.Command, args []string) error {
 	defer cancel()
 
 	// delete document from index
-	id, err := c.Index.DeleteDocument(ctx, deleteDocumentCmdOpts.id)
+	id, err := c.DeleteDocument(ctx, deleteDocumentCmdOpts.id)
 	resp := struct {
 		Id    string `json:"id,omitempty"`
 		Error error  `json:"error,omitempty"`

@@ -21,6 +21,7 @@ import (
 	"github.com/buger/jsonparser"
 	"github.com/mosuka/blast/client"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 	"io/ioutil"
 	"os"
 	"time"
@@ -91,15 +92,8 @@ func runEBulkCmd(cmd *cobra.Command, args []string) error {
 		batchSize = int64(bulkCmdOpts.batchSize)
 	}
 
-	// create client config
-	cfg := client.Config{
-		Server:      bulkCmdOpts.server,
-		DialTimeout: time.Duration(bulkCmdOpts.dialTimeout) * time.Millisecond,
-		Context:     context.Background(),
-	}
-
 	// create client
-	c, err := client.NewBlastClient(&cfg)
+	c, err := client.NewGRPCClient(context.Background(), bulkCmdOpts.server, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
@@ -110,7 +104,7 @@ func runEBulkCmd(cmd *cobra.Command, args []string) error {
 	defer cancel()
 
 	// update documents to index in bulk
-	putCount, putErrorCount, deleteCount, methodErrorCount, err := c.Index.Bulk(ctx, requests, int32(batchSize))
+	putCount, putErrorCount, deleteCount, methodErrorCount, err := c.Bulk(ctx, requests, int32(batchSize))
 	resp := struct {
 		PutCount         int32 `json:"put_count,omitempty"`
 		PutErrorCount    int32 `json:"put_error_count,omitempty"`

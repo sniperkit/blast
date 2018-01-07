@@ -22,6 +22,7 @@ import (
 	"github.com/buger/jsonparser"
 	"github.com/mosuka/blast/client"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 	"io/ioutil"
 	"os"
 	"time"
@@ -146,15 +147,8 @@ func runESearchCmd(cmd *cobra.Command, args []string) error {
 		searchRequest.IncludeLocations = searchCmdOpts.includeLocations
 	}
 
-	// create client config
-	cfg := client.Config{
-		Server:      searchCmdOpts.server,
-		DialTimeout: time.Duration(searchCmdOpts.dialTimeout) * time.Millisecond,
-		Context:     context.Background(),
-	}
-
 	// create client
-	c, err := client.NewBlastClient(&cfg)
+	c, err := client.NewGRPCClient(context.Background(), searchCmdOpts.server, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
@@ -165,7 +159,7 @@ func runESearchCmd(cmd *cobra.Command, args []string) error {
 	defer cancel()
 
 	// search documents from index
-	searchResult, err := c.Index.Search(ctx, searchRequest)
+	searchResult, err := c.Search(ctx, searchRequest)
 	resp := struct {
 		SearchResult *bleve.SearchResult `json:"search_result,omitempty"`
 		Error        error               `json:"error,omitempty"`

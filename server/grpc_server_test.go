@@ -55,7 +55,7 @@ func TestBlastServer(t *testing.T) {
 		t.Errorf("could not load kvconfig %v", err)
 	}
 
-	blastServer, err := NewBlastServer(port, indexPath, indexMapping, indexType, kvstore, kvconfig)
+	blastServer, err := NewGRPCServer(port, indexPath, indexMapping, indexType, kvstore, kvconfig)
 
 	if blastServer == nil {
 		t.Fatalf("unexpected error. expected not nil, actual %v", blastServer)

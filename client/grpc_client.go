@@ -15,35 +15,54 @@
 package client
 
 import (
+	"context"
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/mapping"
 	"github.com/mosuka/blast/proto"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 
-type Index interface {
-	GetIndexInfo(ctx context.Context, indexPath bool, indexMapping bool, indexType bool, kvstore bool, kvconfig bool, opts ...grpc.CallOption) (string, *mapping.IndexMappingImpl, string, string, map[string]interface{}, error)
-	PutDocument(ctx context.Context, id string, fields map[string]interface{}, opts ...grpc.CallOption) (string, map[string]interface{}, error)
-	GetDocument(ctx context.Context, id string, opts ...grpc.CallOption) (string, map[string]interface{}, error)
-	DeleteDocument(ctx context.Context, id string, opts ...grpc.CallOption) (string, error)
-	Bulk(ctx context.Context, requests []map[string]interface{}, batchSize int32, opts ...grpc.CallOption) (int32, int32, int32, int32, error)
-	Search(ctx context.Context, searchRequest *bleve.SearchRequest, opts ...grpc.CallOption) (*bleve.SearchResult, error)
+type GRPCClient struct {
+	server      string
+	dialOptions []grpc.DialOption
+	context     context.Context
+	cancel      context.CancelFunc
+	conn        *grpc.ClientConn
+	indexClient proto.IndexClient
 }
 
-type index struct {
-	client proto.IndexClient
-}
+func NewGRPCClient(ctx context.Context, server string, dialOpts ...grpc.DialOption) (*GRPCClient, error) {
+	ct, cancel := context.WithCancel(ctx)
 
-func NewIndex(c *BlastClient) Index {
-	ic := proto.NewIndexClient(c.conn)
-
-	return &index{
-		client: ic,
+	conn, err := grpc.DialContext(ct, server, dialOpts...)
+	if err != nil {
+		cancel()
+		return nil, err
 	}
+
+	ic := proto.NewIndexClient(conn)
+
+	c := &GRPCClient{
+		server:      server,
+		dialOptions: dialOpts,
+		context:     ct,
+		cancel:      cancel,
+		conn:        conn,
+		indexClient: ic,
+	}
+
+	return c, nil
 }
 
-func (i *index) GetIndexInfo(ctx context.Context, indexPath bool, indexMapping bool, indexType bool, kvstore bool, kvconfig bool, opts ...grpc.CallOption) (string, *mapping.IndexMappingImpl, string, string, map[string]interface{}, error) {
+func (c *GRPCClient) Close() error {
+	c.cancel()
+	if c.conn != nil {
+		return c.conn.Close()
+	}
+	return c.context.Err()
+}
+
+func (c *GRPCClient) GetIndexInfo(ctx context.Context, indexPath bool, indexMapping bool, indexType bool, kvstore bool, kvconfig bool, callOpts ...grpc.CallOption) (string, *mapping.IndexMappingImpl, string, string, map[string]interface{}, error) {
 	protoReq := &proto.GetIndexInfoRequest{
 		IndexMapping: indexMapping,
 		IndexType:    indexType,
@@ -51,7 +70,7 @@ func (i *index) GetIndexInfo(ctx context.Context, indexPath bool, indexMapping b
 		Kvconfig:     kvconfig,
 	}
 
-	protoResp, err := i.client.GetIndexInfo(ctx, protoReq, opts...)
+	protoResp, err := c.indexClient.GetIndexInfo(ctx, protoReq, callOpts...)
 	if err != nil {
 		return "", nil, "", "", nil, err
 	}
@@ -69,7 +88,7 @@ func (i *index) GetIndexInfo(ctx context.Context, indexPath bool, indexMapping b
 	return protoResp.IndexPath, im.(*mapping.IndexMappingImpl), protoResp.IndexType, protoResp.Kvstore, *kvc.(*map[string]interface{}), nil
 }
 
-func (i *index) PutDocument(ctx context.Context, id string, fields map[string]interface{}, opts ...grpc.CallOption) (string, map[string]interface{}, error) {
+func (c *GRPCClient) PutDocument(ctx context.Context, id string, fields map[string]interface{}, callOpts ...grpc.CallOption) (string, map[string]interface{}, error) {
 	fieldAny, err := proto.MarshalAny(fields)
 	if err != nil {
 		return "", nil, err
@@ -80,7 +99,7 @@ func (i *index) PutDocument(ctx context.Context, id string, fields map[string]in
 		Fields: &fieldAny,
 	}
 
-	protoResp, err := i.client.PutDocument(ctx, protoReq, opts...)
+	protoResp, err := c.indexClient.PutDocument(ctx, protoReq, callOpts...)
 	if err != nil {
 		return "", nil, err
 	}
@@ -98,12 +117,12 @@ func (i *index) PutDocument(ctx context.Context, id string, fields map[string]in
 	return protoResp.Id, fieldsPut, nil
 }
 
-func (i *index) GetDocument(ctx context.Context, id string, opts ...grpc.CallOption) (string, map[string]interface{}, error) {
+func (c *GRPCClient) GetDocument(ctx context.Context, id string, callOpts ...grpc.CallOption) (string, map[string]interface{}, error) {
 	protoReq := &proto.GetDocumentRequest{
 		Id: id,
 	}
 
-	protoResp, err := i.client.GetDocument(ctx, protoReq, opts...)
+	protoResp, err := c.indexClient.GetDocument(ctx, protoReq, callOpts...)
 	if err != nil {
 		return "", nil, err
 	}
@@ -121,12 +140,12 @@ func (i *index) GetDocument(ctx context.Context, id string, opts ...grpc.CallOpt
 	return protoResp.Id, fields, nil
 }
 
-func (i *index) DeleteDocument(ctx context.Context, id string, opts ...grpc.CallOption) (string, error) {
+func (c *GRPCClient) DeleteDocument(ctx context.Context, id string, callOpts ...grpc.CallOption) (string, error) {
 	protoReq := &proto.DeleteDocumentRequest{
 		Id: id,
 	}
 
-	protoResp, err := i.client.DeleteDocument(ctx, protoReq, opts...)
+	protoResp, err := c.indexClient.DeleteDocument(ctx, protoReq, callOpts...)
 	if err != nil {
 		return "", err
 	}
@@ -134,7 +153,7 @@ func (i *index) DeleteDocument(ctx context.Context, id string, opts ...grpc.Call
 	return protoResp.Id, nil
 }
 
-func (i *index) Bulk(ctx context.Context, requests []map[string]interface{}, batchSize int32, opts ...grpc.CallOption) (int32, int32, int32, int32, error) {
+func (c *GRPCClient) Bulk(ctx context.Context, requests []map[string]interface{}, batchSize int32, callOpts ...grpc.CallOption) (int32, int32, int32, int32, error) {
 	updateRequests := make([]*proto.BulkRequest_UpdateRequest, 0)
 	for _, updateRequest := range requests {
 		r := &proto.BulkRequest_UpdateRequest{}
@@ -176,7 +195,7 @@ func (i *index) Bulk(ctx context.Context, requests []map[string]interface{}, bat
 		UpdateRequests: updateRequests,
 	}
 
-	protoResp, err := i.client.Bulk(ctx, protoReq, opts...)
+	protoResp, err := c.indexClient.Bulk(ctx, protoReq, callOpts...)
 	if err != nil {
 		return 0, 0, 0, 0, err
 	}
@@ -184,7 +203,7 @@ func (i *index) Bulk(ctx context.Context, requests []map[string]interface{}, bat
 	return protoResp.PutCount, protoResp.PutErrorCount, protoResp.DeleteCount, protoResp.MethodErrorCount, nil
 }
 
-func (i *index) Search(ctx context.Context, searchRequest *bleve.SearchRequest, opts ...grpc.CallOption) (*bleve.SearchResult, error) {
+func (c *GRPCClient) Search(ctx context.Context, searchRequest *bleve.SearchRequest, opts ...grpc.CallOption) (*bleve.SearchResult, error) {
 	searchResultAny, err := proto.MarshalAny(searchRequest)
 	if err != nil {
 		return nil, err
@@ -194,7 +213,7 @@ func (i *index) Search(ctx context.Context, searchRequest *bleve.SearchRequest, 
 		SearchRequest: &searchResultAny,
 	}
 
-	protoResp, err := i.client.Search(ctx, protoReq, opts...)
+	protoResp, err := c.indexClient.Search(ctx, protoReq, opts...)
 	if err != nil {
 		return nil, err
 	}

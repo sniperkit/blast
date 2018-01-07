@@ -21,6 +21,7 @@ import (
 	"github.com/blevesearch/bleve/mapping"
 	"github.com/mosuka/blast/client"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 	"time"
 )
 
@@ -62,15 +63,8 @@ func runEGetIndexCmd(cmd *cobra.Command, args []string) error {
 		getIndexCmdOpts.kvconfig = true
 	}
 
-	// create client config
-	cfg := client.Config{
-		Server:      getIndexCmdOpts.server,
-		DialTimeout: time.Duration(getIndexCmdOpts.dialTimeout) * time.Millisecond,
-		Context:     context.Background(),
-	}
-
 	// create client
-	c, err := client.NewBlastClient(&cfg)
+	c, err := client.NewGRPCClient(context.Background(), getIndexCmdOpts.server, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
@@ -81,7 +75,7 @@ func runEGetIndexCmd(cmd *cobra.Command, args []string) error {
 	defer cancel()
 
 	// get document from index
-	indexPath, indexMapping, indexType, kvstore, kvconfig, err := c.Index.GetIndexInfo(ctx, getIndexCmdOpts.indexPath, getIndexCmdOpts.indexMapping, getIndexCmdOpts.indexType, getIndexCmdOpts.kvstore, getIndexCmdOpts.kvconfig)
+	indexPath, indexMapping, indexType, kvstore, kvconfig, err := c.GetIndexInfo(ctx, getIndexCmdOpts.indexPath, getIndexCmdOpts.indexMapping, getIndexCmdOpts.indexType, getIndexCmdOpts.kvstore, getIndexCmdOpts.kvconfig)
 	resp := struct {
 		IndexPath    string                    `json:"index_path,omitempty"`
 		IndexMapping *mapping.IndexMappingImpl `json:"index_mapping,omitempty"`

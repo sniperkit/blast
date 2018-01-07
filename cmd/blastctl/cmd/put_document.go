@@ -21,6 +21,7 @@ import (
 	"github.com/buger/jsonparser"
 	"github.com/mosuka/blast/client"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 	"io/ioutil"
 	"os"
 	"time"
@@ -101,15 +102,8 @@ func runEPutDocumentCmd(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// create client config
-	cfg := client.Config{
-		Server:      putDocumentCmdOpts.server,
-		DialTimeout: time.Duration(putDocumentCmdOpts.dialTimeout) * time.Millisecond,
-		Context:     context.Background(),
-	}
-
 	// create client
-	c, err := client.NewBlastClient(&cfg)
+	c, err := client.NewGRPCClient(context.Background(), putDocumentCmdOpts.server, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
@@ -120,7 +114,7 @@ func runEPutDocumentCmd(cmd *cobra.Command, args []string) error {
 	defer cancel()
 
 	// put document to index
-	putId, putFields, err := c.Index.PutDocument(ctx, id, fields)
+	putId, putFields, err := c.PutDocument(ctx, id, fields)
 	resp := struct {
 		Id     string                 `json:"id,omitempty"`
 		Fields map[string]interface{} `json:"fields,omitempty"`

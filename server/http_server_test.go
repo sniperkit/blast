@@ -12,17 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package client
+package server
 
-import (
-	"golang.org/x/net/context"
-	"google.golang.org/grpc"
-	"time"
-)
+import "testing"
 
-type Config struct {
-	Server      string
-	DialTimeout time.Duration
-	DialOptions []grpc.DialOption
-	Context     context.Context
+func TestIndigoRESTServer(t *testing.T) {
+	port := 0
+	basePath := "/api"
+	server := "localhost:1289"
+	dialTimeout := 15000
+	requestTimeout := 15000
+
+	restServer := NewHTTPServer(port, basePath, server, dialTimeout, requestTimeout)
+
+	if restServer == nil {
+		t.Fatalf("unexpected error.  expected not nil, actual %v", restServer)
+	}
+
 }

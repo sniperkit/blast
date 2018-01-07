@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"github.com/mosuka/blast/client"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 	"time"
 )
 
@@ -50,15 +51,8 @@ func runEGetDocumentCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("required flag: --%s", cmd.Flag("id").Name)
 	}
 
-	// create client config
-	cfg := client.Config{
-		Server:      getDocumentCmdOpts.server,
-		DialTimeout: time.Duration(getDocumentCmdOpts.dialTimeout) * time.Millisecond,
-		Context:     context.Background(),
-	}
-
 	// create client
-	c, err := client.NewBlastClient(&cfg)
+	c, err := client.NewGRPCClient(context.Background(), getDocumentCmdOpts.server, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
@@ -69,7 +63,7 @@ func runEGetDocumentCmd(cmd *cobra.Command, args []string) error {
 	defer cancel()
 
 	// get document from index
-	id, fields, err := c.Index.GetDocument(ctx, getDocumentCmdOpts.id)
+	id, fields, err := c.GetDocument(ctx, getDocumentCmdOpts.id)
 	resp := struct {
 		Id     string                 `json:"id,omitempty"`
 		Fields map[string]interface{} `json:"fields,omitempty"`

@@ -53,7 +53,7 @@ func TestBlastGRPCService(t *testing.T) {
 	}
 	kvconfig["path"] = path + "/store"
 
-	s := NewBlastService(path, indexMapping, indexType, kvstore, kvconfig)
+	s := NewIndexService(path, indexMapping, indexType, kvstore, kvconfig)
 	if s == nil {
 		t.Fatalf("unexpected error.  expected not nil, actual %v", s)
 	}

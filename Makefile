@@ -19,12 +19,17 @@ VERSION = 0.1.0
 LDFLAGS = -ldflags "-X \"github.com/mosuka/blast/version.Version=${VERSION}\""
 
 GO := CGO_ENABLED=0 GO15VENDOREXPERIMENT=1 go
+
 PACKAGES = $(shell $(GO) list ./... | grep -v '/vendor/')
+
 PROTOBUFS = $(shell find . -name '*.proto' | sort --unique | grep -v /vendor/)
+
 TARGET_PACKAGES = $(shell find . -name 'main.go' -print0 | xargs -0 -n1 dirname | sort --unique | grep -v /vendor/)
 
 BUILD_TAGS = "-tags=''"
 #BUILD_TAGS = "-tags=lang"
+
+.DEFAULT_GOAL := build
 
 .PHONY: vendor
 vendor:

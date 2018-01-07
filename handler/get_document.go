@@ -26,10 +26,10 @@ import (
 )
 
 type GetDocumentHandler struct {
-	client *client.BlastClient
+	client *client.GRPCClient
 }
 
-func NewGetDocumentHandler(c *client.BlastClient) *GetDocumentHandler {
+func NewGetDocumentHandler(c *client.GRPCClient) *GetDocumentHandler {
 	return &GetDocumentHandler{
 		client: c,
 	}
@@ -61,17 +61,7 @@ func (h *GetDocumentHandler) ServeHTTP(w http.ResponseWriter, req *http.Request)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(requestTimeout)*time.Millisecond)
 	defer cancel()
 
-	// request
-	//resp, err := h.client.Index.GetDocument(ctx, vars["id"])
-	//if err != nil {
-	//	log.WithFields(log.Fields{
-	//		"req": req,
-	//	}).Error("failed to get document")
-	//
-	//	Error(w, err.Error(), http.StatusServiceUnavailable)
-	//	return
-	//}
-	id, fields, err := h.client.Index.GetDocument(ctx, vars["id"])
+	id, fields, err := h.client.GetDocument(ctx, vars["id"])
 	resp := struct {
 		Id     string                 `json:"id,omitempty"`
 		Fields map[string]interface{} `json:"fields,omitempty"`

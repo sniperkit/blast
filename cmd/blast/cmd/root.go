@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"github.com/blevesearch/bleve/mapping"
 	"github.com/mosuka/blast/server"
@@ -23,6 +24,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
 	"os"
 	"os/signal"
 	"syscall"
@@ -30,47 +32,46 @@ import (
 )
 
 type RootCommandOptions struct {
-	config string
+	configFile string
 
 	logFormat string
 	logOutput string
 	logLevel  string
 
-	port         int
+	grpcListenAddress string
+	httpListenAddress string
+
 	indexPath    string
 	indexMapping string
 	indexType    string
 	kvstore      string
 	kvconfig     string
 
-	etcdEndpoints      []string
-	etcdDialTimeout    int
-	etcdRequestTimeout int
-	collection         string
-	shard              string
+	restURI    string
+	metricsURI string
 
 	versionFlag bool
 }
 
 var rootCmdOpts = RootCommandOptions{
-	config: "",
+	configFile: "",
 
 	logFormat: "json",
 	logOutput: "",
 	logLevel:  "info",
 
-	port:         5000,
+	grpcListenAddress: "0.0.0.0:5000",
+
 	indexPath:    "./data/index",
 	indexMapping: "",
 	indexType:    "upside_down",
 	kvstore:      "boltdb",
 	kvconfig:     "",
 
-	etcdEndpoints:      []string{},
-	etcdDialTimeout:    5000,
-	etcdRequestTimeout: 5000,
-	collection:         "",
-	shard:              "",
+	httpListenAddress: "0.0.0.0:8000",
+
+	restURI:    "/rest",
+	metricsURI: "/metrics",
 
 	versionFlag: false,
 }
@@ -171,66 +172,80 @@ func persistentPreRunERootCmd(cmd *cobra.Command, args []string) error {
 }
 
 func runERootCmd(cmd *cobra.Command, args []string) error {
-	var blastServer *server.BlastServer
-	var err error
-
-	if len(viper.GetStringSlice("etcd_endpoints")) > 0 {
-		blastServer, err = server.NewBlastServerInClusterMode(
-			viper.GetInt("port"),
-			viper.GetString("index_path"),
-			viper.GetStringSlice("etcd_endpoints"),
-			viper.GetInt("etcd_dial_timeout"),
-			viper.GetInt("etcd_request_timeout"),
-			viper.GetString("collection"),
-		)
-	} else {
-		indexMapping := mapping.NewIndexMapping()
-		if viper.GetString("index_mapping") != "" {
-			file, err := os.Open(viper.GetString("index_mapping"))
-			if err != nil {
-				return err
-			}
-			defer file.Close()
-
-			indexMapping, err = util.NewIndexMapping(file)
-			if err != nil {
-				return err
-			}
+	// create index mapping
+	indexMapping := mapping.NewIndexMapping()
+	if viper.GetString("index_mapping") != "" {
+		file, err := os.Open(viper.GetString("index_mapping"))
+		if err != nil {
+			log.Fatal(err.Error())
+			return err
 		}
+		defer file.Close()
 
-		kvconfig := make(map[string]interface{})
-		if viper.GetString("kvconfig") != "" {
-			file, err := os.Open(viper.GetString("kvconfig"))
-			if err != nil {
-				return err
-			}
-			defer file.Close()
-
-			kvconfig, err = util.NewKvconfig(file)
-			if err != nil {
-				return err
-			}
+		indexMapping, err = util.NewIndexMapping(file)
+		if err != nil {
+			log.Fatal(err.Error())
+			return err
 		}
-
-		blastServer, err = server.NewBlastServer(
-			viper.GetInt("port"),
-			viper.GetString("index_path"),
-			indexMapping,
-			viper.GetString("index_type"),
-			viper.GetString("kvstore"),
-			kvconfig,
-		)
 	}
 
-	if err != nil {
-		log.Fatal("server initialization error")
-		return nil
+	// create kvconfig
+	kvconfig := make(map[string]interface{})
+	if viper.GetString("kvconfig") != "" {
+		file, err := os.Open(viper.GetString("kvconfig"))
+		if err != nil {
+			log.Fatal(err.Error())
+			return err
+		}
+		defer file.Close()
+
+		kvconfig, err = util.NewKvconfig(file)
+		if err != nil {
+			log.Fatal(err.Error())
+			return err
+		}
 	}
 
-	err = blastServer.Start()
+	// create gRPC Server
+	grpcServer, err := server.NewGRPCServer(
+		viper.GetString("grpc_listen_address"),
+		viper.GetString("index_path"),
+		indexMapping,
+		viper.GetString("index_type"),
+		viper.GetString("kvstore"),
+		kvconfig,
+	)
 	if err != nil {
-		log.Fatal("server initialization error")
-		return nil
+		log.Fatal(err.Error())
+		return err
+	}
+
+	// start gRPC Server
+	err = grpcServer.Start()
+	if err != nil {
+		log.Fatal(err.Error())
+		return err
+	}
+
+	// create HTTP Server
+	httpServer, err := server.NewHTTPServer(
+		viper.GetString("http_listen_address"),
+		viper.GetString("rest_url"),
+		viper.GetString("metrics_url"),
+		context.Background(),
+		viper.GetString("grpc_listen_address"),
+		grpc.WithInsecure(),
+	)
+	if err != nil {
+		log.Fatal(err.Error())
+		return err
+	}
+
+	// start HTTP Server
+	err = httpServer.Start()
+	if err != nil {
+		log.Fatal(err.Error())
+		return err
 	}
 
 	signalChan := make(chan os.Signal, 1)
@@ -246,7 +261,17 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 			"signal": sig,
 		}).Info("trap signal")
 
-		blastServer.Stop()
+		err = httpServer.Stop()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("HTTP")
+
+		err = grpcServer.Stop()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("gRPC")
 
 		return nil
 	}
@@ -266,19 +291,17 @@ func LoadConfig() {
 	viper.SetDefault("log_format", rootCmdOpts.logFormat)
 	viper.SetDefault("log_output", rootCmdOpts.logOutput)
 	viper.SetDefault("log_level", rootCmdOpts.logLevel)
-	viper.SetDefault("port", rootCmdOpts.port)
-	viper.SetDefault("etcd_endpoints", rootCmdOpts.etcdEndpoints)
-	viper.SetDefault("etcd_dial_timeout", rootCmdOpts.etcdDialTimeout)
-	viper.SetDefault("etcd_request_timeout", rootCmdOpts.etcdRequestTimeout)
-	viper.SetDefault("collection", rootCmdOpts.collection)
-	viper.SetDefault("shard", rootCmdOpts.shard)
+	viper.SetDefault("grpc_listen_address", rootCmdOpts.grpcListenAddress)
 	viper.SetDefault("index_path", rootCmdOpts.indexPath)
 	viper.SetDefault("index_mapping", rootCmdOpts.indexMapping)
 	viper.SetDefault("index_type", rootCmdOpts.indexType)
 	viper.SetDefault("kvstore", rootCmdOpts.kvstore)
 	viper.SetDefault("kvconfig", rootCmdOpts.kvconfig)
+	viper.SetDefault("http_listen_address", rootCmdOpts.httpListenAddress)
+	viper.SetDefault("rest_uri", rootCmdOpts.restURI)
+	viper.SetDefault("metrics_uri", rootCmdOpts.metricsURI)
 
-	if viper.GetString("config") != "" {
+	if viper.GetString("config_file") != "" {
 		viper.SetConfigFile(viper.GetString("config"))
 	} else {
 		viper.SetConfigName("blast")
@@ -298,36 +321,32 @@ func init() {
 
 	RootCmd.Flags().SortFlags = false
 
-	RootCmd.Flags().String("config", rootCmdOpts.config, "config file path")
+	RootCmd.Flags().String("config-file", rootCmdOpts.configFile, "config file path")
 	RootCmd.Flags().String("log-format", rootCmdOpts.logFormat, "log format")
 	RootCmd.Flags().String("log-output", rootCmdOpts.logOutput, "log output path")
 	RootCmd.Flags().String("log-level", rootCmdOpts.logLevel, "log level")
-	RootCmd.Flags().Int("port", rootCmdOpts.port, "port number")
-	RootCmd.Flags().StringSlice("etcd-endpoint", rootCmdOpts.etcdEndpoints, "etcd endpoint")
-	RootCmd.Flags().Int("etcd-dial-timeout", rootCmdOpts.etcdDialTimeout, "etcd dial timeout")
-	RootCmd.Flags().Int("etcd-request-timeout", rootCmdOpts.etcdRequestTimeout, "etcd request timeout")
-	RootCmd.Flags().String("collection", rootCmdOpts.collection, "collection name")
-	RootCmd.Flags().String("shard", rootCmdOpts.shard, "shard name")
+	RootCmd.Flags().String("grpc-listen-address", rootCmdOpts.grpcListenAddress, "address to listen for the gRPC")
 	RootCmd.Flags().String("index-path", rootCmdOpts.indexPath, "index directory path")
 	RootCmd.Flags().String("index-mapping", rootCmdOpts.indexMapping, "index mapping path")
 	RootCmd.Flags().String("index-type", rootCmdOpts.indexType, "index type")
 	RootCmd.Flags().String("kvstore", rootCmdOpts.kvstore, "kvstore")
 	RootCmd.Flags().String("kvconfig", rootCmdOpts.kvconfig, "kvconfig path")
+	RootCmd.Flags().String("http-listen-address", rootCmdOpts.httpListenAddress, "address to listen for the HTTP")
+	RootCmd.Flags().String("rest-uri", rootCmdOpts.restURI, "base URI for REST endpoint")
+	RootCmd.Flags().String("metrics-uri", rootCmdOpts.metricsURI, "base URI for metrics endpoint")
 	RootCmd.Flags().BoolVarP(&rootCmdOpts.versionFlag, "version", "v", rootCmdOpts.versionFlag, "show version number")
 
-	viper.BindPFlag("config", RootCmd.Flags().Lookup("config"))
+	viper.BindPFlag("config_file", RootCmd.Flags().Lookup("config-file"))
 	viper.BindPFlag("log_format", RootCmd.Flags().Lookup("log-format"))
 	viper.BindPFlag("log_output", RootCmd.Flags().Lookup("log-output"))
 	viper.BindPFlag("log_level", RootCmd.Flags().Lookup("log-level"))
-	viper.BindPFlag("port", RootCmd.Flags().Lookup("port"))
-	viper.BindPFlag("etcd_endpoints", RootCmd.Flags().Lookup("etcd-endpoint"))
-	viper.BindPFlag("etcd_dial_timeout", RootCmd.Flags().Lookup("etcd-dial-timeout"))
-	viper.BindPFlag("etcd_request_timeout", RootCmd.Flags().Lookup("etcd-request-timeout"))
-	viper.BindPFlag("collection", RootCmd.Flags().Lookup("collection"))
-	viper.BindPFlag("shard", RootCmd.Flags().Lookup("shard"))
+	viper.BindPFlag("grpc_listen_address", RootCmd.Flags().Lookup("grpc-listen-address"))
 	viper.BindPFlag("index_path", RootCmd.Flags().Lookup("index-path"))
 	viper.BindPFlag("index_mapping", RootCmd.Flags().Lookup("index-mapping"))
 	viper.BindPFlag("index_type", RootCmd.Flags().Lookup("index-type"))
 	viper.BindPFlag("kvstore", RootCmd.Flags().Lookup("kvstore"))
 	viper.BindPFlag("kvconfig", RootCmd.Flags().Lookup("kvconfig"))
+	viper.BindPFlag("http_listen_address", RootCmd.Flags().Lookup("http-listen-address"))
+	viper.BindPFlag("rest_url", RootCmd.Flags().Lookup("rest-uri"))
+	viper.BindPFlag("metrics_url", RootCmd.Flags().Lookup("metrics-uri"))
 }

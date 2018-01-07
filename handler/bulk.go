@@ -18,7 +18,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/buger/jsonparser"
-	"github.com/gorilla/mux"
 	"github.com/mosuka/blast/client"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -27,22 +26,20 @@ import (
 	"time"
 )
 
-type PutDocumentHandler struct {
-	client *client.BlastClient
+type BulkHandler struct {
+	client *client.GRPCClient
 }
 
-func NewPutDocumentHandler(c *client.BlastClient) *PutDocumentHandler {
-	return &PutDocumentHandler{
+func NewBulkHandler(c *client.GRPCClient) *BulkHandler {
+	return &BulkHandler{
 		client: c,
 	}
 }
 
-func (h *PutDocumentHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (h *BulkHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	log.WithFields(log.Fields{
 		"req": req,
 	}).Info("")
-
-	vars := mux.Vars(req)
 
 	// read request
 	data, err := ioutil.ReadAll(req.Body)
@@ -55,40 +52,54 @@ func (h *PutDocumentHandler) ServeHTTP(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	// get id
-	id, err := jsonparser.GetString(data, "document", "id")
+	// get batch_size
+	batchSize, err := jsonparser.GetInt(data, "batch_size")
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,
-		}).Error("failed to get id")
+		}).Error("failed to get batch size")
 
 		Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// get fields
-	fieldsBytes, _, _, err := jsonparser.Get(data, "document", "fields")
+	// get requests
+	requestsBytes, _, _, err := jsonparser.Get(data, "requests")
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,
-		}).Error("failed to get fields")
+		}).Error("failed to get update requests")
 
 		Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	var fields map[string]interface{}
-	err = json.Unmarshal(fieldsBytes, &fields)
+	var requests []map[string]interface{}
+	err = json.Unmarshal(requestsBytes, &requests)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,
-		}).Error("failed to create fields")
+		}).Error("failed to create update requests")
 
 		Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// overwrite request
-	id = vars["id"]
+	if req.URL.Query().Get("batchSize") != "" {
+		i, err := strconv.Atoi(req.URL.Query().Get("batchSize"))
+		if err != nil {
+			log.WithFields(log.Fields{
+				"err": err,
+			}).Error("failed to set batch size")
+
+			Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		batchSize = int64(i)
+	}
+	if batchSize <= 0 {
+		batchSize = int64(DefaultBatchSize)
+	}
 
 	// request timeout
 	requestTimeout := DefaultRequestTimeout
@@ -110,37 +121,31 @@ func (h *PutDocumentHandler) ServeHTTP(w http.ResponseWriter, req *http.Request)
 	defer cancel()
 
 	// request
-	//resp, err := h.client.Index.PutDocument(ctx, id, fields)
-	//if err != nil {
-	//	log.WithFields(log.Fields{
-	//		"req": req,
-	//	}).Error("failed to put document")
-	//
-	//	Error(w, err.Error(), http.StatusServiceUnavailable)
-	//	return
-	//}
-	putId, putFields, err := h.client.Index.PutDocument(ctx, id, fields)
+	putCount, putErrorCount, deleteCount, methodErrorCount, err := h.client.Bulk(ctx, requests, int32(batchSize))
 	resp := struct {
-		Id     string                 `json:"id,omitempty"`
-		Fields map[string]interface{} `json:"fields,omitempty"`
-		Error  error                  `json:"error,omitempty"`
+		PutCount         int32 `json:"put_count,omitempty"`
+		PutErrorCount    int32 `json:"put_error_count,omitempty"`
+		DeleteCount      int32 `json:"delete_count,omitempty"`
+		MethodErrorCount int32 `json:"method_error_count,omitempty"`
+		Error            error `json:"error,omitempty"`
 	}{
-		Id:     putId,
-		Fields: putFields,
-		Error:  err,
+		PutCount:         putCount,
+		PutErrorCount:    putErrorCount,
+		DeleteCount:      deleteCount,
+		MethodErrorCount: methodErrorCount,
+		Error:            err,
 	}
 
 	// output response
 	output, err := json.MarshalIndent(resp, "", "  ")
 	if err != nil {
 		log.WithFields(log.Fields{
-			"req": req,
+			"err": err,
 		}).Error("failed to create response")
 
 		Error(w, err.Error(), http.StatusServiceUnavailable)
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write(output)
