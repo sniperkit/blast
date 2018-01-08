@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-log_format: json
+log_format: text
 log_output:
 log_level: info
 
 grpc_listen_address: 0.0.0.0:5000
 
 index_path: ./data/index
-index_mapping: ./etc/index_mapping.json
+index_mapping_file: ./etc/index_mapping.json
 index_type: upside_down
 kvstore: boltdb
-kvconfig: ./etc/kvconfig.json
+kvconfig_file: ./etc/kvconfig.json
 
 http_listen_address: 0.0.0.0:8000
 

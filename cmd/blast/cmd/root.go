@@ -39,13 +39,14 @@ type RootCommandOptions struct {
 	logLevel  string
 
 	grpcListenAddress string
-	httpListenAddress string
 
-	indexPath    string
-	indexMapping string
-	indexType    string
-	kvstore      string
-	kvconfig     string
+	indexPath        string
+	indexMappingFile string
+	indexType        string
+	kvstore          string
+	kvconfigFile     string
+
+	httpListenAddress string
 
 	restURI    string
 	metricsURI string
@@ -62,11 +63,11 @@ var rootCmdOpts = RootCommandOptions{
 
 	grpcListenAddress: "0.0.0.0:5000",
 
-	indexPath:    "./data/index",
-	indexMapping: "",
-	indexType:    "upside_down",
-	kvstore:      "boltdb",
-	kvconfig:     "",
+	indexPath:        "./data/index",
+	indexMappingFile: "",
+	indexType:        "upside_down",
+	kvstore:          "boltdb",
+	kvconfigFile:     "",
 
 	httpListenAddress: "0.0.0.0:8000",
 
@@ -171,8 +172,8 @@ func persistentPreRunERootCmd(cmd *cobra.Command, args []string) error {
 func runERootCmd(cmd *cobra.Command, args []string) error {
 	// create index mapping
 	indexMapping := mapping.NewIndexMapping()
-	if viper.GetString("index_mapping") != "" {
-		file, err := os.Open(viper.GetString("index_mapping"))
+	if viper.GetString("index_mapping_file") != "" {
+		file, err := os.Open(viper.GetString("index_mapping_file"))
 		if err != nil {
 			log.Fatal(err.Error())
 			return err
@@ -188,8 +189,8 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 
 	// create kvconfig
 	kvconfig := make(map[string]interface{})
-	if viper.GetString("kvconfig") != "" {
-		file, err := os.Open(viper.GetString("kvconfig"))
+	if viper.GetString("kvconfig_file") != "" {
+		file, err := os.Open(viper.GetString("kvconfig_file"))
 		if err != nil {
 			log.Fatal(err.Error())
 			return err
@@ -288,10 +289,10 @@ func LoadConfig() {
 	viper.SetDefault("log_level", rootCmdOpts.logLevel)
 	viper.SetDefault("grpc_listen_address", rootCmdOpts.grpcListenAddress)
 	viper.SetDefault("index_path", rootCmdOpts.indexPath)
-	viper.SetDefault("index_mapping", rootCmdOpts.indexMapping)
+	viper.SetDefault("index_mapping_file", rootCmdOpts.indexMappingFile)
 	viper.SetDefault("index_type", rootCmdOpts.indexType)
 	viper.SetDefault("kvstore", rootCmdOpts.kvstore)
-	viper.SetDefault("kvconfig", rootCmdOpts.kvconfig)
+	viper.SetDefault("kvconfig_file", rootCmdOpts.kvconfigFile)
 	viper.SetDefault("http_listen_address", rootCmdOpts.httpListenAddress)
 	viper.SetDefault("rest_uri", rootCmdOpts.restURI)
 	viper.SetDefault("metrics_uri", rootCmdOpts.metricsURI)
@@ -322,10 +323,10 @@ func init() {
 	RootCmd.Flags().String("log-level", rootCmdOpts.logLevel, "log level")
 	RootCmd.Flags().String("grpc-listen-address", rootCmdOpts.grpcListenAddress, "address to listen for the gRPC")
 	RootCmd.Flags().String("index-path", rootCmdOpts.indexPath, "index directory path")
-	RootCmd.Flags().String("index-mapping", rootCmdOpts.indexMapping, "index mapping path")
+	RootCmd.Flags().String("index-mapping-file", rootCmdOpts.indexMappingFile, "index mapping file path")
 	RootCmd.Flags().String("index-type", rootCmdOpts.indexType, "index type")
 	RootCmd.Flags().String("kvstore", rootCmdOpts.kvstore, "kvstore")
-	RootCmd.Flags().String("kvconfig", rootCmdOpts.kvconfig, "kvconfig path")
+	RootCmd.Flags().String("kvconfigFile", rootCmdOpts.kvconfigFile, "kvconfig file path")
 	RootCmd.Flags().String("http-listen-address", rootCmdOpts.httpListenAddress, "address to listen for the HTTP")
 	RootCmd.Flags().String("rest-uri", rootCmdOpts.restURI, "base URI for REST endpoint")
 	RootCmd.Flags().String("metrics-uri", rootCmdOpts.metricsURI, "base URI for metrics endpoint")
@@ -337,10 +338,10 @@ func init() {
 	viper.BindPFlag("log_level", RootCmd.Flags().Lookup("log-level"))
 	viper.BindPFlag("grpc_listen_address", RootCmd.Flags().Lookup("grpc-listen-address"))
 	viper.BindPFlag("index_path", RootCmd.Flags().Lookup("index-path"))
-	viper.BindPFlag("index_mapping", RootCmd.Flags().Lookup("index-mapping"))
+	viper.BindPFlag("index_mapping_file", RootCmd.Flags().Lookup("index-mapping-file"))
 	viper.BindPFlag("index_type", RootCmd.Flags().Lookup("index-type"))
 	viper.BindPFlag("kvstore", RootCmd.Flags().Lookup("kvstore"))
-	viper.BindPFlag("kvconfig", RootCmd.Flags().Lookup("kvconfig"))
+	viper.BindPFlag("kvconfig_file", RootCmd.Flags().Lookup("kvconfig-file"))
 	viper.BindPFlag("http_listen_address", RootCmd.Flags().Lookup("http-listen-address"))
 	viper.BindPFlag("rest_url", RootCmd.Flags().Lookup("rest-uri"))
 	viper.BindPFlag("metrics_url", RootCmd.Flags().Lookup("metrics-uri"))

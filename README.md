@@ -25,34 +25,37 @@ log_format: text
 log_output: ""
 log_level: "info"
 
-port: 10000
-path: "./data/index"
+grpc_listen_address: 0.0.0.0:5000
 
-index_mapping: ""
+index_path: "./data/index"
+index_mapping_file: ""
 index_type: "upside_down"
 kvstore: "boltdb"
-kvconfig: ""
+kvconfig_file: ""
 
-delete_index_at_startup: false
-delete_index_at_shutdown: false
+http_listen_address: 0.0.0.0:8000
+
+rest_uri: /rest
+metrics_uri: /metrics
 ```
 
-### Blast server parameters and environment variables
+### Blast server config parameters and environment variables
 
-| Parameter name | Environment variable | Command line option | Description |
+| Config parameter name | Environment variable | Command line option | Description |
 | --- | --- | --- | --- |
-| config                   | BLAST_CONFIG                   | --config                   | config file path. |
+| config-file              | BLAST_CONFIG_FILE              | --config-file              | config file path. |
 | log_format               | BLAST_LOG_FORMAT               | --log-format               | log format. `text`, `color` and `json` are available. Default is `text` |
 | log_output               | BLAST_LOG_OUTPUT               | --log-output               | log output path. Default is `stdout` |
 | log_level                | BLAST_LOG_LEVEL                | --log-level                | log level. `debug`, `info`, `warn`, `error`, `fatal` and `panic` are available. Default is `info` |
-| port                     | BLAST_PORT                     | --port                     | port number. default is `10000` |
-| path                     | BLAST_PATH                     | --path                     | index directory path. Default is `/var/blast/data/index` |
-| index_mapping            | BLAST_INDEX_MAPPING            | --index-mapping            | index mapping path. Default is `""` |
+| grpc_listen_address      | BLAST_GRPC_LISTEN_ADDRESS      | --grpc-listen-address      | address to listen for the gRPC. default is `0.0.0.0:5000` |
+| index_path               | BLAST_INDEX_PATH               | --index-path               | index directory path. Default is `/var/blast/data/index` |
+| index_mapping_file       | BLAST_INDEX_MAPPING_FILE       | --index-mapping-file       | index mapping file path. Default is `""` |
 | index_type               | BLAST_INDEX_TYPE               | --index-type               | index type. `upside_down` is available. Default is `upside_down` |
 | kvstore                  | BLAST_KVSTORE                  | --kvstore                  | kvstore. `boltdb`, `goleveldb`, `gtreap` and `moss` are available. Default is `boltdb` |
-| kvconfig                 | BLAST_KVCONFIG                 | --kvconfig                 | kvconfig path. Default is `""` |
-| delete_index_at_startup  | BLAST_DELETE_INDEX_AT_STARTUP  | --delete-index-at-startup  | delete index at startup. Default is `false` |
-| delete_index_at_shutdown | BLAST_DELETE_INDEX_AT_SHUTDOWN | --delete-index-at-shutdown | delete index at shutdown. Default is `false` |
+| kvconfig_file            | BLAST_KVCONFIG_FILE            | --kvconfig-file            | kvconfig file path. Default is `""` |
+| http_listen_address      | BLAST_HTTP_LISTEN_ADDRESS      | --http-listen-address      | address to listen for the HTTP. default is `0.0.0.0:8000` |
+| rest_uri                 | BLAST_REST_URI                 | --rest-uri                 | base URI for REST API endpoint. default is `/rest` |
+| metrics_uri              | BLAST_METRICS_URI              | --metrics-uri              | URI for metrics exposition endpoint. default is `/metrics` |
 
 
 ### Index Mapping
