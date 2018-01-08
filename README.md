@@ -340,14 +340,22 @@ The `put document` command adds or updates a JSON formatted document in a specif
 The document example is following:
 
 ```sh
-$ ./bin/blastcli put document --resource ./example/document_1.json
+$ cat ./example/document_1.json | xargs -0 ./bin/blastctl put document --grpc-server-address localhost:5000 --request
 ```
 
 The result of the above `put document` command is:
 
 ```json
 {
-  "put_count": 1
+  "id": "1",
+  "fields": {
+    "category": "Library",
+    "description": "Bleve is a full-text search and indexing library for Go.",
+    "name": "Bleve",
+    "popularity": 3,
+    "release": "2014-04-18T00:00:00Z",
+    "type": "document"
+  }
 }
 ```
 
@@ -357,7 +365,7 @@ The result of the above `put document` command is:
 The `get document` command retrieves a JSON formatted document on its id from a specified index. You can display a help message by specifying the `- h` or` --help` option.
 
 ```sh
-$ ./bin/blastcli get document --id 1
+$ ./bin/blastctl get document --id 1
 ```
 
 The result of the above `get document` command is:
@@ -384,14 +392,14 @@ The result of the above `get document` command is:
 The `delete document` command deletes a document on its id from a specified index. You can display a help message by specifying the `- h` or` --help` option.
 
 ```sh
-$ ./bin/blastcli delete document --id 1
+$ ./bin/blastctl delete document --id 1
 ```
 
 The result of the above `delete document` command is:
 
 ```json
 {
-  "delete_count": 1
+  "id": "1"
 }
 ```
 
@@ -470,7 +478,7 @@ The `bulk` command makes it possible to perform many put/delete operations in a 
 The bulk example is following:
 
 ```sh
-$ ./bin/blastcli bulk --resource ./example/bulk_put.json
+$ cat ./example/bulk_put.json | xargs -0 ./bin/blastctl bulk --grpc-server-address localhost:5000 --request
 ```
 
 The result of the above `bulk` command is:
@@ -573,7 +581,7 @@ The `search` command can be executed with a search request, which includes the Q
 You can display a help message by specifying the `- h` or` --help` option.
 
 ```sh
-$ ./bin/blastcli search --resource ./example/search_request.json
+$ cat ./example/search_request.json | xargs -0 ./bin/blastctl search --grpc-server-address localhost:5000 --request
 ```
 
 The result of the above `search` command is:

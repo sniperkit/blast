@@ -25,17 +25,17 @@ import (
 )
 
 type GetDocumentCommandOptions struct {
-	server         string
-	dialTimeout    int
-	requestTimeout int
-	id             string
+	grpcServerAddress string
+	dialTimeout       int
+	requestTimeout    int
+	id                string
 }
 
 var getDocumentCmdOpts = GetDocumentCommandOptions{
-	server:         "localhost:5000",
-	dialTimeout:    5000,
-	requestTimeout: 5000,
-	id:             "",
+	grpcServerAddress: "localhost:5000",
+	dialTimeout:       5000,
+	requestTimeout:    5000,
+	id:                "",
 }
 
 var getDocumentCmd = &cobra.Command{
@@ -52,7 +52,7 @@ func runEGetDocumentCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// create client
-	c, err := client.NewGRPCClient(context.Background(), getDocumentCmdOpts.server, grpc.WithInsecure())
+	c, err := client.NewGRPCClient(context.Background(), getDocumentCmdOpts.grpcServerAddress, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func runEGetDocumentCmd(cmd *cobra.Command, args []string) error {
 func init() {
 	getDocumentCmd.Flags().SortFlags = false
 
-	getDocumentCmd.Flags().StringVar(&getDocumentCmdOpts.server, "server", getDocumentCmdOpts.server, "server to connect to")
+	getDocumentCmd.Flags().StringVar(&getDocumentCmdOpts.grpcServerAddress, "grpc-server-address", getDocumentCmdOpts.grpcServerAddress, "Blast server to connect to using gRPC")
 	getDocumentCmd.Flags().IntVar(&getDocumentCmdOpts.dialTimeout, "dial-timeout", getDocumentCmdOpts.dialTimeout, "dial timeout")
 	getDocumentCmd.Flags().IntVar(&getDocumentCmdOpts.requestTimeout, "request-timeout", getDocumentCmdOpts.requestTimeout, "request timeout")
 	getDocumentCmd.Flags().StringVar(&getDocumentCmdOpts.id, "id", getDocumentCmdOpts.id, "document id")

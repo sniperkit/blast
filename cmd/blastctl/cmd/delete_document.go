@@ -25,17 +25,17 @@ import (
 )
 
 type DeleteDocumentCommandOptions struct {
-	server         string
-	dialTimeout    int
-	requestTimeout int
-	id             string
+	grpcServerAddress string
+	dialTimeout       int
+	requestTimeout    int
+	id                string
 }
 
 var deleteDocumentCmdOpts = DeleteDocumentCommandOptions{
-	server:         "localhost:5000",
-	dialTimeout:    5000,
-	requestTimeout: 5000,
-	id:             "",
+	grpcServerAddress: "localhost:5000",
+	dialTimeout:       5000,
+	requestTimeout:    5000,
+	id:                "",
 }
 
 var deleteDocumentCmd = &cobra.Command{
@@ -52,7 +52,7 @@ func runEDeleteDocumentCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// create client
-	c, err := client.NewGRPCClient(context.Background(), deleteDocumentCmdOpts.server, grpc.WithInsecure())
+	c, err := client.NewGRPCClient(context.Background(), deleteDocumentCmdOpts.grpcServerAddress, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
@@ -92,7 +92,7 @@ func runEDeleteDocumentCmd(cmd *cobra.Command, args []string) error {
 func init() {
 	deleteDocumentCmd.Flags().SortFlags = false
 
-	deleteDocumentCmd.Flags().StringVar(&deleteDocumentCmdOpts.server, "server", deleteDocumentCmdOpts.server, "server to connect to")
+	deleteDocumentCmd.Flags().StringVar(&deleteDocumentCmdOpts.grpcServerAddress, "grpc-server-address", deleteDocumentCmdOpts.grpcServerAddress, "Blast server to connect to using gRPC")
 	deleteDocumentCmd.Flags().IntVar(&deleteDocumentCmdOpts.dialTimeout, "dial-timeout", deleteDocumentCmdOpts.dialTimeout, "dial timeout")
 	deleteDocumentCmd.Flags().IntVar(&deleteDocumentCmdOpts.requestTimeout, "request-timeout", deleteDocumentCmdOpts.requestTimeout, "request timeout")
 	deleteDocumentCmd.Flags().StringVar(&deleteDocumentCmdOpts.id, "id", deleteDocumentCmdOpts.id, "document id")

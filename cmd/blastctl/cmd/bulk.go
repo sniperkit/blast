@@ -22,63 +22,47 @@ import (
 	"github.com/mosuka/blast/client"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
-	"io/ioutil"
-	"os"
 	"time"
 )
 
 type BulkCommandOptions struct {
-	server         string
-	dialTimeout    int
-	requestTimeout int
-	batchSize      int32
-	request        string
+	grpcServerAddress string
+	dialTimeout       int
+	requestTimeout    int
+	batchSize         int32
+	request           string
 }
 
 var bulkCmdOpts = BulkCommandOptions{
-	server:         "localhost:5000",
-	dialTimeout:    60000,
-	requestTimeout: 60000,
-	batchSize:      1000,
-	request:        "",
+	grpcServerAddress: "localhost:5000",
+	dialTimeout:       60000,
+	requestTimeout:    60000,
+	batchSize:         1000,
+	request:           "",
 }
 
 var bulkCmd = &cobra.Command{
 	Use:   "bulk",
-	Short: "puts or deletes the documents in bulk",
-	Long:  `The bulk command puts or deletes the documents in bulk.`,
+	Short: "puts or deletes documents in bulk",
+	Long:  `The bulk command puts or deletes documents in bulk.`,
 	RunE:  runEBulkCmd,
 }
 
 func runEBulkCmd(cmd *cobra.Command, args []string) error {
 	// read request
-	var data []byte
-	var err error
-	if cmd.Flag("request").Changed {
-		if bulkCmdOpts.request == "-" {
-			data, err = ioutil.ReadAll(os.Stdin)
-		} else {
-			file, err := os.Open(bulkCmdOpts.request)
-			if err != nil {
-				return err
-			}
-			defer file.Close()
-			data, err = ioutil.ReadAll(file)
-			if err != nil {
-				return err
-			}
-		}
-	}
+	data := []byte(bulkCmdOpts.request)
 
 	// get batch_size from request
 	batchSize, err := jsonparser.GetInt(data, "batch_size")
 	if err != nil {
+		fmt.Println("batch_size")
 		return err
 	}
 
 	// get requests from request
 	requestsBytes, _, _, err := jsonparser.Get(data, "requests")
 	if err != nil {
+		fmt.Println("requests")
 		return err
 	}
 	var requests []map[string]interface{}
@@ -93,7 +77,7 @@ func runEBulkCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// create client
-	c, err := client.NewGRPCClient(context.Background(), bulkCmdOpts.server, grpc.WithInsecure())
+	c, err := client.NewGRPCClient(context.Background(), bulkCmdOpts.grpcServerAddress, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
@@ -139,7 +123,7 @@ func runEBulkCmd(cmd *cobra.Command, args []string) error {
 func init() {
 	bulkCmd.Flags().SortFlags = false
 
-	bulkCmd.Flags().StringVar(&bulkCmdOpts.server, "server", bulkCmdOpts.server, "server to connect to")
+	bulkCmd.Flags().StringVar(&bulkCmdOpts.grpcServerAddress, "grpc-server-address", bulkCmdOpts.grpcServerAddress, "Blast server to connect to using gRPC")
 	bulkCmd.Flags().IntVar(&bulkCmdOpts.dialTimeout, "dial-timeout", bulkCmdOpts.dialTimeout, "dial timeout")
 	bulkCmd.Flags().IntVar(&bulkCmdOpts.requestTimeout, "request-timeout", bulkCmdOpts.requestTimeout, "request timeout")
 	bulkCmd.Flags().Int32Var(&bulkCmdOpts.batchSize, "batch-size", bulkCmdOpts.batchSize, "batch size of bulk request")

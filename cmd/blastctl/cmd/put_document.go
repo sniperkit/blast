@@ -22,27 +22,25 @@ import (
 	"github.com/mosuka/blast/client"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
-	"io/ioutil"
-	"os"
 	"time"
 )
 
 type PutDocumentCommandOptions struct {
-	server         string
-	dialTimeout    int
-	requestTimeout int
-	id             string
-	fields         string
-	request        string
+	grpcServerAddress string
+	dialTimeout       int
+	requestTimeout    int
+	id                string
+	fields            string
+	request           string
 }
 
 var putDocumentCmdOpts = PutDocumentCommandOptions{
-	server:         "localhost:5000",
-	dialTimeout:    5000,
-	requestTimeout: 5000,
-	id:             "",
-	fields:         "",
-	request:        "",
+	grpcServerAddress: "localhost:5000",
+	dialTimeout:       5000,
+	requestTimeout:    5000,
+	id:                "",
+	fields:            "",
+	request:           "",
 }
 
 var putDocumentCmd = &cobra.Command{
@@ -54,23 +52,7 @@ var putDocumentCmd = &cobra.Command{
 
 func runEPutDocumentCmd(cmd *cobra.Command, args []string) error {
 	// read request
-	var data []byte
-	var err error
-	if cmd.Flag("request").Changed {
-		if putDocumentCmdOpts.request == "-" {
-			data, err = ioutil.ReadAll(os.Stdin)
-		} else {
-			file, err := os.Open(putDocumentCmdOpts.request)
-			if err != nil {
-				return err
-			}
-			defer file.Close()
-			data, err = ioutil.ReadAll(file)
-			if err != nil {
-				return err
-			}
-		}
-	}
+	data := []byte(putDocumentCmdOpts.request)
 
 	// get id from request
 	id, err := jsonparser.GetString(data, "id")
@@ -103,7 +85,7 @@ func runEPutDocumentCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// create client
-	c, err := client.NewGRPCClient(context.Background(), putDocumentCmdOpts.server, grpc.WithInsecure())
+	c, err := client.NewGRPCClient(context.Background(), putDocumentCmdOpts.grpcServerAddress, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
@@ -145,7 +127,7 @@ func runEPutDocumentCmd(cmd *cobra.Command, args []string) error {
 func init() {
 	putDocumentCmd.Flags().SortFlags = false
 
-	putDocumentCmd.Flags().StringVar(&putDocumentCmdOpts.server, "server", putDocumentCmdOpts.server, "server to connect to")
+	putDocumentCmd.Flags().StringVar(&putDocumentCmdOpts.grpcServerAddress, "grpc-server-address", putDocumentCmdOpts.grpcServerAddress, "Blast server to connect to using gRPC")
 	putDocumentCmd.Flags().IntVar(&putDocumentCmdOpts.dialTimeout, "dial-timeout", putDocumentCmdOpts.dialTimeout, "dial timeout")
 	putDocumentCmd.Flags().IntVar(&putDocumentCmdOpts.requestTimeout, "request-timeout", putDocumentCmdOpts.requestTimeout, "request timeout")
 	putDocumentCmd.Flags().StringVar(&putDocumentCmdOpts.id, "id", putDocumentCmdOpts.id, "document id")

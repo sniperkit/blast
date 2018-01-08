@@ -26,25 +26,25 @@ import (
 )
 
 type GetIndexCommandOptions struct {
-	server         string
-	dialTimeout    int
-	requestTimeout int
-	indexPath      bool
-	indexMapping   bool
-	indexType      bool
-	kvstore        bool
-	kvconfig       bool
+	grpcServerAddress string
+	dialTimeout       int
+	requestTimeout    int
+	indexPath         bool
+	indexMapping      bool
+	indexType         bool
+	kvstore           bool
+	kvconfig          bool
 }
 
 var getIndexCmdOpts = GetIndexCommandOptions{
-	server:         "localhost:5000",
-	dialTimeout:    5000,
-	requestTimeout: 5000,
-	indexPath:      false,
-	indexMapping:   false,
-	indexType:      false,
-	kvstore:        false,
-	kvconfig:       false,
+	grpcServerAddress: "localhost:5000",
+	dialTimeout:       5000,
+	requestTimeout:    5000,
+	indexPath:         false,
+	indexMapping:      false,
+	indexType:         false,
+	kvstore:           false,
+	kvconfig:          false,
 }
 
 var getIndexCmd = &cobra.Command{
@@ -64,7 +64,7 @@ func runEGetIndexCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// create client
-	c, err := client.NewGRPCClient(context.Background(), getIndexCmdOpts.server, grpc.WithInsecure())
+	c, err := client.NewGRPCClient(context.Background(), getIndexCmdOpts.grpcServerAddress, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
@@ -112,7 +112,7 @@ func runEGetIndexCmd(cmd *cobra.Command, args []string) error {
 func init() {
 	getIndexCmd.Flags().SortFlags = false
 
-	getIndexCmd.Flags().StringVar(&getIndexCmdOpts.server, "server", getIndexCmdOpts.server, "server to connect to")
+	getIndexCmd.Flags().StringVar(&getIndexCmdOpts.grpcServerAddress, "grpc-server-address", getIndexCmdOpts.grpcServerAddress, "Blast server to connect to using gRPC")
 	getIndexCmd.Flags().IntVar(&getIndexCmdOpts.dialTimeout, "dial-timeout", getIndexCmdOpts.dialTimeout, "dial timeout")
 	getIndexCmd.Flags().IntVar(&getIndexCmdOpts.requestTimeout, "request-timeout", getIndexCmdOpts.requestTimeout, "request timeout")
 	getIndexCmd.Flags().BoolVar(&getIndexCmdOpts.indexPath, "index-path", getIndexCmdOpts.indexPath, "include index path")

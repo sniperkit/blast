@@ -23,45 +23,43 @@ import (
 	"github.com/mosuka/blast/client"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
-	"io/ioutil"
-	"os"
 	"time"
 )
 
 type SearchCommandOptions struct {
-	server           string
-	dialTimeout      int
-	requestTimeout   int
-	request          string
-	query            string
-	size             int
-	from             int
-	explain          bool
-	fields           []string
-	sorts            []string
-	facets           string
-	highlight        string
-	highlightStyle   string
-	highlightFields  []string
-	includeLocations bool
+	grpcServerAddress string
+	dialTimeout       int
+	requestTimeout    int
+	request           string
+	query             string
+	size              int
+	from              int
+	explain           bool
+	fields            []string
+	sorts             []string
+	facets            string
+	highlight         string
+	highlightStyle    string
+	highlightFields   []string
+	includeLocations  bool
 }
 
 var searchCmdOpts = SearchCommandOptions{
-	server:           "localhost:5000",
-	dialTimeout:      15000,
-	requestTimeout:   15000,
-	request:          "",
-	query:            "",
-	size:             10,
-	from:             0,
-	explain:          false,
-	fields:           []string{},
-	sorts:            []string{},
-	facets:           "",
-	highlight:        "",
-	highlightStyle:   "",
-	highlightFields:  []string{},
-	includeLocations: false,
+	grpcServerAddress: "localhost:5000",
+	dialTimeout:       15000,
+	requestTimeout:    15000,
+	request:           "",
+	query:             "",
+	size:              10,
+	from:              0,
+	explain:           false,
+	fields:            []string{},
+	sorts:             []string{},
+	facets:            "",
+	highlight:         "",
+	highlightStyle:    "",
+	highlightFields:   []string{},
+	includeLocations:  false,
 }
 
 var searchCmd = &cobra.Command{
@@ -73,23 +71,7 @@ var searchCmd = &cobra.Command{
 
 func runESearchCmd(cmd *cobra.Command, args []string) error {
 	// read request
-	var data []byte
-	var err error
-	if cmd.Flag("request").Changed {
-		if searchCmdOpts.request == "-" {
-			data, err = ioutil.ReadAll(os.Stdin)
-		} else {
-			file, err := os.Open(searchCmdOpts.request)
-			if err != nil {
-				return err
-			}
-			defer file.Close()
-			data, err = ioutil.ReadAll(file)
-			if err != nil {
-				return err
-			}
-		}
-	}
+	data := []byte(searchCmdOpts.request)
 
 	// get search_request from request
 	var searchRequest *bleve.SearchRequest
@@ -148,7 +130,7 @@ func runESearchCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// create client
-	c, err := client.NewGRPCClient(context.Background(), searchCmdOpts.server, grpc.WithInsecure())
+	c, err := client.NewGRPCClient(context.Background(), searchCmdOpts.grpcServerAddress, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
@@ -188,7 +170,7 @@ func runESearchCmd(cmd *cobra.Command, args []string) error {
 func init() {
 	searchCmd.Flags().SortFlags = false
 
-	searchCmd.Flags().StringVar(&searchCmdOpts.server, "server", searchCmdOpts.server, "server to connect to")
+	searchCmd.Flags().StringVar(&searchCmdOpts.grpcServerAddress, "grpc-server-address", searchCmdOpts.grpcServerAddress, "Blast server to connect to using gRPC")
 	searchCmd.Flags().IntVar(&searchCmdOpts.dialTimeout, "dial-timeout", searchCmdOpts.dialTimeout, "dial timeout")
 	searchCmd.Flags().IntVar(&searchCmdOpts.requestTimeout, "request-timeout", searchCmdOpts.requestTimeout, "request timeout")
 	searchCmd.Flags().StringVar(&searchCmdOpts.request, "request", searchCmdOpts.request, "resource file")
