@@ -18,6 +18,7 @@ import (
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/document"
 	"github.com/blevesearch/bleve/mapping"
+	"github.com/golang/protobuf/ptypes/empty"
 	_ "github.com/mosuka/blast/dependency"
 	"github.com/mosuka/blast/proto"
 	log "github.com/sirupsen/logrus"
@@ -136,6 +137,58 @@ func (s *IndexService) GetIndexInfo(ctx context.Context, req *proto.GetIndexInfo
 	}
 
 	return protoGetIndexResponse, nil
+}
+
+func (s *IndexService) GetIndexPath(ctx context.Context, req *empty.Empty) (*proto.GetIndexPathResponse, error) {
+	protoGetIndexPathResponse := &proto.GetIndexPathResponse{
+		IndexPath: s.IndexPath,
+	}
+
+	return protoGetIndexPathResponse, nil
+}
+
+func (s *IndexService) GetIndexMapping(ctx context.Context, req *empty.Empty) (*proto.GetIndexMappingResponse, error) {
+	indexMappingAny, err := proto.MarshalAny(s.IndexMapping)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+
+	protoGetIndexMappingResponse := &proto.GetIndexMappingResponse{
+		IndexMapping: &indexMappingAny,
+	}
+
+	return protoGetIndexMappingResponse, nil
+}
+
+func (s *IndexService) GetIndexType(ctx context.Context, req *empty.Empty) (*proto.GetIndexTypeResponse, error) {
+	protoGetIndexTypeResponse := &proto.GetIndexTypeResponse{
+		IndexType: s.IndexType,
+	}
+
+	return protoGetIndexTypeResponse, nil
+}
+
+func (s *IndexService) GetKvstore(ctx context.Context, req *empty.Empty) (*proto.GetKvstoreResponse, error) {
+	protoGetKvstoreResponse := &proto.GetKvstoreResponse{
+		Kvstore: s.Kvstore,
+	}
+
+	return protoGetKvstoreResponse, nil
+}
+
+func (s *IndexService) GetKvconfig(ctx context.Context, req *empty.Empty) (*proto.GetKvconfigResponse, error) {
+	kvconfigAny, err := proto.MarshalAny(s.Kvconfig)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+
+	protoGetKvconfigResponse := &proto.GetKvconfigResponse{
+		Kvconfig: &kvconfigAny,
+	}
+
+	return protoGetKvconfigResponse, nil
 }
 
 func (s *IndexService) PutDocument(ctx context.Context, req *proto.PutDocumentRequest) (*proto.PutDocumentResponse, error) {

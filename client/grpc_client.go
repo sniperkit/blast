@@ -18,6 +18,7 @@ import (
 	"context"
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/mapping"
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/mosuka/blast/proto"
 	"google.golang.org/grpc"
 )
@@ -86,6 +87,68 @@ func (c *GRPCClient) GetIndexInfo(ctx context.Context, indexPath bool, indexMapp
 	}
 
 	return protoResp.IndexPath, im.(*mapping.IndexMappingImpl), protoResp.IndexType, protoResp.Kvstore, *kvc.(*map[string]interface{}), nil
+}
+
+func (c *GRPCClient) GetIndexPath(ctx context.Context, callOpts ...grpc.CallOption) (string, error) {
+	protoReq := &empty.Empty{}
+
+	protoResp, err := c.indexClient.GetIndexPath(ctx, protoReq, callOpts...)
+	if err != nil {
+		return "", err
+	}
+
+	return protoResp.IndexPath, nil
+}
+
+func (c *GRPCClient) GetIndexMapping(ctx context.Context, callOpts ...grpc.CallOption) (*mapping.IndexMappingImpl, error) {
+	protoReq := &empty.Empty{}
+
+	protoResp, err := c.indexClient.GetIndexMapping(ctx, protoReq, callOpts...)
+	if err != nil {
+		return nil, err
+	}
+
+	im, err := proto.UnmarshalAny(protoResp.IndexMapping)
+	if err != nil {
+		return nil, err
+	}
+
+	return im.(*mapping.IndexMappingImpl), nil
+}
+
+func (c *GRPCClient) GetIndexType(ctx context.Context, callOpts ...grpc.CallOption) (string, error) {
+	protoReq := &empty.Empty{}
+
+	protoResp, err := c.indexClient.GetIndexType(ctx, protoReq, callOpts...)
+	if err != nil {
+		return "", err
+	}
+
+	return protoResp.IndexType, nil
+}
+
+func (c *GRPCClient) GetKvstore(ctx context.Context, callOpts ...grpc.CallOption) (string, error) {
+	protoReq := &empty.Empty{}
+
+	protoResp, err := c.indexClient.GetKvstore(ctx, protoReq, callOpts...)
+	if err != nil {
+		return "", err
+	}
+
+	return protoResp.Kvstore, nil
+}
+
+func (c *GRPCClient) GetKvconfig(ctx context.Context, callOpts ...grpc.CallOption) (map[string]interface{}, error) {
+	protoReq := &empty.Empty{}
+
+	protoResp, err := c.indexClient.GetKvconfig(ctx, protoReq, callOpts...)
+
+	kvc, err := proto.UnmarshalAny(protoResp.Kvconfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return *kvc.(*map[string]interface{}), nil
 }
 
 func (c *GRPCClient) PutDocument(ctx context.Context, id string, fields map[string]interface{}, callOpts ...grpc.CallOption) (string, map[string]interface{}, error) {

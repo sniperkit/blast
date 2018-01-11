@@ -326,7 +326,7 @@ func init() {
 	RootCmd.Flags().String("index-mapping-file", rootCmdOpts.indexMappingFile, "index mapping file path")
 	RootCmd.Flags().String("index-type", rootCmdOpts.indexType, "index type")
 	RootCmd.Flags().String("kvstore", rootCmdOpts.kvstore, "kvstore")
-	RootCmd.Flags().String("kvconfigFile", rootCmdOpts.kvconfigFile, "kvconfig file path")
+	RootCmd.Flags().String("kvconfig-file", rootCmdOpts.kvconfigFile, "kvconfig file path")
 	RootCmd.Flags().String("http-listen-address", rootCmdOpts.httpListenAddress, "address to listen for the HTTP")
 	RootCmd.Flags().String("rest-uri", rootCmdOpts.restURI, "base URI for REST endpoint")
 	RootCmd.Flags().String("metrics-uri", rootCmdOpts.metricsURI, "base URI for metrics endpoint")
