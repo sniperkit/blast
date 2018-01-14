@@ -1,0 +1,47 @@
+//  Copyright (c) 2017 Minoru Osuka
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 		http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package proto;
+
+service Cluster {
+    rpc PutNode (PutNodeRequest) returns (PutNodeResponse) {}
+    rpc GetNode (GetNodeRequest) returns (GetNodeResponse) {}
+    rpc DeleteNode (DeleteNodeRequest) returns (DeleteNodeResponse) {}
+}
+
+message PutNodeRequest {
+    string node = 1;
+}
+
+message PutNodeResponse {
+    string node = 1;
+}
+
+message GetNodeRequest {
+    string node = 1;
+}
+
+message GetNodeResponse {
+    string node = 1;
+}
+
+message DeleteNodeRequest {
+    string node = 1;
+}
+
+message DeleteNodeResponse {
+    string node = 1;
+}
