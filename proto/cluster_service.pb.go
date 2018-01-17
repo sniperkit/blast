@@ -7,6 +7,7 @@ Package proto is a generated protocol buffer package.
 
 It is generated from these files:
 	proto/cluster_service.proto
+	proto/index_service.proto
 
 It has these top-level messages:
 	PutNodeRequest
@@ -15,6 +16,23 @@ It has these top-level messages:
 	GetNodeResponse
 	DeleteNodeRequest
 	DeleteNodeResponse
+	GetIndexInfoRequest
+	GetIndexInfoResponse
+	GetIndexPathResponse
+	GetIndexMappingResponse
+	GetIndexTypeResponse
+	GetKvstoreResponse
+	GetKvconfigResponse
+	PutDocumentRequest
+	PutDocumentResponse
+	GetDocumentRequest
+	GetDocumentResponse
+	DeleteDocumentRequest
+	DeleteDocumentResponse
+	BulkRequest
+	BulkResponse
+	SearchRequest
+	SearchResponse
 */
 package proto
 

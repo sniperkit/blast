@@ -2,31 +2,6 @@
 // source: proto/index_service.proto
 // DO NOT EDIT!
 
-/*
-Package proto is a generated protocol buffer package.
-
-It is generated from these files:
-	proto/index_service.proto
-
-It has these top-level messages:
-	GetIndexInfoRequest
-	GetIndexInfoResponse
-	GetIndexPathResponse
-	GetIndexMappingResponse
-	GetIndexTypeResponse
-	GetKvstoreResponse
-	GetKvconfigResponse
-	PutDocumentRequest
-	PutDocumentResponse
-	GetDocumentRequest
-	GetDocumentResponse
-	DeleteDocumentRequest
-	DeleteDocumentResponse
-	BulkRequest
-	BulkResponse
-	SearchRequest
-	SearchResponse
-*/
 package proto
 
 import proto1 "github.com/golang/protobuf/proto"
@@ -45,12 +20,6 @@ var _ = proto1.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
-// This is a compile-time assertion to ensure that this generated file
-// is compatible with the proto package it is being compiled against.
-// A compilation error at this line likely means your copy of the
-// proto package needs to be updated.
-const _ = proto1.ProtoPackageIsVersion2 // please upgrade the proto package
-
 type GetIndexInfoRequest struct {
 	IndexPath    bool `protobuf:"varint,1,opt,name=index_path,json=indexPath" json:"index_path,omitempty"`
 	IndexMapping bool `protobuf:"varint,2,opt,name=index_mapping,json=indexMapping" json:"index_mapping,omitempty"`
@@ -62,7 +31,7 @@ type GetIndexInfoRequest struct {
 func (m *GetIndexInfoRequest) Reset()                    { *m = GetIndexInfoRequest{} }
 func (m *GetIndexInfoRequest) String() string            { return proto1.CompactTextString(m) }
 func (*GetIndexInfoRequest) ProtoMessage()               {}
-func (*GetIndexInfoRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
+func (*GetIndexInfoRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{0} }
 
 func (m *GetIndexInfoRequest) GetIndexPath() bool {
 	if m != nil {
@@ -110,7 +79,7 @@ type GetIndexInfoResponse struct {
 func (m *GetIndexInfoResponse) Reset()                    { *m = GetIndexInfoResponse{} }
 func (m *GetIndexInfoResponse) String() string            { return proto1.CompactTextString(m) }
 func (*GetIndexInfoResponse) ProtoMessage()               {}
-func (*GetIndexInfoResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
+func (*GetIndexInfoResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{1} }
 
 func (m *GetIndexInfoResponse) GetIndexPath() string {
 	if m != nil {
@@ -154,7 +123,7 @@ type GetIndexPathResponse struct {
 func (m *GetIndexPathResponse) Reset()                    { *m = GetIndexPathResponse{} }
 func (m *GetIndexPathResponse) String() string            { return proto1.CompactTextString(m) }
 func (*GetIndexPathResponse) ProtoMessage()               {}
-func (*GetIndexPathResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
+func (*GetIndexPathResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{2} }
 
 func (m *GetIndexPathResponse) GetIndexPath() string {
 	if m != nil {
@@ -170,7 +139,7 @@ type GetIndexMappingResponse struct {
 func (m *GetIndexMappingResponse) Reset()                    { *m = GetIndexMappingResponse{} }
 func (m *GetIndexMappingResponse) String() string            { return proto1.CompactTextString(m) }
 func (*GetIndexMappingResponse) ProtoMessage()               {}
-func (*GetIndexMappingResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{3} }
+func (*GetIndexMappingResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{3} }
 
 func (m *GetIndexMappingResponse) GetIndexMapping() *google_protobuf.Any {
 	if m != nil {
@@ -186,7 +155,7 @@ type GetIndexTypeResponse struct {
 func (m *GetIndexTypeResponse) Reset()                    { *m = GetIndexTypeResponse{} }
 func (m *GetIndexTypeResponse) String() string            { return proto1.CompactTextString(m) }
 func (*GetIndexTypeResponse) ProtoMessage()               {}
-func (*GetIndexTypeResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{4} }
+func (*GetIndexTypeResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{4} }
 
 func (m *GetIndexTypeResponse) GetIndexType() string {
 	if m != nil {
@@ -202,7 +171,7 @@ type GetKvstoreResponse struct {
 func (m *GetKvstoreResponse) Reset()                    { *m = GetKvstoreResponse{} }
 func (m *GetKvstoreResponse) String() string            { return proto1.CompactTextString(m) }
 func (*GetKvstoreResponse) ProtoMessage()               {}
-func (*GetKvstoreResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{5} }
+func (*GetKvstoreResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{5} }
 
 func (m *GetKvstoreResponse) GetKvstore() string {
 	if m != nil {
@@ -218,7 +187,7 @@ type GetKvconfigResponse struct {
 func (m *GetKvconfigResponse) Reset()                    { *m = GetKvconfigResponse{} }
 func (m *GetKvconfigResponse) String() string            { return proto1.CompactTextString(m) }
 func (*GetKvconfigResponse) ProtoMessage()               {}
-func (*GetKvconfigResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{6} }
+func (*GetKvconfigResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{6} }
 
 func (m *GetKvconfigResponse) GetKvconfig() *google_protobuf.Any {
 	if m != nil {
@@ -235,7 +204,7 @@ type PutDocumentRequest struct {
 func (m *PutDocumentRequest) Reset()                    { *m = PutDocumentRequest{} }
 func (m *PutDocumentRequest) String() string            { return proto1.CompactTextString(m) }
 func (*PutDocumentRequest) ProtoMessage()               {}
-func (*PutDocumentRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{7} }
+func (*PutDocumentRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{7} }
 
 func (m *PutDocumentRequest) GetId() string {
 	if m != nil {
@@ -259,7 +228,7 @@ type PutDocumentResponse struct {
 func (m *PutDocumentResponse) Reset()                    { *m = PutDocumentResponse{} }
 func (m *PutDocumentResponse) String() string            { return proto1.CompactTextString(m) }
 func (*PutDocumentResponse) ProtoMessage()               {}
-func (*PutDocumentResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{8} }
+func (*PutDocumentResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{8} }
 
 func (m *PutDocumentResponse) GetId() string {
 	if m != nil {
@@ -282,7 +251,7 @@ type GetDocumentRequest struct {
 func (m *GetDocumentRequest) Reset()                    { *m = GetDocumentRequest{} }
 func (m *GetDocumentRequest) String() string            { return proto1.CompactTextString(m) }
 func (*GetDocumentRequest) ProtoMessage()               {}
-func (*GetDocumentRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{9} }
+func (*GetDocumentRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{9} }
 
 func (m *GetDocumentRequest) GetId() string {
 	if m != nil {
@@ -299,7 +268,7 @@ type GetDocumentResponse struct {
 func (m *GetDocumentResponse) Reset()                    { *m = GetDocumentResponse{} }
 func (m *GetDocumentResponse) String() string            { return proto1.CompactTextString(m) }
 func (*GetDocumentResponse) ProtoMessage()               {}
-func (*GetDocumentResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{10} }
+func (*GetDocumentResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{10} }
 
 func (m *GetDocumentResponse) GetId() string {
 	if m != nil {
@@ -322,7 +291,7 @@ type DeleteDocumentRequest struct {
 func (m *DeleteDocumentRequest) Reset()                    { *m = DeleteDocumentRequest{} }
 func (m *DeleteDocumentRequest) String() string            { return proto1.CompactTextString(m) }
 func (*DeleteDocumentRequest) ProtoMessage()               {}
-func (*DeleteDocumentRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{11} }
+func (*DeleteDocumentRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{11} }
 
 func (m *DeleteDocumentRequest) GetId() string {
 	if m != nil {
@@ -338,7 +307,7 @@ type DeleteDocumentResponse struct {
 func (m *DeleteDocumentResponse) Reset()                    { *m = DeleteDocumentResponse{} }
 func (m *DeleteDocumentResponse) String() string            { return proto1.CompactTextString(m) }
 func (*DeleteDocumentResponse) ProtoMessage()               {}
-func (*DeleteDocumentResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{12} }
+func (*DeleteDocumentResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{12} }
 
 func (m *DeleteDocumentResponse) GetId() string {
 	if m != nil {
@@ -355,7 +324,7 @@ type BulkRequest struct {
 func (m *BulkRequest) Reset()                    { *m = BulkRequest{} }
 func (m *BulkRequest) String() string            { return proto1.CompactTextString(m) }
 func (*BulkRequest) ProtoMessage()               {}
-func (*BulkRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{13} }
+func (*BulkRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{13} }
 
 func (m *BulkRequest) GetBatchSize() int32 {
 	if m != nil {
@@ -379,7 +348,7 @@ type BulkRequest_UpdateRequest struct {
 func (m *BulkRequest_UpdateRequest) Reset()                    { *m = BulkRequest_UpdateRequest{} }
 func (m *BulkRequest_UpdateRequest) String() string            { return proto1.CompactTextString(m) }
 func (*BulkRequest_UpdateRequest) ProtoMessage()               {}
-func (*BulkRequest_UpdateRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{13, 0} }
+func (*BulkRequest_UpdateRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{13, 0} }
 
 func (m *BulkRequest_UpdateRequest) GetMethod() string {
 	if m != nil {
@@ -404,7 +373,7 @@ func (m *BulkRequest_UpdateRequest_Document) Reset()         { *m = BulkRequest_
 func (m *BulkRequest_UpdateRequest_Document) String() string { return proto1.CompactTextString(m) }
 func (*BulkRequest_UpdateRequest_Document) ProtoMessage()    {}
 func (*BulkRequest_UpdateRequest_Document) Descriptor() ([]byte, []int) {
-	return fileDescriptor0, []int{13, 0, 0}
+	return fileDescriptor1, []int{13, 0, 0}
 }
 
 func (m *BulkRequest_UpdateRequest_Document) GetId() string {
@@ -431,7 +400,7 @@ type BulkResponse struct {
 func (m *BulkResponse) Reset()                    { *m = BulkResponse{} }
 func (m *BulkResponse) String() string            { return proto1.CompactTextString(m) }
 func (*BulkResponse) ProtoMessage()               {}
-func (*BulkResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{14} }
+func (*BulkResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{14} }
 
 func (m *BulkResponse) GetPutCount() int32 {
 	if m != nil {
@@ -468,7 +437,7 @@ type SearchRequest struct {
 func (m *SearchRequest) Reset()                    { *m = SearchRequest{} }
 func (m *SearchRequest) String() string            { return proto1.CompactTextString(m) }
 func (*SearchRequest) ProtoMessage()               {}
-func (*SearchRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{15} }
+func (*SearchRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{15} }
 
 func (m *SearchRequest) GetSearchRequest() *google_protobuf.Any {
 	if m != nil {
@@ -484,7 +453,7 @@ type SearchResponse struct {
 func (m *SearchResponse) Reset()                    { *m = SearchResponse{} }
 func (m *SearchResponse) String() string            { return proto1.CompactTextString(m) }
 func (*SearchResponse) ProtoMessage()               {}
-func (*SearchResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{16} }
+func (*SearchResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{16} }
 
 func (m *SearchResponse) GetSearchResult() *google_protobuf.Any {
 	if m != nil {
@@ -917,9 +886,9 @@ var _Index_serviceDesc = grpc.ServiceDesc{
 	Metadata: "proto/index_service.proto",
 }
 
-func init() { proto1.RegisterFile("proto/index_service.proto", fileDescriptor0) }
+func init() { proto1.RegisterFile("proto/index_service.proto", fileDescriptor1) }
 
-var fileDescriptor0 = []byte{
+var fileDescriptor1 = []byte{
 	// 798 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0xac, 0x55, 0x4d, 0x6f, 0xd3, 0x4c,
 	0x10, 0x8e, 0xd3, 0x26, 0x6f, 0x32, 0xf9, 0xe8, 0xab, 0xed, 0x07, 0xa9, 0x4b, 0x51, 0x59, 0x10,

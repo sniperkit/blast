@@ -22,7 +22,7 @@ GO := CGO_ENABLED=0 GO15VENDOREXPERIMENT=1 go
 
 PACKAGES = $(shell $(GO) list ./... | grep -v '/vendor/')
 
-PROTOBUFS = $(shell find . -name '*.proto' | sort --unique | grep -v /vendor/)
+PROTOBUFS = $(shell find . -name '*.proto' | xargs -n 1 dirname | sort --unique | grep -v /vendor/)
 
 TARGET_PACKAGES = $(shell find . -name 'main.go' -print0 | xargs -0 -n1 dirname | sort --unique | grep -v /vendor/)
 
@@ -39,7 +39,7 @@ vendor:
 .PHONY: protoc
 protoc:
 	@echo ">> generating proto3 code"
-	@for proto_file in $(PROTOBUFS); do echo $$proto_file; protoc --go_out=plugins=grpc:. $$proto_file; done
+	@for proto_dir in $(PROTOBUFS); do echo $$proto_dir; protoc --go_out=plugins=grpc:. $$proto_dir/*.proto; done
 
 .PHONY: format
 format:
