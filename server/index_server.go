@@ -1,4 +1,4 @@
-//  Copyright (c) 2017 Minoru Osuka
+//  Copyright (c) 2018 Minoru Osuka
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,25 +23,25 @@ import (
 	"net"
 )
 
-type GRPCServer struct {
+type IndexServer struct {
 	listenAddress string
 	server        *grpc.Server
 	service       *service.IndexService
 }
 
-func NewGRPCServer(listenAddress string, indexPath string, indexMapping *mapping.IndexMappingImpl, indexType string, kvstore string, kvconfig map[string]interface{}) (*GRPCServer, error) {
+func NewIndexServer(listenAddress string, indexPath string, indexMapping *mapping.IndexMappingImpl, indexType string, kvstore string, kvconfig map[string]interface{}) (*IndexServer, error) {
 	svr := grpc.NewServer()
 	svc := service.NewIndexService(indexPath, indexMapping, indexType, kvstore, kvconfig)
 	proto.RegisterIndexServer(svr, svc)
 
-	return &GRPCServer{
+	return &IndexServer{
 		listenAddress: listenAddress,
 		server:        svr,
 		service:       svc,
 	}, nil
 }
 
-func (s *GRPCServer) Start() error {
+func (s *IndexServer) Start() error {
 	// open index
 	err := s.service.OpenIndex()
 	if err != nil {
@@ -70,7 +70,7 @@ func (s *GRPCServer) Start() error {
 	return nil
 }
 
-func (s *GRPCServer) Stop() error {
+func (s *IndexServer) Stop() error {
 	// stop server
 	s.server.GracefulStop()
 

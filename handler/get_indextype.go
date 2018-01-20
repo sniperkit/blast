@@ -1,4 +1,4 @@
-//  Copyright (c) 2017 Minoru Osuka
+//  Copyright (c) 2018 Minoru Osuka
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import (
 )
 
 type GetIndexTypeHandler struct {
-	client *client.GRPCClient
+	client *client.IndexClient
 }
 
-func NewGetIndexTypeHandler(c *client.GRPCClient) *GetIndexTypeHandler {
+func NewGetIndexTypeHandler(c *client.IndexClient) *GetIndexTypeHandler {
 	return &GetIndexTypeHandler{
 		client: c,
 	}

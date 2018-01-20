@@ -1,4 +1,4 @@
-//  Copyright (c) 2017 Minoru Osuka
+//  Copyright (c) 2018 Minoru Osuka
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-type GRPCClient struct {
+type IndexClient struct {
 	server      string
 	dialOptions []grpc.DialOption
 	context     context.Context
@@ -32,7 +32,7 @@ type GRPCClient struct {
 	indexClient proto.IndexClient
 }
 
-func NewGRPCClient(ctx context.Context, server string, dialOpts ...grpc.DialOption) (*GRPCClient, error) {
+func NewIndexClient(ctx context.Context, server string, dialOpts ...grpc.DialOption) (*IndexClient, error) {
 	ct, cancel := context.WithCancel(ctx)
 
 	conn, err := grpc.DialContext(ct, server, dialOpts...)
@@ -43,7 +43,7 @@ func NewGRPCClient(ctx context.Context, server string, dialOpts ...grpc.DialOpti
 
 	ic := proto.NewIndexClient(conn)
 
-	c := &GRPCClient{
+	c := &IndexClient{
 		server:      server,
 		dialOptions: dialOpts,
 		context:     ct,
@@ -55,7 +55,7 @@ func NewGRPCClient(ctx context.Context, server string, dialOpts ...grpc.DialOpti
 	return c, nil
 }
 
-func (c *GRPCClient) Close() error {
+func (c *IndexClient) Close() error {
 	c.cancel()
 	if c.conn != nil {
 		return c.conn.Close()
@@ -63,7 +63,7 @@ func (c *GRPCClient) Close() error {
 	return c.context.Err()
 }
 
-func (c *GRPCClient) GetIndexPath(ctx context.Context, callOpts ...grpc.CallOption) (string, error) {
+func (c *IndexClient) GetIndexPath(ctx context.Context, callOpts ...grpc.CallOption) (string, error) {
 	protoReq := &empty.Empty{}
 
 	protoResp, err := c.indexClient.GetIndexPath(ctx, protoReq, callOpts...)
@@ -74,7 +74,7 @@ func (c *GRPCClient) GetIndexPath(ctx context.Context, callOpts ...grpc.CallOpti
 	return protoResp.IndexPath, nil
 }
 
-func (c *GRPCClient) GetIndexMapping(ctx context.Context, callOpts ...grpc.CallOption) (*mapping.IndexMappingImpl, error) {
+func (c *IndexClient) GetIndexMapping(ctx context.Context, callOpts ...grpc.CallOption) (*mapping.IndexMappingImpl, error) {
 	protoReq := &empty.Empty{}
 
 	protoResp, err := c.indexClient.GetIndexMapping(ctx, protoReq, callOpts...)
@@ -90,7 +90,7 @@ func (c *GRPCClient) GetIndexMapping(ctx context.Context, callOpts ...grpc.CallO
 	return im.(*mapping.IndexMappingImpl), nil
 }
 
-func (c *GRPCClient) GetIndexType(ctx context.Context, callOpts ...grpc.CallOption) (string, error) {
+func (c *IndexClient) GetIndexType(ctx context.Context, callOpts ...grpc.CallOption) (string, error) {
 	protoReq := &empty.Empty{}
 
 	protoResp, err := c.indexClient.GetIndexType(ctx, protoReq, callOpts...)
@@ -101,7 +101,7 @@ func (c *GRPCClient) GetIndexType(ctx context.Context, callOpts ...grpc.CallOpti
 	return protoResp.IndexType, nil
 }
 
-func (c *GRPCClient) GetKvstore(ctx context.Context, callOpts ...grpc.CallOption) (string, error) {
+func (c *IndexClient) GetKvstore(ctx context.Context, callOpts ...grpc.CallOption) (string, error) {
 	protoReq := &empty.Empty{}
 
 	protoResp, err := c.indexClient.GetKvstore(ctx, protoReq, callOpts...)
@@ -112,7 +112,7 @@ func (c *GRPCClient) GetKvstore(ctx context.Context, callOpts ...grpc.CallOption
 	return protoResp.Kvstore, nil
 }
 
-func (c *GRPCClient) GetKvconfig(ctx context.Context, callOpts ...grpc.CallOption) (map[string]interface{}, error) {
+func (c *IndexClient) GetKvconfig(ctx context.Context, callOpts ...grpc.CallOption) (map[string]interface{}, error) {
 	protoReq := &empty.Empty{}
 
 	protoResp, err := c.indexClient.GetKvconfig(ctx, protoReq, callOpts...)
@@ -125,7 +125,7 @@ func (c *GRPCClient) GetKvconfig(ctx context.Context, callOpts ...grpc.CallOptio
 	return *kvc.(*map[string]interface{}), nil
 }
 
-func (c *GRPCClient) PutDocument(ctx context.Context, id string, fields map[string]interface{}, callOpts ...grpc.CallOption) (string, map[string]interface{}, error) {
+func (c *IndexClient) PutDocument(ctx context.Context, id string, fields map[string]interface{}, callOpts ...grpc.CallOption) (string, map[string]interface{}, error) {
 	fieldAny, err := proto.MarshalAny(fields)
 	if err != nil {
 		return "", nil, err
@@ -154,7 +154,7 @@ func (c *GRPCClient) PutDocument(ctx context.Context, id string, fields map[stri
 	return protoResp.Id, fieldsPut, nil
 }
 
-func (c *GRPCClient) GetDocument(ctx context.Context, id string, callOpts ...grpc.CallOption) (string, map[string]interface{}, error) {
+func (c *IndexClient) GetDocument(ctx context.Context, id string, callOpts ...grpc.CallOption) (string, map[string]interface{}, error) {
 	protoReq := &proto.GetDocumentRequest{
 		Id: id,
 	}
@@ -177,7 +177,7 @@ func (c *GRPCClient) GetDocument(ctx context.Context, id string, callOpts ...grp
 	return protoResp.Id, fields, nil
 }
 
-func (c *GRPCClient) DeleteDocument(ctx context.Context, id string, callOpts ...grpc.CallOption) (string, error) {
+func (c *IndexClient) DeleteDocument(ctx context.Context, id string, callOpts ...grpc.CallOption) (string, error) {
 	protoReq := &proto.DeleteDocumentRequest{
 		Id: id,
 	}
@@ -190,7 +190,7 @@ func (c *GRPCClient) DeleteDocument(ctx context.Context, id string, callOpts ...
 	return protoResp.Id, nil
 }
 
-func (c *GRPCClient) Bulk(ctx context.Context, requests []map[string]interface{}, batchSize int32, callOpts ...grpc.CallOption) (int32, int32, int32, int32, error) {
+func (c *IndexClient) Bulk(ctx context.Context, requests []map[string]interface{}, batchSize int32, callOpts ...grpc.CallOption) (int32, int32, int32, int32, error) {
 	updateRequests := make([]*proto.BulkRequest_UpdateRequest, 0)
 	for _, updateRequest := range requests {
 		r := &proto.BulkRequest_UpdateRequest{}
@@ -240,7 +240,7 @@ func (c *GRPCClient) Bulk(ctx context.Context, requests []map[string]interface{}
 	return protoResp.PutCount, protoResp.PutErrorCount, protoResp.DeleteCount, protoResp.MethodErrorCount, nil
 }
 
-func (c *GRPCClient) Search(ctx context.Context, searchRequest *bleve.SearchRequest, opts ...grpc.CallOption) (*bleve.SearchResult, error) {
+func (c *IndexClient) Search(ctx context.Context, searchRequest *bleve.SearchRequest, opts ...grpc.CallOption) (*bleve.SearchResult, error) {
 	searchResultAny, err := proto.MarshalAny(searchRequest)
 	if err != nil {
 		return nil, err

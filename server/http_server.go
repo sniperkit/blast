@@ -1,4 +1,4 @@
-//  Copyright (c) 2017 Minoru Osuka
+//  Copyright (c) 2018 Minoru Osuka
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,12 +30,12 @@ import (
 type HTTPServer struct {
 	listener   net.Listener
 	router     *mux.Router
-	grpcClient *client.GRPCClient
+	grpcClient *client.IndexClient
 }
 
 func NewHTTPServer(httpListenAddress string, restPath string, metricsPath string, ctx context.Context, grpcListenAddress string, dialOpts ...grpc.DialOption) (*HTTPServer, error) {
 	// create client
-	grpcClient, err := client.NewGRPCClient(ctx, grpcListenAddress, dialOpts...)
+	grpcClient, err := client.NewIndexClient(ctx, grpcListenAddress, dialOpts...)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error": err.Error(),

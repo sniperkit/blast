@@ -1,4 +1,4 @@
-//  Copyright (c) 2017 Minoru Osuka
+//  Copyright (c) 2018 Minoru Osuka
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,10 +28,10 @@ import (
 )
 
 type PutDocumentHandler struct {
-	client *client.GRPCClient
+	client *client.IndexClient
 }
 
-func NewPutDocumentHandler(c *client.GRPCClient) *PutDocumentHandler {
+func NewPutDocumentHandler(c *client.IndexClient) *PutDocumentHandler {
 	return &PutDocumentHandler{
 		client: c,
 	}

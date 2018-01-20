@@ -1,4 +1,4 @@
-//  Copyright (c) 2017 Minoru Osuka
+//  Copyright (c) 2018 Minoru Osuka
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ func runEDeleteDocumentCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// create client
-	c, err := client.NewGRPCClient(context.Background(), deleteDocumentCmdOpts.grpcServerAddress, grpc.WithInsecure())
+	c, err := client.NewIndexClient(context.Background(), deleteDocumentCmdOpts.grpcServerAddress, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}

@@ -1,4 +1,4 @@
-//  Copyright (c) 2017 Minoru Osuka
+//  Copyright (c) 2018 Minoru Osuka
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import (
 )
 
 type GetKvconfigHandler struct {
-	client *client.GRPCClient
+	client *client.IndexClient
 }
 
-func NewGetKvconfigHandler(c *client.GRPCClient) *GetKvconfigHandler {
+func NewGetKvconfigHandler(c *client.IndexClient) *GetKvconfigHandler {
 	return &GetKvconfigHandler{
 		client: c,
 	}

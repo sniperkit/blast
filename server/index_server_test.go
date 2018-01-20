@@ -1,4 +1,4 @@
-//  Copyright (c) 2017 Minoru Osuka
+//  Copyright (c) 2018 Minoru Osuka
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ func TestBlastServer(t *testing.T) {
 		t.Errorf("could not load kvconfig %v", err)
 	}
 
-	blastServer, err := NewGRPCServer(port, indexPath, indexMapping, indexType, kvstore, kvconfig)
+	blastServer, err := NewIndexServer(port, indexPath, indexMapping, indexType, kvstore, kvconfig)
 
 	if blastServer == nil {
 		t.Fatalf("unexpected error. expected not nil, actual %v", blastServer)
