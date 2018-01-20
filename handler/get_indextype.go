@@ -17,7 +17,6 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"github.com/blevesearch/bleve/mapping"
 	"github.com/mosuka/blast/client"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -25,17 +24,17 @@ import (
 	"time"
 )
 
-type GetIndexInfoHandler struct {
+type GetIndexTypeHandler struct {
 	client *client.GRPCClient
 }
 
-func NewGetIndexInfoHandler(c *client.GRPCClient) *GetIndexInfoHandler {
-	return &GetIndexInfoHandler{
+func NewGetIndexTypeHandler(c *client.GRPCClient) *GetIndexTypeHandler {
+	return &GetIndexTypeHandler{
 		client: c,
 	}
 }
 
-func (h *GetIndexInfoHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (h *GetIndexTypeHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	log.WithFields(log.Fields{
 		"host":           req.Host,
 		"uri":            req.RequestURI,
@@ -45,39 +44,6 @@ func (h *GetIndexInfoHandler) ServeHTTP(w http.ResponseWriter, req *http.Request
 		"header":         req.Header,
 		"url":            req.URL,
 	}).Info("")
-
-	var indexPath bool
-	if req.URL.Query().Get("indexMapping") == "true" {
-		indexPath = true
-	}
-
-	var indexMapping bool
-	if req.URL.Query().Get("indexMapping") == "true" {
-		indexMapping = true
-	}
-
-	var indexType bool
-	if req.URL.Query().Get("indexType") == "true" {
-		indexType = true
-	}
-
-	var kvstore bool
-	if req.URL.Query().Get("kvstore") == "true" {
-		kvstore = true
-	}
-
-	var kvconfig bool
-	if req.URL.Query().Get("kvconfig") == "true" {
-		kvconfig = true
-	}
-
-	if !indexPath && !indexMapping && !indexType && !kvstore && !kvconfig {
-		indexPath = true
-		indexMapping = true
-		indexType = true
-		kvstore = true
-		kvconfig = true
-	}
 
 	// request timeout
 	requestTimeout := DefaultRequestTimeout
@@ -99,21 +65,13 @@ func (h *GetIndexInfoHandler) ServeHTTP(w http.ResponseWriter, req *http.Request
 	defer cancel()
 
 	// request
-	indexPathResp, indexMappingResp, indexTypeResp, kvstoreResp, kvconfigResp, err := h.client.GetIndexInfo(ctx, indexPath, indexMapping, indexType, kvstore, kvconfig)
+	indexType, err := h.client.GetIndexType(ctx)
 	resp := struct {
-		IndexPath    string                    `json:"index_path,omitempty"`
-		IndexMapping *mapping.IndexMappingImpl `json:"index_mapping,omitempty"`
-		IndexType    string                    `json:"index_type,omitempty"`
-		Kvstore      string                    `json:"kvstore,omitempty"`
-		Kvconfig     map[string]interface{}    `json:"kvconfig,omitempty"`
-		Error        error                     `json:"error,omitempty"`
+		IndexType string `json:"index_type,omitempty"`
+		Error     error  `json:"error,omitempty"`
 	}{
-		IndexPath:    indexPathResp,
-		IndexMapping: indexMappingResp,
-		IndexType:    indexTypeResp,
-		Kvstore:      kvstoreResp,
-		Kvconfig:     kvconfigResp,
-		Error:        err,
+		IndexType: indexType,
+		Error:     err,
 	}
 
 	// output response

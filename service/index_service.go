@@ -103,42 +103,6 @@ func (s *IndexService) CloseIndex() error {
 	return nil
 }
 
-func (s *IndexService) GetIndexInfo(ctx context.Context, req *proto.GetIndexInfoRequest) (*proto.GetIndexInfoResponse, error) {
-	protoGetIndexResponse := &proto.GetIndexInfoResponse{}
-
-	if req.IndexPath {
-		protoGetIndexResponse.IndexPath = s.IndexPath
-	}
-
-	if req.IndexMapping {
-		indexMappingAny, err := proto.MarshalAny(s.IndexMapping)
-		if err != nil {
-			log.Error(err.Error())
-			return nil, err
-		}
-		protoGetIndexResponse.IndexMapping = &indexMappingAny
-	}
-
-	if req.IndexType {
-		protoGetIndexResponse.IndexType = s.IndexType
-	}
-
-	if req.Kvstore {
-		protoGetIndexResponse.Kvstore = s.Kvstore
-	}
-
-	if req.Kvconfig {
-		kvconfigAny, err := proto.MarshalAny(s.Kvconfig)
-		if err != nil {
-			log.Error(err.Error())
-			return nil, err
-		}
-		protoGetIndexResponse.Kvconfig = &kvconfigAny
-	}
-
-	return protoGetIndexResponse, nil
-}
-
 func (s *IndexService) GetIndexPath(ctx context.Context, req *empty.Empty) (*proto.GetIndexPathResponse, error) {
 	protoGetIndexPathResponse := &proto.GetIndexPathResponse{
 		IndexPath: s.IndexPath,

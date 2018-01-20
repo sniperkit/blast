@@ -20,7 +20,6 @@ import "google/protobuf/empty.proto";
 package proto;
 
 service Index {
-    rpc GetIndexInfo(GetIndexInfoRequest) returns (GetIndexInfoResponse) {}
     rpc GetIndexPath(google.protobuf.Empty) returns (GetIndexPathResponse) {}
     rpc GetIndexMapping(google.protobuf.Empty) returns (GetIndexMappingResponse) {}
     rpc GetIndexType(google.protobuf.Empty) returns (GetIndexTypeResponse) {}
@@ -31,22 +30,6 @@ service Index {
     rpc DeleteDocument(DeleteDocumentRequest) returns (DeleteDocumentResponse) {}
     rpc Bulk(BulkRequest) returns (BulkResponse) {}
     rpc Search(SearchRequest) returns (SearchResponse) {}
-}
-
-message GetIndexInfoRequest {
-    bool index_path = 1;
-    bool index_mapping = 2;
-    bool index_type = 3;
-    bool kvstore = 4;
-    bool kvconfig = 5;
-}
-
-message GetIndexInfoResponse {
-    string index_path = 1;
-    google.protobuf.Any index_mapping = 2;
-    string index_type = 3;
-    string kvstore = 4;
-    google.protobuf.Any kvconfig = 5;
 }
 
 message GetIndexPathResponse {

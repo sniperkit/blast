@@ -14,6 +14,11 @@
 
 package service
 
+import (
+	"github.com/mosuka/blast/proto"
+	"golang.org/x/net/context"
+)
+
 type ClusterService struct {
 	ClusterName string
 }
@@ -22,4 +27,16 @@ func NewClusterService(clusterName string) *ClusterService {
 	return &ClusterService{
 		ClusterName: clusterName,
 	}
+}
+
+func (c *ClusterService) PutNode(ctx context.Context, req *proto.PutNodeRequest) (*proto.PutNodeResponse, error) {
+	return &proto.PutNodeResponse{}, nil
+}
+
+func (c *ClusterService) GetNode(ctx context.Context, req *proto.GetNodeRequest) (*proto.GetNodeResponse, error) {
+	return &proto.GetNodeResponse{}, nil
+}
+
+func (c *ClusterService) DeleteNode(ctx context.Context, req *proto.DeleteNodeRequest) (*proto.DeleteNodeResponse, error) {
+	return &proto.DeleteNodeResponse{}, nil
 }

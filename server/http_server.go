@@ -28,16 +28,12 @@ import (
 )
 
 type HTTPServer struct {
-	router      *mux.Router
-	listener    net.Listener
-	grpcClient  *client.GRPCClient
-	dialTimeout int
+	listener   net.Listener
+	router     *mux.Router
+	grpcClient *client.GRPCClient
 }
 
 func NewHTTPServer(httpListenAddress string, restPath string, metricsPath string, ctx context.Context, grpcListenAddress string, dialOpts ...grpc.DialOption) (*HTTPServer, error) {
-	router := mux.NewRouter()
-	router.StrictSlash(true)
-
 	// create client
 	grpcClient, err := client.NewGRPCClient(ctx, grpcListenAddress, dialOpts...)
 	if err != nil {
@@ -47,13 +43,20 @@ func NewHTTPServer(httpListenAddress string, restPath string, metricsPath string
 		return nil, err
 	}
 
+	router := mux.NewRouter()
+	router.StrictSlash(true)
+
 	// set handlers
-	router.Handle(fmt.Sprintf("%s/", restPath), handler.NewGetIndexInfoHandler(grpcClient)).Methods("GET")
 	router.Handle(fmt.Sprintf("%s/{id}", restPath), handler.NewPutDocumentHandler(grpcClient)).Methods("PUT")
 	router.Handle(fmt.Sprintf("%s/{id}", restPath), handler.NewGetDocumentHandler(grpcClient)).Methods("GET")
 	router.Handle(fmt.Sprintf("%s/{id}", restPath), handler.NewDeleteDocumentHandler(grpcClient)).Methods("DELETE")
 	router.Handle(fmt.Sprintf("%s/_bulk", restPath), handler.NewBulkHandler(grpcClient)).Methods("POST")
 	router.Handle(fmt.Sprintf("%s/_search", restPath), handler.NewSearchHandler(grpcClient)).Methods("POST")
+	router.Handle(fmt.Sprintf("%s/_indexpath", restPath), handler.NewGetIndexPathHandler(grpcClient)).Methods("GET")
+	router.Handle(fmt.Sprintf("%s/_indexmapping", restPath), handler.NewGetIndexMappingHandler(grpcClient)).Methods("GET")
+	router.Handle(fmt.Sprintf("%s/_indextype", restPath), handler.NewGetIndexTypeHandler(grpcClient)).Methods("GET")
+	router.Handle(fmt.Sprintf("%s/_kvstore", restPath), handler.NewGetKvstoreHandler(grpcClient)).Methods("GET")
+	router.Handle(fmt.Sprintf("%s/_kvconfig", restPath), handler.NewGetKvconfigHandler(grpcClient)).Methods("GET")
 
 	router.Handle(metricsPath, promhttp.Handler())
 
@@ -66,8 +69,8 @@ func NewHTTPServer(httpListenAddress string, restPath string, metricsPath string
 	}
 
 	return &HTTPServer{
-		router:     router,
 		listener:   listener,
+		router:     router,
 		grpcClient: grpcClient,
 	}, nil
 }
@@ -83,21 +86,21 @@ func (s *HTTPServer) Start() error {
 }
 
 func (s *HTTPServer) Stop() error {
-	// close gRPC client
-	err := s.grpcClient.Close()
-	if err != nil {
-		log.WithFields(log.Fields{
-			"error": err.Error(),
-		}).Error("failed to close gRPC client.")
-		return err
-	}
-
 	// stop server
-	err = s.listener.Close()
+	err := s.listener.Close()
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error": err.Error(),
 		}).Error("failed to stop HTTP server.")
+		return err
+	}
+
+	// close gRPC client
+	err = s.grpcClient.Close()
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Error("failed to close gRPC client.")
 		return err
 	}
 

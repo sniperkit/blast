@@ -1,4 +1,4 @@
-//  Copyright (c) 2017 Minoru Osuka
+//  Copyright (c) 2018 Minoru Osuka
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,41 +15,55 @@
 package server
 
 import (
-	"github.com/blevesearch/bleve/mapping"
+	"context"
+	"github.com/coreos/etcd/clientv3"
 	"github.com/mosuka/blast/proto"
 	"github.com/mosuka/blast/service"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"net"
+	"time"
 )
 
-type GRPCServer struct {
+type ClusterServer struct {
 	listenAddress string
 	server        *grpc.Server
-	service       *service.IndexService
+	service       *service.ClusterService
+	endpoints     []string
+	dialTimeout   int
+	etcdClient    *clientv3.Client
 }
 
-func NewGRPCServer(listenAddress string, indexPath string, indexMapping *mapping.IndexMappingImpl, indexType string, kvstore string, kvconfig map[string]interface{}) (*GRPCServer, error) {
+func NewClusterServer(listenAddress string, endpoints []string, dialTimeout int, clusterName string) (*ClusterServer, error) {
 	svr := grpc.NewServer()
-	svc := service.NewIndexService(indexPath, indexMapping, indexType, kvstore, kvconfig)
-	proto.RegisterIndexServer(svr, svc)
+	svc := service.NewClusterService(clusterName)
+	proto.RegisterClusterServer(svr, svc)
 
-	return &GRPCServer{
+	return &ClusterServer{
 		listenAddress: listenAddress,
 		server:        svr,
 		service:       svc,
+		endpoints:     endpoints,
+		dialTimeout:   dialTimeout,
 	}, nil
 }
 
-func (s *GRPCServer) Start() error {
-	// open index
-	err := s.service.OpenIndex()
+func (s *ClusterServer) Start() error {
+	// create etcd client
+	cfg := clientv3.Config{
+		Endpoints:   s.endpoints,
+		DialTimeout: time.Duration(s.dialTimeout) * time.Millisecond,
+		Context:     context.Background(),
+	}
+
+	etcdClient, err := clientv3.New(cfg)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error": err.Error(),
-		}).Error("failed to open index.")
+		}).Error("failed to create etcd client.")
 		return err
 	}
+	s.etcdClient = etcdClient
 
 	// create listener
 	listener, err := net.Listen("tcp", s.listenAddress)
@@ -57,7 +71,7 @@ func (s *GRPCServer) Start() error {
 		log.WithFields(log.Fields{
 			"listenAddress": s.listenAddress,
 			"error":         err.Error(),
-		}).Error("failed to start gRPC server.")
+		}).Error("failed to start Cluster server.")
 		return err
 	}
 
@@ -70,16 +84,16 @@ func (s *GRPCServer) Start() error {
 	return nil
 }
 
-func (s *GRPCServer) Stop() error {
+func (s *ClusterServer) Stop() error {
 	// stop server
 	s.server.GracefulStop()
 
-	// close index
-	err := s.service.CloseIndex()
+	// close etcd client
+	err := s.etcdClient.Close()
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error": err.Error(),
-		}).Error("failed to close index.")
+		}).Error("failed to close etcd client.")
 		return err
 	}
 

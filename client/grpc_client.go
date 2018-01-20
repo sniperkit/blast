@@ -63,32 +63,6 @@ func (c *GRPCClient) Close() error {
 	return c.context.Err()
 }
 
-func (c *GRPCClient) GetIndexInfo(ctx context.Context, indexPath bool, indexMapping bool, indexType bool, kvstore bool, kvconfig bool, callOpts ...grpc.CallOption) (string, *mapping.IndexMappingImpl, string, string, map[string]interface{}, error) {
-	protoReq := &proto.GetIndexInfoRequest{
-		IndexMapping: indexMapping,
-		IndexType:    indexType,
-		Kvstore:      kvstore,
-		Kvconfig:     kvconfig,
-	}
-
-	protoResp, err := c.indexClient.GetIndexInfo(ctx, protoReq, callOpts...)
-	if err != nil {
-		return "", nil, "", "", nil, err
-	}
-
-	im, err := proto.UnmarshalAny(protoResp.IndexMapping)
-	if err != nil {
-		return "", nil, "", "", nil, err
-	}
-
-	kvc, err := proto.UnmarshalAny(protoResp.Kvconfig)
-	if err != nil {
-		return "", nil, "", "", nil, err
-	}
-
-	return protoResp.IndexPath, im.(*mapping.IndexMappingImpl), protoResp.IndexType, protoResp.Kvstore, *kvc.(*map[string]interface{}), nil
-}
-
 func (c *GRPCClient) GetIndexPath(ctx context.Context, callOpts ...grpc.CallOption) (string, error) {
 	protoReq := &empty.Empty{}
 

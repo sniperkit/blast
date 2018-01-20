@@ -16,8 +16,6 @@ It has these top-level messages:
 	GetNodeResponse
 	DeleteNodeRequest
 	DeleteNodeResponse
-	GetIndexInfoRequest
-	GetIndexInfoResponse
 	GetIndexPathResponse
 	GetIndexMappingResponse
 	GetIndexTypeResponse
