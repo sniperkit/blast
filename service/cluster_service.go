@@ -15,18 +15,42 @@
 package service
 
 import (
+	"github.com/coreos/etcd/clientv3"
 	"github.com/mosuka/blast/proto"
 	"golang.org/x/net/context"
+	"time"
 )
 
 type ClusterService struct {
+	EtcdClient  *clientv3.Client
 	ClusterName string
 }
 
-func NewClusterService(clusterName string) *ClusterService {
+func NewClusterService(etcdEndpoints []string, etcdDialTimeout int, clusterName string) *ClusterService {
+	cfg := clientv3.Config{
+		Endpoints:   etcdEndpoints,
+		DialTimeout: time.Duration(etcdDialTimeout) * time.Millisecond,
+		Context:     context.Background(),
+	}
+
+	client, err := clientv3.New(cfg)
+	if err != nil {
+		return nil
+	}
+
 	return &ClusterService{
+		EtcdClient:  client,
 		ClusterName: clusterName,
 	}
+}
+
+func (c *ClusterService) CloseClient() error {
+	err := c.EtcdClient.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *ClusterService) PutNode(ctx context.Context, req *proto.PutNodeRequest) (*proto.PutNodeResponse, error) {

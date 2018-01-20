@@ -15,56 +15,32 @@
 package server
 
 import (
-	"context"
-	"github.com/coreos/etcd/clientv3"
 	"github.com/mosuka/blast/proto"
 	"github.com/mosuka/blast/service"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"net"
-	"time"
 )
 
 type ClusterServer struct {
 	listenAddress string
 	server        *grpc.Server
 	service       *service.ClusterService
-	endpoints     []string
-	dialTimeout   int
-	etcdClient    *clientv3.Client
 }
 
 func NewClusterServer(listenAddress string, endpoints []string, dialTimeout int, clusterName string) (*ClusterServer, error) {
 	svr := grpc.NewServer()
-	svc := service.NewClusterService(clusterName)
+	svc := service.NewClusterService(endpoints, dialTimeout, clusterName)
 	proto.RegisterClusterServer(svr, svc)
 
 	return &ClusterServer{
 		listenAddress: listenAddress,
 		server:        svr,
 		service:       svc,
-		endpoints:     endpoints,
-		dialTimeout:   dialTimeout,
 	}, nil
 }
 
 func (s *ClusterServer) Start() error {
-	// create etcd client
-	cfg := clientv3.Config{
-		Endpoints:   s.endpoints,
-		DialTimeout: time.Duration(s.dialTimeout) * time.Millisecond,
-		Context:     context.Background(),
-	}
-
-	etcdClient, err := clientv3.New(cfg)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"error": err.Error(),
-		}).Error("failed to create etcd client.")
-		return err
-	}
-	s.etcdClient = etcdClient
-
 	// create listener
 	listener, err := net.Listen("tcp", s.listenAddress)
 	if err != nil {
@@ -89,7 +65,7 @@ func (s *ClusterServer) Stop() error {
 	s.server.GracefulStop()
 
 	// close etcd client
-	err := s.etcdClient.Close()
+	err := s.service.CloseClient()
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error": err.Error(),
