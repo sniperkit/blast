@@ -19,48 +19,49 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mosuka/blast/client"
+	"github.com/mosuka/blast/index"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"time"
 )
 
-type GetIndexTypeCommandOptions struct {
+type GetIndexMetaCommandOptions struct {
 	grpcServerAddress string
 	dialTimeout       int
 	requestTimeout    int
 }
 
-var getIndexTypeCmdOpts = GetIndexTypeCommandOptions{
+var getIndexMetaCmdOpts = GetIndexMetaCommandOptions{
 	grpcServerAddress: "localhost:5000",
 	dialTimeout:       5000,
 	requestTimeout:    5000,
 }
 
-var getIndexTypeCmd = &cobra.Command{
-	Use:   "indextype",
-	Short: "gets the index type",
-	Long:  `The get index command gets the index type.`,
-	RunE:  runEGetIndexTypeCmd,
+var getIndexMetaCmd = &cobra.Command{
+	Use:   "indexmeta",
+	Short: "gets the index meta",
+	Long:  `The get index command gets the index meta.`,
+	RunE:  runEGetIndexMetaCmd,
 }
 
-func runEGetIndexTypeCmd(cmd *cobra.Command, args []string) error {
+func runEGetIndexMetaCmd(cmd *cobra.Command, args []string) error {
 	// create client
-	c, err := client.NewIndexClient(context.Background(), getIndexTypeCmdOpts.grpcServerAddress, grpc.WithInsecure())
+	c, err := client.NewIndexClient(context.Background(), getIndexMetaCmdOpts.grpcServerAddress, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
 	defer c.Close()
 
 	// create context
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(getIndexTypeCmdOpts.requestTimeout)*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(getIndexMetaCmdOpts.requestTimeout)*time.Millisecond)
 	defer cancel()
 
-	indexType, err := c.GetIndexType(ctx)
+	indexMeta, err := c.GetIndexMeta(ctx)
 	resp := struct {
-		IndexType string `json:"index_type,omitempty"`
-		Error     error  `json:"error,omitempty"`
+		IndexMeta *index.IndexMeta `json:"index_meta,omitempty"`
+		Error     error            `json:"error,omitempty"`
 	}{
-		IndexType: indexType,
+		IndexMeta: indexMeta,
 		Error:     err,
 	}
 
@@ -82,11 +83,11 @@ func runEGetIndexTypeCmd(cmd *cobra.Command, args []string) error {
 }
 
 func init() {
-	getIndexTypeCmd.Flags().SortFlags = false
+	getIndexMetaCmd.Flags().SortFlags = false
 
-	getIndexTypeCmd.Flags().StringVar(&getIndexTypeCmdOpts.grpcServerAddress, "grpc-server-address", getIndexTypeCmdOpts.grpcServerAddress, "Blast server to connect to using gRPC")
-	getIndexTypeCmd.Flags().IntVar(&getIndexTypeCmdOpts.dialTimeout, "dial-timeout", getIndexTypeCmdOpts.dialTimeout, "dial timeout")
-	getIndexTypeCmd.Flags().IntVar(&getIndexTypeCmdOpts.requestTimeout, "request-timeout", getIndexTypeCmdOpts.requestTimeout, "request timeout")
+	getIndexMetaCmd.Flags().StringVar(&getIndexMetaCmdOpts.grpcServerAddress, "grpc-server-address", getIndexMetaCmdOpts.grpcServerAddress, "Blast server to connect to using gRPC")
+	getIndexMetaCmd.Flags().IntVar(&getIndexMetaCmdOpts.dialTimeout, "dial-timeout", getIndexMetaCmdOpts.dialTimeout, "dial timeout")
+	getIndexMetaCmd.Flags().IntVar(&getIndexMetaCmdOpts.requestTimeout, "request-timeout", getIndexMetaCmdOpts.requestTimeout, "request timeout")
 
-	getCmd.AddCommand(getIndexTypeCmd)
+	getCmd.AddCommand(getIndexMetaCmd)
 }

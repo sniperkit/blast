@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package util
+package index
 
 import (
 	"encoding/json"
@@ -21,7 +21,7 @@ import (
 	"io/ioutil"
 )
 
-func NewIndexMapping(reader io.Reader) (*mapping.IndexMappingImpl, error) {
+func LoadIndexMapping(reader io.Reader) (*mapping.IndexMappingImpl, error) {
 	indexMapping := mapping.NewIndexMapping()
 
 	resourceBytes, err := ioutil.ReadAll(reader)
@@ -35,20 +35,4 @@ func NewIndexMapping(reader io.Reader) (*mapping.IndexMappingImpl, error) {
 	}
 
 	return indexMapping, nil
-}
-
-func NewKvconfig(reader io.Reader) (map[string]interface{}, error) {
-	kvconfig := make(map[string]interface{})
-
-	resourceBytes, err := ioutil.ReadAll(reader)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(resourceBytes, &kvconfig)
-	if err != nil {
-		return nil, err
-	}
-
-	return kvconfig, nil
 }

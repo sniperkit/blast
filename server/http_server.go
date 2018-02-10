@@ -54,9 +54,7 @@ func NewHTTPServer(httpListenAddress string, restPath string, metricsPath string
 	router.Handle(fmt.Sprintf("%s/_search", restPath), handler.NewSearchHandler(grpcClient)).Methods("POST")
 	router.Handle(fmt.Sprintf("%s/_indexpath", restPath), handler.NewGetIndexPathHandler(grpcClient)).Methods("GET")
 	router.Handle(fmt.Sprintf("%s/_indexmapping", restPath), handler.NewGetIndexMappingHandler(grpcClient)).Methods("GET")
-	router.Handle(fmt.Sprintf("%s/_indextype", restPath), handler.NewGetIndexTypeHandler(grpcClient)).Methods("GET")
-	router.Handle(fmt.Sprintf("%s/_kvstore", restPath), handler.NewGetKvstoreHandler(grpcClient)).Methods("GET")
-	router.Handle(fmt.Sprintf("%s/_kvconfig", restPath), handler.NewGetKvconfigHandler(grpcClient)).Methods("GET")
+	router.Handle(fmt.Sprintf("%s/_indexmeta", restPath), handler.NewGetIndexMetaHandler(grpcClient)).Methods("GET")
 
 	router.Handle(metricsPath, promhttp.Handler())
 

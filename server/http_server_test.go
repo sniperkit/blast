@@ -14,18 +14,20 @@
 
 package server
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 func TestIndigoRESTServer(t *testing.T) {
-	port := 0
-	basePath := "/api"
+	listenAddress := "localhost:0"
+	restPath := "/api"
+	metricsPath := "/metrics"
+	ctx := context.Background()
 	server := "localhost:1289"
-	dialTimeout := 15000
-	requestTimeout := 15000
 
-	restServer := NewHTTPServer(port, basePath, server, dialTimeout, requestTimeout)
-
-	if restServer == nil {
+	restServer, err := NewHTTPServer(listenAddress, restPath, metricsPath, ctx, server)
+	if err != nil {
 		t.Fatalf("unexpected error.  expected not nil, actual %v", restServer)
 	}
 

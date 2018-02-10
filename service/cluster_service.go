@@ -15,6 +15,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/mosuka/blast/proto"
 	"golang.org/x/net/context"
@@ -22,8 +23,8 @@ import (
 )
 
 type ClusterService struct {
-	EtcdClient  *clientv3.Client
-	ClusterName string
+	etcdClient *clientv3.Client
+	clusterKey string
 }
 
 func NewClusterService(etcdEndpoints []string, etcdDialTimeout int, clusterName string) *ClusterService {
@@ -39,13 +40,13 @@ func NewClusterService(etcdEndpoints []string, etcdDialTimeout int, clusterName 
 	}
 
 	return &ClusterService{
-		EtcdClient:  client,
-		ClusterName: clusterName,
+		etcdClient: client,
+		clusterKey: "/blast/clusters/" + clusterName,
 	}
 }
 
 func (c *ClusterService) CloseClient() error {
-	err := c.EtcdClient.Close()
+	err := c.etcdClient.Close()
 	if err != nil {
 		return err
 	}
@@ -53,14 +54,24 @@ func (c *ClusterService) CloseClient() error {
 	return nil
 }
 
-func (c *ClusterService) PutNode(ctx context.Context, req *proto.PutNodeRequest) (*proto.PutNodeResponse, error) {
-	return &proto.PutNodeResponse{}, nil
+func (c *ClusterService) Join(ctx context.Context, req *proto.JoinRequest) (*proto.JoinResponse, error) {
+	keyNode := c.clusterKey + "/nodes/" + req.Node
+
+	_, err := c.etcdClient.Put(ctx, keyNode, fmt.Sprintf("%020d", time.Now().UnixNano()))
+	if err != nil {
+		return nil, err
+	}
+
+	return &proto.JoinResponse{}, nil
 }
 
-func (c *ClusterService) GetNode(ctx context.Context, req *proto.GetNodeRequest) (*proto.GetNodeResponse, error) {
-	return &proto.GetNodeResponse{}, nil
-}
+func (c *ClusterService) Leave(ctx context.Context, req *proto.LeaveRequest) (*proto.LeaveResponse, error) {
+	keyNode := c.clusterKey + "/nodes/" + req.Node
 
-func (c *ClusterService) DeleteNode(ctx context.Context, req *proto.DeleteNodeRequest) (*proto.DeleteNodeResponse, error) {
-	return &proto.DeleteNodeResponse{}, nil
+	_, err := c.etcdClient.Delete(ctx, keyNode)
+	if err != nil {
+		return nil, err
+	}
+
+	return &proto.LeaveResponse{}, nil
 }

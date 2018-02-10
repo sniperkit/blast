@@ -19,6 +19,7 @@ import (
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/mapping"
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/mosuka/blast/index"
 	"github.com/mosuka/blast/proto"
 	"google.golang.org/grpc"
 )
@@ -90,39 +91,25 @@ func (c *IndexClient) GetIndexMapping(ctx context.Context, callOpts ...grpc.Call
 	return im.(*mapping.IndexMappingImpl), nil
 }
 
-func (c *IndexClient) GetIndexType(ctx context.Context, callOpts ...grpc.CallOption) (string, error) {
+func (c *IndexClient) GetIndexMeta(ctx context.Context, callOpts ...grpc.CallOption) (*index.IndexMeta, error) {
 	protoReq := &empty.Empty{}
 
-	protoResp, err := c.indexClient.GetIndexType(ctx, protoReq, callOpts...)
-	if err != nil {
-		return "", err
-	}
-
-	return protoResp.IndexType, nil
-}
-
-func (c *IndexClient) GetKvstore(ctx context.Context, callOpts ...grpc.CallOption) (string, error) {
-	protoReq := &empty.Empty{}
-
-	protoResp, err := c.indexClient.GetKvstore(ctx, protoReq, callOpts...)
-	if err != nil {
-		return "", err
-	}
-
-	return protoResp.Kvstore, nil
-}
-
-func (c *IndexClient) GetKvconfig(ctx context.Context, callOpts ...grpc.CallOption) (map[string]interface{}, error) {
-	protoReq := &empty.Empty{}
-
-	protoResp, err := c.indexClient.GetKvconfig(ctx, protoReq, callOpts...)
-
-	kvc, err := proto.UnmarshalAny(protoResp.Kvconfig)
+	protoResp, err := c.indexClient.GetIndexMeta(ctx, protoReq, callOpts...)
 	if err != nil {
 		return nil, err
 	}
 
-	return *kvc.(*map[string]interface{}), nil
+	cfg, err := proto.UnmarshalAny(protoResp.Config)
+	if err != nil {
+		return nil, err
+	}
+
+	im := index.NewIndexMeta()
+	im.IndexType = protoResp.IndexType
+	im.Storage = protoResp.Storage
+	im.Config = *cfg.(*map[string]interface{})
+
+	return im, nil
 }
 
 func (c *IndexClient) PutDocument(ctx context.Context, id string, fields map[string]interface{}, callOpts ...grpc.CallOption) (string, map[string]interface{}, error) {

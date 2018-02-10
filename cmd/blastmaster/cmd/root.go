@@ -39,7 +39,7 @@ type RootCommandOptions struct {
 	etcdEndpoints   []string
 	etcdDialTimeout int
 
-	clusterName string
+	collection string
 
 	httpListenAddress string
 
@@ -61,7 +61,7 @@ var rootCmdOpts = RootCommandOptions{
 	etcdEndpoints:   []string{"localhost:2379"},
 	etcdDialTimeout: 5000,
 
-	clusterName: "blast",
+	collection: "blast",
 
 	httpListenAddress: "0.0.0.0:8000",
 
@@ -246,6 +246,9 @@ func LoadConfig() {
 	viper.SetDefault("log_output", rootCmdOpts.logOutput)
 	viper.SetDefault("log_level", rootCmdOpts.logLevel)
 	viper.SetDefault("grpc_listen_address", rootCmdOpts.grpcListenAddress)
+	viper.SetDefault("etcd_endpoints", rootCmdOpts.etcdEndpoints)
+	viper.SetDefault("etcd_dial_timeout", rootCmdOpts.etcdDialTimeout)
+	viper.SetDefault("collection", rootCmdOpts.collection)
 	viper.SetDefault("http_listen_address", rootCmdOpts.httpListenAddress)
 	viper.SetDefault("rest_uri", rootCmdOpts.restURI)
 	viper.SetDefault("metrics_uri", rootCmdOpts.metricsURI)
@@ -275,9 +278,9 @@ func init() {
 	RootCmd.Flags().String("log-output", rootCmdOpts.logOutput, "log output path")
 	RootCmd.Flags().String("log-level", rootCmdOpts.logLevel, "log level")
 	RootCmd.Flags().String("grpc-listen-address", rootCmdOpts.grpcListenAddress, "address to listen for the gRPC")
-	RootCmd.Flags().StringSliceVar(&rootCmdOpts.etcdEndpoints, "etcd-endpoint", rootCmdOpts.etcdEndpoints, "etcd eendpoint")
-	RootCmd.Flags().IntVar(&rootCmdOpts.etcdDialTimeout, "etcd-dial-timeout", rootCmdOpts.etcdDialTimeout, "etcd dial timeout")
-	RootCmd.Flags().String("collection", rootCmdOpts.clusterName, "collection name")
+	RootCmd.Flags().StringSlice("etcd-endpoint", rootCmdOpts.etcdEndpoints, "etcd endpoint")
+	RootCmd.Flags().Int("etcd-dial-timeout", rootCmdOpts.etcdDialTimeout, "etcd dial timeout")
+	RootCmd.Flags().String("collection", rootCmdOpts.collection, "collection name")
 	RootCmd.Flags().String("http-listen-address", rootCmdOpts.httpListenAddress, "address to listen for the HTTP")
 	RootCmd.Flags().String("rest-uri", rootCmdOpts.restURI, "base URI for REST endpoint")
 	RootCmd.Flags().String("metrics-uri", rootCmdOpts.metricsURI, "base URI for metrics endpoint")
@@ -288,7 +291,7 @@ func init() {
 	viper.BindPFlag("log_output", RootCmd.Flags().Lookup("log-output"))
 	viper.BindPFlag("log_level", RootCmd.Flags().Lookup("log-level"))
 	viper.BindPFlag("grpc_listen_address", RootCmd.Flags().Lookup("grpc-listen-address"))
-	viper.BindPFlag("etcd_endpoint", RootCmd.Flags().Lookup("etcd-endpoint"))
+	viper.BindPFlag("etcd_endpoints", RootCmd.Flags().Lookup("etcd-endpoint"))
 	viper.BindPFlag("etcd_dial_timeout", RootCmd.Flags().Lookup("etcd-dial-timeout"))
 	viper.BindPFlag("collection", RootCmd.Flags().Lookup("collection"))
 	viper.BindPFlag("http_listen_address", RootCmd.Flags().Lookup("http-listen-address"))

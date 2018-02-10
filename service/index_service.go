@@ -20,6 +20,7 @@ import (
 	"github.com/blevesearch/bleve/mapping"
 	"github.com/golang/protobuf/ptypes/empty"
 	_ "github.com/mosuka/blast/dependency"
+	"github.com/mosuka/blast/index"
 	"github.com/mosuka/blast/proto"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -28,62 +29,54 @@ import (
 )
 
 type IndexService struct {
-	IndexPath    string
-	IndexMapping *mapping.IndexMappingImpl
-	IndexType    string
-	Kvstore      string
-	Kvconfig     map[string]interface{}
-	Index        bleve.Index
+	indexPath    string
+	indexMapping *mapping.IndexMappingImpl
+	indexMeta    *index.IndexMeta
+	index        bleve.Index
 }
 
-func NewIndexService(indexPath string, indexMapping *mapping.IndexMappingImpl, indexType string, kvstore string, kvconfig map[string]interface{}) *IndexService {
+func NewIndexService(indexPath string, indexMapping *mapping.IndexMappingImpl, indexMeta *index.IndexMeta) *IndexService {
 	return &IndexService{
-		IndexPath:    indexPath,
-		IndexMapping: indexMapping,
-		IndexType:    indexType,
-		Kvstore:      kvstore,
-		Kvconfig:     kvconfig,
-		Index:        nil,
+		indexPath:    indexPath,
+		indexMapping: indexMapping,
+		indexMeta:    indexMeta,
+		index:        nil,
 	}
 }
 
 func (s *IndexService) OpenIndex() error {
-	_, err := os.Stat(s.IndexPath)
+	_, err := os.Stat(s.indexPath)
 	if os.IsNotExist(err) {
-		s.Index, err = bleve.NewUsing(s.IndexPath, s.IndexMapping, s.IndexType, s.Kvstore, s.Kvconfig)
+		s.index, err = bleve.NewUsing(s.indexPath, s.indexMapping, s.indexMeta.IndexType, s.indexMeta.Storage, s.indexMeta.Config)
 		if err != nil {
 			log.WithFields(log.Fields{
-				"indexPath":    s.IndexPath,
-				"indexMapping": s.IndexMapping,
-				"indexType":    s.IndexType,
-				"kvstore":      s.Kvstore,
-				"kvconfig":     s.Kvconfig,
+				"indexPath":    s.indexPath,
+				"indexMapping": s.indexMapping,
+				"indexMeta":    s.indexMeta,
 			}).Error(err.Error())
 
 			return err
 		}
 
 		log.WithFields(log.Fields{
-			"indexPath":    s.IndexPath,
-			"indexMapping": s.IndexMapping,
-			"indexType":    s.IndexType,
-			"kvstore":      s.Kvstore,
-			"kvconfig":     s.Kvconfig,
+			"indexPath":    s.indexPath,
+			"indexMapping": s.indexMapping,
+			"indexMeta":    s.indexMeta,
 		}).Info("index created.")
 	} else {
-		s.Index, err = bleve.OpenUsing(s.IndexPath, s.Kvconfig)
+		s.index, err = bleve.OpenUsing(s.indexPath, s.indexMeta.Config)
 		if err != nil {
 			log.WithFields(log.Fields{
-				"indexPath": s.IndexPath,
-				"kvconfig":  s.Kvconfig,
+				"indexPath":     s.indexPath,
+				"runtimeConfig": s.indexMeta.Config,
 			}).Error(err.Error())
 
 			return err
 		}
 
 		log.WithFields(log.Fields{
-			"indexPath": s.IndexPath,
-			"kvconfig":  s.Kvconfig,
+			"indexPath":     s.indexPath,
+			"runtimeConfig": s.indexMeta.Config,
 		}).Info("index opened.")
 	}
 
@@ -91,7 +84,7 @@ func (s *IndexService) OpenIndex() error {
 }
 
 func (s *IndexService) CloseIndex() error {
-	err := s.Index.Close()
+	err := s.index.Close()
 	if err != nil {
 		log.Error(err.Error())
 
@@ -105,14 +98,14 @@ func (s *IndexService) CloseIndex() error {
 
 func (s *IndexService) GetIndexPath(ctx context.Context, req *empty.Empty) (*proto.GetIndexPathResponse, error) {
 	protoGetIndexPathResponse := &proto.GetIndexPathResponse{
-		IndexPath: s.IndexPath,
+		IndexPath: s.indexPath,
 	}
 
 	return protoGetIndexPathResponse, nil
 }
 
 func (s *IndexService) GetIndexMapping(ctx context.Context, req *empty.Empty) (*proto.GetIndexMappingResponse, error) {
-	indexMappingAny, err := proto.MarshalAny(s.IndexMapping)
+	indexMappingAny, err := proto.MarshalAny(s.indexMapping)
 	if err != nil {
 		log.Error(err.Error())
 		return nil, err
@@ -125,35 +118,51 @@ func (s *IndexService) GetIndexMapping(ctx context.Context, req *empty.Empty) (*
 	return protoGetIndexMappingResponse, nil
 }
 
-func (s *IndexService) GetIndexType(ctx context.Context, req *empty.Empty) (*proto.GetIndexTypeResponse, error) {
-	protoGetIndexTypeResponse := &proto.GetIndexTypeResponse{
-		IndexType: s.IndexType,
-	}
-
-	return protoGetIndexTypeResponse, nil
-}
-
-func (s *IndexService) GetKvstore(ctx context.Context, req *empty.Empty) (*proto.GetKvstoreResponse, error) {
-	protoGetKvstoreResponse := &proto.GetKvstoreResponse{
-		Kvstore: s.Kvstore,
-	}
-
-	return protoGetKvstoreResponse, nil
-}
-
-func (s *IndexService) GetKvconfig(ctx context.Context, req *empty.Empty) (*proto.GetKvconfigResponse, error) {
-	kvconfigAny, err := proto.MarshalAny(s.Kvconfig)
+func (s *IndexService) GetIndexMeta(ctx context.Context, req *empty.Empty) (*proto.GetIndexMetaResponse, error) {
+	configAny, err := proto.MarshalAny(s.indexMeta.Config)
 	if err != nil {
 		log.Error(err.Error())
 		return nil, err
 	}
 
-	protoGetKvconfigResponse := &proto.GetKvconfigResponse{
-		Kvconfig: &kvconfigAny,
+	protoGetIndexTypeResponse := &proto.GetIndexMetaResponse{
+		IndexType: s.indexMeta.IndexType,
+		Storage:   s.indexMeta.Storage,
+		Config:    &configAny,
 	}
 
-	return protoGetKvconfigResponse, nil
+	return protoGetIndexTypeResponse, nil
 }
+
+//func (s *IndexService) GetIndexType(ctx context.Context, req *empty.Empty) (*proto.GetIndexTypeResponse, error) {
+//	protoGetIndexTypeResponse := &proto.GetIndexTypeResponse{
+//		IndexType: s.indexType,
+//	}
+//
+//	return protoGetIndexTypeResponse, nil
+//}
+
+//func (s *IndexService) GetKvstore(ctx context.Context, req *empty.Empty) (*proto.GetKvstoreResponse, error) {
+//	protoGetKvstoreResponse := &proto.GetKvstoreResponse{
+//		Kvstore: s.kvstore,
+//	}
+//
+//	return protoGetKvstoreResponse, nil
+//}
+
+//func (s *IndexService) GetKvconfig(ctx context.Context, req *empty.Empty) (*proto.GetKvconfigResponse, error) {
+//	kvconfigAny, err := proto.MarshalAny(s.kvconfig)
+//	if err != nil {
+//		log.Error(err.Error())
+//		return nil, err
+//	}
+//
+//	protoGetKvconfigResponse := &proto.GetKvconfigResponse{
+//		Kvconfig: &kvconfigAny,
+//	}
+//
+//	return protoGetKvconfigResponse, nil
+//}
 
 func (s *IndexService) PutDocument(ctx context.Context, req *proto.PutDocumentRequest) (*proto.PutDocumentResponse, error) {
 	fields, err := proto.UnmarshalAny(req.Fields)
@@ -166,7 +175,7 @@ func (s *IndexService) PutDocument(ctx context.Context, req *proto.PutDocumentRe
 		return nil, err
 	}
 
-	err = s.Index.Index(req.Id, fields)
+	err = s.index.Index(req.Id, fields)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"id":     req.Id,
@@ -183,7 +192,7 @@ func (s *IndexService) PutDocument(ctx context.Context, req *proto.PutDocumentRe
 }
 
 func (s *IndexService) GetDocument(ctx context.Context, req *proto.GetDocumentRequest) (*proto.GetDocumentResponse, error) {
-	doc, err := s.Index.Document(req.Id)
+	doc, err := s.index.Document(req.Id)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"id": req.Id,
@@ -253,7 +262,7 @@ func (s *IndexService) GetDocument(ctx context.Context, req *proto.GetDocumentRe
 }
 
 func (s *IndexService) DeleteDocument(ctx context.Context, req *proto.DeleteDocumentRequest) (*proto.DeleteDocumentResponse, error) {
-	err := s.Index.Delete(req.Id)
+	err := s.index.Delete(req.Id)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"id": req.Id,
@@ -276,7 +285,7 @@ func (s *IndexService) Bulk(ctx context.Context, req *proto.BulkRequest) (*proto
 		methodErrorCount int32
 	)
 
-	batch := s.Index.NewBatch()
+	batch := s.index.NewBatch()
 
 	for _, updateRequest := range req.UpdateRequests {
 		processedCount++
@@ -322,17 +331,17 @@ func (s *IndexService) Bulk(ctx context.Context, req *proto.BulkRequest) (*proto
 		}
 
 		if processedCount%req.BatchSize == 0 {
-			err := s.Index.Batch(batch)
+			err := s.index.Batch(batch)
 			if err != nil {
 				log.Warn(err.Error())
 			}
 
-			batch = s.Index.NewBatch()
+			batch = s.index.NewBatch()
 		}
 	}
 
 	if batch.Size() > 0 {
-		err := s.Index.Batch(batch)
+		err := s.index.Batch(batch)
 		if err != nil {
 			log.Warn(err.Error())
 		}
@@ -354,7 +363,7 @@ func (s *IndexService) Search(ctx context.Context, req *proto.SearchRequest) (*p
 		return nil, err
 	}
 
-	searchResult, err := s.Index.Search(searchRequest.(*bleve.SearchRequest))
+	searchResult, err := s.index.Search(searchRequest.(*bleve.SearchRequest))
 	if err != nil {
 		log.Error(err.Error())
 

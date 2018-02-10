@@ -16,12 +16,14 @@ log_format: text
 log_output:
 log_level: info
 
-grpc_listen_address: 0.0.0.0:5000
-http_listen_address: 0.0.0.0:8000
+grpc_listen_address: 0.0.0.0:5100
+#http_listen_address: 0.0.0.0:8000
 
-index_path: ./data/index
-index_mapping_file: ./etc/index_mapping.json
-index_meta_file: ./etc/index_meta.json
+etcd_endpoints:
+  - localhost:2379
+etcd_dial_timeout: 5000
 
-rest_uri: /rest
-metrics_uri: /metrics
+collection: default
+
+#rest_uri: /rest
+#metrics_uri: /metrics

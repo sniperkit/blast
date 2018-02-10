@@ -22,9 +22,10 @@ package proto;
 service Index {
     rpc GetIndexPath(google.protobuf.Empty) returns (GetIndexPathResponse) {}
     rpc GetIndexMapping(google.protobuf.Empty) returns (GetIndexMappingResponse) {}
-    rpc GetIndexType(google.protobuf.Empty) returns (GetIndexTypeResponse) {}
-    rpc GetKvstore(google.protobuf.Empty) returns (GetKvstoreResponse) {}
-    rpc GetKvconfig(google.protobuf.Empty) returns (GetKvconfigResponse) {}
+    rpc GetIndexMeta(google.protobuf.Empty) returns (GetIndexMetaResponse) {}
+//    rpc GetIndexType(google.protobuf.Empty) returns (GetIndexTypeResponse) {}
+//    rpc GetKvstore(google.protobuf.Empty) returns (GetKvstoreResponse) {}
+//    rpc GetKvconfig(google.protobuf.Empty) returns (GetKvconfigResponse) {}
     rpc PutDocument(PutDocumentRequest) returns (PutDocumentResponse) {}
     rpc GetDocument(GetDocumentRequest) returns (GetDocumentResponse) {}
     rpc DeleteDocument(DeleteDocumentRequest) returns (DeleteDocumentResponse) {}
@@ -40,17 +41,23 @@ message GetIndexMappingResponse {
     google.protobuf.Any index_mapping = 1;
 }
 
-message GetIndexTypeResponse {
+message GetIndexMetaResponse {
     string index_type = 1;
+    string storage = 2;
+    google.protobuf.Any config = 3;
 }
 
-message GetKvstoreResponse {
-    string kvstore = 1;
-}
-
-message GetKvconfigResponse {
-    google.protobuf.Any kvconfig = 1;
-}
+//message GetIndexTypeResponse {
+//    string index_type = 1;
+//}
+//
+//message GetKvstoreResponse {
+//    string kvstore = 1;
+//}
+//
+//message GetKvconfigResponse {
+//    google.protobuf.Any kvconfig = 1;
+//}
 
 message PutDocumentRequest {
     string id = 1;

@@ -15,7 +15,7 @@
 package service
 
 import (
-	"github.com/mosuka/blast/util"
+	"github.com/mosuka/blast/index"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -24,11 +24,9 @@ import (
 func TestBlastGRPCService(t *testing.T) {
 	dir, _ := os.Getwd()
 
-	path, _ := ioutil.TempDir("/tmp", "indigo")
+	indexPath, _ := ioutil.TempDir("/tmp", "indigo")
 	indexMappingPath := dir + "/../etc/index_mapping.json"
-	indexType := "upside_down"
-	kvstore := "boltdb"
-	kvconfigPath := dir + "/../etc/kvconfig.json"
+	indexMetaPath := dir + "/../etc/index_meta.json"
 
 	indexMappingFile, err := os.Open(indexMappingPath)
 	if err != nil {
@@ -36,29 +34,28 @@ func TestBlastGRPCService(t *testing.T) {
 	}
 	defer indexMappingFile.Close()
 
-	indexMapping, err := util.NewIndexMapping(indexMappingFile)
+	indexMapping, err := index.LoadIndexMapping(indexMappingFile)
 	if err != nil {
 		t.Errorf("could not load IndexMapping : %v", err)
 	}
 
-	kvconfigFile, err := os.Open(kvconfigPath)
+	indexMetaFile, err := os.Open(indexMetaPath)
 	if err != nil {
 		t.Fatalf("unexpected error. %v", err)
 	}
-	defer kvconfigFile.Close()
+	defer indexMetaFile.Close()
 
-	kvconfig, err := util.NewKvconfig(kvconfigFile)
+	indexMeta, err := index.LoadIndexMeta(indexMetaFile)
 	if err != nil {
 		t.Errorf("could not load kvconfig : %v", err)
 	}
-	kvconfig["path"] = path + "/store"
 
-	s := NewIndexService(path, indexMapping, indexType, kvstore, kvconfig)
+	s := NewIndexService(indexPath, indexMapping, indexMeta)
 	if s == nil {
 		t.Fatalf("unexpected error.  expected not nil, actual %v", s)
 	}
 
-	if s.IndexPath != path {
-		t.Errorf("unexpected error.  expected %v, actual %v", path, s.IndexPath)
+	if s.indexPath != indexPath {
+		t.Errorf("unexpected error.  expected %v, actual %v", indexPath, s.indexPath)
 	}
 }

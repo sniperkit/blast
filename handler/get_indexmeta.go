@@ -18,23 +18,24 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/mosuka/blast/client"
+	"github.com/mosuka/blast/index"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 	"time"
 )
 
-type GetIndexTypeHandler struct {
+type GetIndexMetaHandler struct {
 	client *client.IndexClient
 }
 
-func NewGetIndexTypeHandler(c *client.IndexClient) *GetIndexTypeHandler {
-	return &GetIndexTypeHandler{
+func NewGetIndexMetaHandler(c *client.IndexClient) *GetIndexMetaHandler {
+	return &GetIndexMetaHandler{
 		client: c,
 	}
 }
 
-func (h *GetIndexTypeHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (h *GetIndexMetaHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	log.WithFields(log.Fields{
 		"host":           req.Host,
 		"uri":            req.RequestURI,
@@ -65,12 +66,12 @@ func (h *GetIndexTypeHandler) ServeHTTP(w http.ResponseWriter, req *http.Request
 	defer cancel()
 
 	// request
-	indexType, err := h.client.GetIndexType(ctx)
+	indexMeta, err := h.client.GetIndexMeta(ctx)
 	resp := struct {
-		IndexType string `json:"index_type,omitempty"`
-		Error     error  `json:"error,omitempty"`
+		IndexMeta *index.IndexMeta `json:"index_metag,omitempty"`
+		Error     error            `json:"error,omitempty"`
 	}{
-		IndexType: indexType,
+		IndexMeta: indexMeta,
 		Error:     err,
 	}
 

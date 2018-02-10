@@ -17,31 +17,22 @@ syntax = "proto3";
 package proto;
 
 service Cluster {
-    rpc PutNode (PutNodeRequest) returns (PutNodeResponse) {}
-    rpc GetNode (GetNodeRequest) returns (GetNodeResponse) {}
-    rpc DeleteNode (DeleteNodeRequest) returns (DeleteNodeResponse) {}
+    rpc Join (JoinRequest) returns (JoinResponse) {}
+    rpc Leave (LeaveRequest) returns (LeaveResponse) {}
 }
 
-message PutNodeRequest {
+message JoinRequest {
     string node = 1;
 }
 
-message PutNodeResponse {
+message JoinResponse {
     string node = 1;
 }
 
-message GetNodeRequest {
+message LeaveRequest {
     string node = 1;
 }
 
-message GetNodeResponse {
-    string node = 1;
-}
-
-message DeleteNodeRequest {
-    string node = 1;
-}
-
-message DeleteNodeResponse {
+message LeaveResponse {
     string node = 1;
 }

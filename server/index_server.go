@@ -16,6 +16,7 @@ package server
 
 import (
 	"github.com/blevesearch/bleve/mapping"
+	"github.com/mosuka/blast/index"
 	"github.com/mosuka/blast/proto"
 	"github.com/mosuka/blast/service"
 	log "github.com/sirupsen/logrus"
@@ -29,9 +30,9 @@ type IndexServer struct {
 	service       *service.IndexService
 }
 
-func NewIndexServer(listenAddress string, indexPath string, indexMapping *mapping.IndexMappingImpl, indexType string, kvstore string, kvconfig map[string]interface{}) (*IndexServer, error) {
+func NewIndexServer(listenAddress string, indexPath string, indexMapping *mapping.IndexMappingImpl, indexMeta *index.IndexMeta) (*IndexServer, error) {
 	svr := grpc.NewServer()
-	svc := service.NewIndexService(indexPath, indexMapping, indexType, kvstore, kvconfig)
+	svc := service.NewIndexService(indexPath, indexMapping, indexMeta)
 	proto.RegisterIndexServer(svr, svc)
 
 	return &IndexServer{
