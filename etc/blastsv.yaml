@@ -16,12 +16,6 @@ log_format: text
 log_output:
 log_level: info
 
-grpc_listen_address: 0.0.0.0:5000
-http_listen_address: 0.0.0.0:8000
+grpc_listen_address: 0.0.0.0:5100
 
-index_path: ./data/index
-index_mapping_file: ./etc/index_mapping.json
-index_config_file: ./etc/index_config.json
-
-rest_uri: /rest
-metrics_uri: /metrics
+supervisor_config_file: ./etc/supervisor_config.json

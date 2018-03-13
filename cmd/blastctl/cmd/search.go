@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"github.com/blevesearch/bleve"
 	"github.com/buger/jsonparser"
-	"github.com/mosuka/blast/client"
+	"github.com/mosuka/blast/index/client"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"time"

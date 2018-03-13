@@ -22,7 +22,7 @@ GO := CGO_ENABLED=0 GO15VENDOREXPERIMENT=1 go
 
 PACKAGES = $(shell $(GO) list ./... | grep -v '/vendor/')
 
-PROTOBUFS = $(shell find . -name '*.proto' | xargs -n 1 dirname | sort --unique | grep -v /vendor/)
+PROTOBUFS = $(shell find . -name '*.proto' -print0 | xargs -0 -n1 dirname | sort --unique | grep -v /vendor/)
 
 TARGET_PACKAGES = $(shell find . -name 'main.go' -print0 | xargs -0 -n1 dirname | sort --unique | grep -v /vendor/)
 
@@ -49,7 +49,7 @@ format:
 .PHONY: test
 test:
 	@echo ">> running tests"
-	@$(GO) test $(PACKAGES)
+	@$(GO) test -tags=${BUILD_TAGS} ${LDFLAGS} $(PACKAGES)
 
 .PHONY: build
 build:

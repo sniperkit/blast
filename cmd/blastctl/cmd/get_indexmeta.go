@@ -18,8 +18,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/mosuka/blast/client"
-	"github.com/mosuka/blast/index"
+	"github.com/mosuka/blast/index/client"
+	"github.com/mosuka/blast/index/config"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"time"
@@ -58,8 +58,8 @@ func runEGetIndexMetaCmd(cmd *cobra.Command, args []string) error {
 
 	indexMeta, err := c.GetIndexMeta(ctx)
 	resp := struct {
-		IndexMeta *index.IndexMeta `json:"index_meta,omitempty"`
-		Error     error            `json:"error,omitempty"`
+		IndexMeta *config.IndexConfig `json:"index_meta,omitempty"`
+		Error     error               `json:"error,omitempty"`
 	}{
 		IndexMeta: indexMeta,
 		Error:     err,

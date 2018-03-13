@@ -1,0 +1,6 @@
+{
+  "storage" : "file",
+  "config" : {
+    "base_path" : true
+  }
+}

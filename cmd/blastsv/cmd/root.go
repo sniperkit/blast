@@ -15,16 +15,13 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
-	"github.com/blevesearch/bleve/mapping"
-	"github.com/mosuka/blast/index/config"
-	"github.com/mosuka/blast/index/server"
+	"github.com/mosuka/blast/supervisor/config"
+	"github.com/mosuka/blast/supervisor/server"
 	"github.com/mosuka/blast/version"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"google.golang.org/grpc"
 	"os"
 	"os/signal"
 	"syscall"
@@ -40,14 +37,7 @@ type RootCommandOptions struct {
 
 	grpcListenAddress string
 
-	indexPath        string
-	indexMappingFile string
-	indexConfigFile  string
-
-	httpListenAddress string
-
-	restURI    string
-	metricsURI string
+	clusterName string
 
 	versionFlag bool
 }
@@ -61,14 +51,7 @@ var rootCmdOpts = RootCommandOptions{
 
 	grpcListenAddress: "0.0.0.0:5000",
 
-	indexPath:        "./data/index",
-	indexMappingFile: "",
-	indexConfigFile:  "",
-
-	httpListenAddress: "0.0.0.0:8000",
-
-	restURI:    "/rest",
-	metricsURI: "/metrics",
+	clusterName: "default",
 
 	versionFlag: false,
 }
@@ -76,8 +59,8 @@ var rootCmdOpts = RootCommandOptions{
 var logOutput *os.File
 
 var RootCmd = &cobra.Command{
-	Use:                "blast",
-	Short:              "Blast",
+	Use:                "blastmaster",
+	Short:              "Blast master",
 	Long:               `The Command Line Interface for the Blast.`,
 	PersistentPreRunE:  persistentPreRunERootCmd,
 	RunE:               runERootCmd,
@@ -166,33 +149,17 @@ func persistentPreRunERootCmd(cmd *cobra.Command, args []string) error {
 }
 
 func runERootCmd(cmd *cobra.Command, args []string) error {
-	// create index mapping
-	indexMapping := mapping.NewIndexMapping()
-	if viper.GetString("index_mapping_file") != "" {
-		file, err := os.Open(viper.GetString("index_mapping_file"))
+
+	supervisorConfig := config.NewSupervisorConfig()
+	if viper.GetString("supervisor_config_file") != "" {
+		file, err := os.Open(viper.GetString("supervisor_config_file"))
 		if err != nil {
 			log.Fatal(err.Error())
 			return err
 		}
 		defer file.Close()
 
-		indexMapping, err = config.LoadIndexMapping(file)
-		if err != nil {
-			log.Fatal(err.Error())
-			return err
-		}
-	}
-
-	indexConfig := config.NewIndexConfig()
-	if viper.GetString("index_config_file") != "" {
-		file, err := os.Open(viper.GetString("index_config_file"))
-		if err != nil {
-			log.Fatal(err.Error())
-			return err
-		}
-		defer file.Close()
-
-		indexConfig, err = config.LoadIndexConfig(file)
+		supervisorConfig, err = config.LoadSupervisorConfig(file)
 		if err != nil {
 			log.Fatal(err.Error())
 			return err
@@ -200,11 +167,9 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// create gRPC Server
-	grpcServer, err := server.NewIndexServer(
+	grpcServer, err := server.NewSupervisor(
 		viper.GetString("grpc_listen_address"),
-		viper.GetString("index_path"),
-		indexMapping,
-		indexConfig,
+		supervisorConfig,
 	)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -213,27 +178,6 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 
 	// start gRPC Server
 	err = grpcServer.Start()
-	if err != nil {
-		log.Fatal(err.Error())
-		return err
-	}
-
-	// create HTTP Server
-	httpServer, err := server.NewHTTPServer(
-		viper.GetString("http_listen_address"),
-		viper.GetString("rest_url"),
-		viper.GetString("metrics_url"),
-		context.Background(),
-		viper.GetString("grpc_listen_address"),
-		grpc.WithInsecure(),
-	)
-	if err != nil {
-		log.Fatal(err.Error())
-		return err
-	}
-
-	// start HTTP Server
-	err = httpServer.Start()
 	if err != nil {
 		log.Fatal(err.Error())
 		return err
@@ -251,11 +195,6 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 		log.WithFields(log.Fields{
 			"signal": sig,
 		}).Info("trap signal")
-
-		err = httpServer.Stop()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
 
 		err = grpcServer.Stop()
 		if err != nil {
@@ -281,23 +220,18 @@ func LoadConfig() {
 	viper.SetDefault("log_output", rootCmdOpts.logOutput)
 	viper.SetDefault("log_level", rootCmdOpts.logLevel)
 	viper.SetDefault("grpc_listen_address", rootCmdOpts.grpcListenAddress)
-	viper.SetDefault("index_path", rootCmdOpts.indexPath)
-	viper.SetDefault("index_mapping_file", rootCmdOpts.indexMappingFile)
-	viper.SetDefault("index_config_file", rootCmdOpts.indexConfigFile)
-	viper.SetDefault("http_listen_address", rootCmdOpts.httpListenAddress)
-	viper.SetDefault("rest_uri", rootCmdOpts.restURI)
-	viper.SetDefault("metrics_uri", rootCmdOpts.metricsURI)
+	viper.SetDefault("cluster_name", rootCmdOpts.clusterName)
 
 	if viper.GetString("config_file") != "" {
 		viper.SetConfigFile(viper.GetString("config"))
 	} else {
-		viper.SetConfigName("blast")
+		viper.SetConfigName("blastmaster")
 		viper.SetConfigType("yaml")
 		viper.AddConfigPath("/etc")
 		viper.AddConfigPath("${HOME}/etc")
 		viper.AddConfigPath("./etc")
 	}
-	viper.SetEnvPrefix("blast")
+	viper.SetEnvPrefix("blastmaster")
 	viper.AutomaticEnv()
 
 	viper.ReadInConfig()
@@ -313,12 +247,7 @@ func init() {
 	RootCmd.Flags().String("log-output", rootCmdOpts.logOutput, "log output path")
 	RootCmd.Flags().String("log-level", rootCmdOpts.logLevel, "log level")
 	RootCmd.Flags().String("grpc-listen-address", rootCmdOpts.grpcListenAddress, "address to listen for the gRPC")
-	RootCmd.Flags().String("index-path", rootCmdOpts.indexPath, "index directory path")
-	RootCmd.Flags().String("index-mapping-file", rootCmdOpts.indexMappingFile, "index mapping file path")
-	RootCmd.Flags().String("index-config-file", rootCmdOpts.indexConfigFile, "index config file path")
-	RootCmd.Flags().String("http-listen-address", rootCmdOpts.httpListenAddress, "address to listen for the HTTP")
-	RootCmd.Flags().String("rest-uri", rootCmdOpts.restURI, "base URI for REST endpoint")
-	RootCmd.Flags().String("metrics-uri", rootCmdOpts.metricsURI, "base URI for metrics endpoint")
+	RootCmd.Flags().String("cluster-name", rootCmdOpts.clusterName, "cluster name")
 	RootCmd.Flags().BoolVarP(&rootCmdOpts.versionFlag, "version", "v", rootCmdOpts.versionFlag, "show version number")
 
 	viper.BindPFlag("config_file", RootCmd.Flags().Lookup("config-file"))
@@ -326,10 +255,5 @@ func init() {
 	viper.BindPFlag("log_output", RootCmd.Flags().Lookup("log-output"))
 	viper.BindPFlag("log_level", RootCmd.Flags().Lookup("log-level"))
 	viper.BindPFlag("grpc_listen_address", RootCmd.Flags().Lookup("grpc-listen-address"))
-	viper.BindPFlag("index_path", RootCmd.Flags().Lookup("index-path"))
-	viper.BindPFlag("index_mapping_file", RootCmd.Flags().Lookup("index-mapping-file"))
-	viper.BindPFlag("index_config_file", RootCmd.Flags().Lookup("index-config-file"))
-	viper.BindPFlag("http_listen_address", RootCmd.Flags().Lookup("http-listen-address"))
-	viper.BindPFlag("rest_url", RootCmd.Flags().Lookup("rest-uri"))
-	viper.BindPFlag("metrics_url", RootCmd.Flags().Lookup("metrics-uri"))
+	viper.BindPFlag("cluster_name", RootCmd.Flags().Lookup("cluster-name"))
 }
