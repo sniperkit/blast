@@ -27,7 +27,7 @@ PROTOBUFS = $(shell find . -name '*.proto' -print0 | xargs -0 -n1 dirname | sort
 TARGET_PACKAGES = $(shell find . -name 'main.go' -print0 | xargs -0 -n1 dirname | sort --unique | grep -v /vendor/)
 
 BUILD_TAGS = "-tags=''"
-#BUILD_TAGS = "-tags=lang"
+#BUILD_TAGS = "-tags=full"
 
 .DEFAULT_GOAL := build
 
