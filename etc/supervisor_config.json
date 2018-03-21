@@ -1,6 +1,6 @@
 {
   "storage" : "file",
   "config" : {
-    "base_path" : true
+    "base_path" : "./etc/blast"
   }
 }

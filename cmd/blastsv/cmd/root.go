@@ -23,8 +23,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
-	"os/signal"
-	"syscall"
+	//"os/signal"
+	//"syscall"
 	"time"
 )
 
@@ -37,7 +37,7 @@ type RootCommandOptions struct {
 
 	grpcListenAddress string
 
-	clusterName string
+	supervisorConfigFile string
 
 	versionFlag bool
 }
@@ -49,9 +49,9 @@ var rootCmdOpts = RootCommandOptions{
 	logOutput: "",
 	logLevel:  "info",
 
-	grpcListenAddress: "0.0.0.0:5000",
+	grpcListenAddress: "0.0.0.0:6000",
 
-	clusterName: "default",
+	supervisorConfigFile: "",
 
 	versionFlag: false,
 }
@@ -59,9 +59,9 @@ var rootCmdOpts = RootCommandOptions{
 var logOutput *os.File
 
 var RootCmd = &cobra.Command{
-	Use:                "blastmaster",
-	Short:              "Blast master",
-	Long:               `The Command Line Interface for the Blast.`,
+	Use:                "blastsv",
+	Short:              "Blast supervisor",
+	Long:               `The Command Line Interface for the Blast supervisor.`,
 	PersistentPreRunE:  persistentPreRunERootCmd,
 	RunE:               runERootCmd,
 	PersistentPostRunE: persistentPostRunERootCmd,
@@ -149,7 +149,6 @@ func persistentPreRunERootCmd(cmd *cobra.Command, args []string) error {
 }
 
 func runERootCmd(cmd *cobra.Command, args []string) error {
-
 	supervisorConfig := config.NewSupervisorConfig()
 	if viper.GetString("supervisor_config_file") != "" {
 		file, err := os.Open(viper.GetString("supervisor_config_file"))
@@ -175,34 +174,35 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 		log.Fatal(err.Error())
 		return err
 	}
+	fmt.Println(grpcServer)
 
-	// start gRPC Server
-	err = grpcServer.Start()
-	if err != nil {
-		log.Fatal(err.Error())
-		return err
-	}
-
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan,
-		syscall.SIGHUP,
-		syscall.SIGINT,
-		syscall.SIGTERM,
-		syscall.SIGQUIT)
-	for {
-		sig := <-signalChan
-
-		log.WithFields(log.Fields{
-			"signal": sig,
-		}).Info("trap signal")
-
-		err = grpcServer.Stop()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-
-		return nil
-	}
+	//// start gRPC Server
+	//err = grpcServer.Start()
+	//if err != nil {
+	//	log.Fatal(err.Error())
+	//	return err
+	//}
+	//
+	//signalChan := make(chan os.Signal, 1)
+	//signal.Notify(signalChan,
+	//	syscall.SIGHUP,
+	//	syscall.SIGINT,
+	//	syscall.SIGTERM,
+	//	syscall.SIGQUIT)
+	//for {
+	//	sig := <-signalChan
+	//
+	//	log.WithFields(log.Fields{
+	//		"signal": sig,
+	//	}).Info("trap signal")
+	//
+	//	err = grpcServer.Stop()
+	//	if err != nil {
+	//		log.Fatal(err.Error())
+	//	}
+	//
+	//	return nil
+	//}
 
 	return nil
 }
@@ -220,7 +220,6 @@ func LoadConfig() {
 	viper.SetDefault("log_output", rootCmdOpts.logOutput)
 	viper.SetDefault("log_level", rootCmdOpts.logLevel)
 	viper.SetDefault("grpc_listen_address", rootCmdOpts.grpcListenAddress)
-	viper.SetDefault("cluster_name", rootCmdOpts.clusterName)
 
 	if viper.GetString("config_file") != "" {
 		viper.SetConfigFile(viper.GetString("config"))
@@ -247,7 +246,7 @@ func init() {
 	RootCmd.Flags().String("log-output", rootCmdOpts.logOutput, "log output path")
 	RootCmd.Flags().String("log-level", rootCmdOpts.logLevel, "log level")
 	RootCmd.Flags().String("grpc-listen-address", rootCmdOpts.grpcListenAddress, "address to listen for the gRPC")
-	RootCmd.Flags().String("cluster-name", rootCmdOpts.clusterName, "cluster name")
+	RootCmd.Flags().String("supervisor-config-file", rootCmdOpts.supervisorConfigFile, "supervisor config file path")
 	RootCmd.Flags().BoolVarP(&rootCmdOpts.versionFlag, "version", "v", rootCmdOpts.versionFlag, "show version number")
 
 	viper.BindPFlag("config_file", RootCmd.Flags().Lookup("config-file"))
@@ -255,5 +254,5 @@ func init() {
 	viper.BindPFlag("log_output", RootCmd.Flags().Lookup("log-output"))
 	viper.BindPFlag("log_level", RootCmd.Flags().Lookup("log-level"))
 	viper.BindPFlag("grpc_listen_address", RootCmd.Flags().Lookup("grpc-listen-address"))
-	viper.BindPFlag("cluster_name", RootCmd.Flags().Lookup("cluster-name"))
+	viper.BindPFlag("supervisor_config_file", RootCmd.Flags().Lookup("supervisor-config-file"))
 }
