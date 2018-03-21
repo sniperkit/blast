@@ -16,7 +16,9 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/blevesearch/bleve/mapping"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 )
@@ -26,11 +28,17 @@ func LoadIndexMapping(reader io.Reader) (*mapping.IndexMappingImpl, error) {
 
 	resourceBytes, err := ioutil.ReadAll(reader)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Error(fmt.Sprintf("failed to read index mapping."))
 		return nil, err
 	}
 
 	err = json.Unmarshal(resourceBytes, indexMapping)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Error(fmt.Sprintf("failed to unmarshal index mapping."))
 		return nil, err
 	}
 

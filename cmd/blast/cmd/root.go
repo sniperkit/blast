@@ -171,73 +171,133 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 	if viper.GetString("index_mapping_file") != "" {
 		file, err := os.Open(viper.GetString("index_mapping_file"))
 		if err != nil {
-			log.Fatal(err.Error())
+			log.WithFields(log.Fields{
+				"indexMappingFile": viper.GetString("index_mapping_file"),
+				"error":            err.Error(),
+			}).Fatal(fmt.Sprintf("failed to open index mapping file."))
 			return err
 		}
 		defer file.Close()
 
 		indexMapping, err = config.LoadIndexMapping(file)
 		if err != nil {
-			log.Fatal(err.Error())
+			log.WithFields(log.Fields{
+				"indexMappingFile": viper.GetString("index_mapping_file"),
+				"error":            err.Error(),
+			}).Fatal(fmt.Sprintf("failed to load index mapping file."))
 			return err
 		}
+
+		log.WithFields(log.Fields{
+			"indexMappingFile": viper.GetString("index_mapping_file"),
+		}).Info(fmt.Sprintf("index mapping file was loaded."))
 	}
 
 	indexConfig := config.NewIndexConfig()
 	if viper.GetString("index_config_file") != "" {
 		file, err := os.Open(viper.GetString("index_config_file"))
 		if err != nil {
-			log.Fatal(err.Error())
+			log.WithFields(log.Fields{
+				"indexConfigFile": viper.GetString("index_config_file"),
+				"error":           err.Error(),
+			}).Fatal(fmt.Sprintf("failed to open index config file."))
 			return err
 		}
 		defer file.Close()
 
 		indexConfig, err = config.LoadIndexConfig(file)
 		if err != nil {
-			log.Fatal(err.Error())
+			log.WithFields(log.Fields{
+				"indexConfigFile": viper.GetString("index_config_file"),
+				"error":           err.Error(),
+			}).Fatal(fmt.Sprintf("failed to load index config file."))
 			return err
 		}
+
+		log.WithFields(log.Fields{
+			"indexConfigFile": viper.GetString("index_config_file"),
+		}).Info(fmt.Sprintf("index config file was loaded."))
 	}
 
 	// create gRPC Server
-	grpcServer, err := server.NewIndexServer(
+	indexServer, err := server.NewIndexServer(
 		viper.GetString("grpc_listen_address"),
 		viper.GetString("index_path"),
 		indexMapping,
 		indexConfig,
 	)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.WithFields(log.Fields{
+			"grpcListenAddress": viper.GetString("grpc_listen_address"),
+			"indexPath":         viper.GetString("index_path"),
+			"indexMapping":      indexMapping,
+			"indexConfig":       indexConfig,
+			"error":             err.Error(),
+		}).Fatal("failed to create index server.")
 		return err
 	}
+	log.WithFields(log.Fields{
+		"grpcListenAddress": viper.GetString("grpc_listen_address"),
+		"indexPath":         viper.GetString("index_path"),
+		"indexMapping":      indexMapping,
+		"indexConfig":       indexConfig,
+	}).Info(fmt.Sprintf("index server was created."))
 
 	// start gRPC Server
-	err = grpcServer.Start()
+	err = indexServer.Start()
 	if err != nil {
-		log.Fatal(err.Error())
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Fatal("failed to start index server.")
 		return err
 	}
+	log.WithFields(log.Fields{
+		"grpcListenAddress": viper.GetString("grpc_listen_address"),
+		"indexPath":         viper.GetString("index_path"),
+		"indexMapping":      indexMapping,
+		"indexConfig":       indexConfig,
+	}).Info(fmt.Sprintf("index server was started."))
 
 	// create HTTP Server
 	httpServer, err := server.NewHTTPServer(
 		viper.GetString("http_listen_address"),
-		viper.GetString("rest_url"),
-		viper.GetString("metrics_url"),
+		viper.GetString("rest_uri"),
+		viper.GetString("metrics_uri"),
 		context.Background(),
 		viper.GetString("grpc_listen_address"),
 		grpc.WithInsecure(),
 	)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.WithFields(log.Fields{
+			"httpListenAddress": viper.GetString("http_listen_address"),
+			"restURI":           viper.GetString("rest_uri"),
+			"metricsURI":        viper.GetString("metrics_uri"),
+			"grpcListenAddress": viper.GetString("grpc_listen_address"),
+			"error":             err.Error(),
+		}).Fatal("failed to create HTTP server.")
 		return err
 	}
+	log.WithFields(log.Fields{
+		"httpListenAddress": viper.GetString("http_listen_address"),
+		"restURI":           viper.GetString("rest_uri"),
+		"metricsURI":        viper.GetString("metrics_uri"),
+		"grpcListenAddress": viper.GetString("grpc_listen_address"),
+	}).Info(fmt.Sprintf("HTTP server was created."))
 
 	// start HTTP Server
 	err = httpServer.Start()
 	if err != nil {
-		log.Fatal(err.Error())
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Fatal("failed to start HTTP server.")
 		return err
 	}
+	log.WithFields(log.Fields{
+		"httpListenAddress": viper.GetString("http_listen_address"),
+		"restURI":           viper.GetString("rest_uri"),
+		"metricsURI":        viper.GetString("metrics_uri"),
+		"grpcListenAddress": viper.GetString("grpc_listen_address"),
+	}).Info(fmt.Sprintf("HTTP server was started."))
 
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan,
@@ -250,17 +310,23 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 
 		log.WithFields(log.Fields{
 			"signal": sig,
-		}).Info("trap signal")
+		}).Info("trap signal.")
 
 		err = httpServer.Stop()
 		if err != nil {
-			log.Fatal(err.Error())
+			log.WithFields(log.Fields{
+				"error": err.Error(),
+			}).Fatal("failed to stop HTTP server.")
 		}
+		log.Info("HTTP server was stopped.")
 
-		err = grpcServer.Stop()
+		err = indexServer.Stop()
 		if err != nil {
-			log.Fatal(err.Error())
+			log.WithFields(log.Fields{
+				"error": err.Error(),
+			}).Fatal("failed to stop index server.")
 		}
+		log.Info("index server was stopped.")
 
 		return nil
 	}
@@ -330,6 +396,6 @@ func init() {
 	viper.BindPFlag("index_mapping_file", RootCmd.Flags().Lookup("index-mapping-file"))
 	viper.BindPFlag("index_config_file", RootCmd.Flags().Lookup("index-config-file"))
 	viper.BindPFlag("http_listen_address", RootCmd.Flags().Lookup("http-listen-address"))
-	viper.BindPFlag("rest_url", RootCmd.Flags().Lookup("rest-uri"))
-	viper.BindPFlag("metrics_url", RootCmd.Flags().Lookup("metrics-uri"))
+	viper.BindPFlag("rest_uri", RootCmd.Flags().Lookup("rest-uri"))
+	viper.BindPFlag("metrics_uri", RootCmd.Flags().Lookup("metrics-uri"))
 }

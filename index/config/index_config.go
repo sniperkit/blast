@@ -16,6 +16,8 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 )
@@ -39,11 +41,17 @@ func LoadIndexConfig(reader io.Reader) (*IndexConfig, error) {
 
 	resourceBytes, err := ioutil.ReadAll(reader)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Error(fmt.Sprintf("failed to read index config."))
 		return nil, err
 	}
 
 	err = json.Unmarshal(resourceBytes, indexMeta)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Error(fmt.Sprintf("failed to unmarshal index config."))
 		return nil, err
 	}
 

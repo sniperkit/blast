@@ -225,13 +225,13 @@ func LoadConfig() {
 	if viper.GetString("config_file") != "" {
 		viper.SetConfigFile(viper.GetString("config"))
 	} else {
-		viper.SetConfigName("blastmaster")
+		viper.SetConfigName("blastsv")
 		viper.SetConfigType("yaml")
 		viper.AddConfigPath("/etc")
 		viper.AddConfigPath("${HOME}/etc")
 		viper.AddConfigPath("./etc")
 	}
-	viper.SetEnvPrefix("blastmaster")
+	viper.SetEnvPrefix("blastsv")
 	viper.AutomaticEnv()
 
 	viper.ReadInConfig()

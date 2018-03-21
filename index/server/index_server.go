@@ -15,6 +15,7 @@
 package server
 
 import (
+	"fmt"
 	"github.com/blevesearch/bleve/mapping"
 	"github.com/mosuka/blast/index/config"
 	"github.com/mosuka/blast/index/service"
@@ -33,6 +34,12 @@ type IndexServer struct {
 func NewIndexServer(listenAddress string, indexPath string, indexMapping *mapping.IndexMappingImpl, indexMeta *config.IndexConfig) (*IndexServer, error) {
 	svc, err := service.NewIndexService(indexPath, indexMapping, indexMeta)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"indexPath":    indexPath,
+			"indexMapping": indexMapping,
+			"indexMeta":    indexMeta,
+			"error":        err.Error(),
+		}).Error("failed to create index service.")
 		return nil, err
 	}
 
@@ -56,15 +63,19 @@ func (s *IndexServer) Start() error {
 		return err
 	}
 
+	log.Info(fmt.Sprintf("index was opened."))
+
 	// create listener
 	listener, err := net.Listen("tcp", s.listenAddress)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"listenAddress": s.listenAddress,
 			"error":         err.Error(),
-		}).Error("failed to start gRPC server.")
+		}).Error("failed to create listener.")
 		return err
 	}
+
+	log.Info(fmt.Sprintf("listener was created."))
 
 	// start server
 	go func() {

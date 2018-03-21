@@ -53,7 +53,8 @@ func (s *IndexService) OpenIndex() error {
 				"indexPath":    s.indexPath,
 				"indexMapping": s.indexMapping,
 				"indexMeta":    s.indexMeta,
-			}).Error(err.Error())
+				"error":        err.Error(),
+			}).Error("failed to create new index.")
 
 			return err
 		}
@@ -62,14 +63,15 @@ func (s *IndexService) OpenIndex() error {
 			"indexPath":    s.indexPath,
 			"indexMapping": s.indexMapping,
 			"indexMeta":    s.indexMeta,
-		}).Info("index created.")
+		}).Info("new index was created.")
 	} else {
 		s.index, err = bleve.OpenUsing(s.indexPath, s.indexMeta.Config)
 		if err != nil {
 			log.WithFields(log.Fields{
 				"indexPath":     s.indexPath,
 				"runtimeConfig": s.indexMeta.Config,
-			}).Error(err.Error())
+				"error":         err.Error(),
+			}).Error("failed to open existing index.")
 
 			return err
 		}
@@ -77,7 +79,7 @@ func (s *IndexService) OpenIndex() error {
 		log.WithFields(log.Fields{
 			"indexPath":     s.indexPath,
 			"runtimeConfig": s.indexMeta.Config,
-		}).Info("index opened.")
+		}).Info("existing index was opened.")
 	}
 
 	return nil
@@ -86,12 +88,16 @@ func (s *IndexService) OpenIndex() error {
 func (s *IndexService) CloseIndex() error {
 	err := s.index.Close()
 	if err != nil {
-		log.Error(err.Error())
+		log.WithFields(log.Fields{
+			"indexPath":     s.indexPath,
+			"runtimeConfig": s.indexMeta.Config,
+			"error":         err.Error(),
+		}).Error("failed to close index.")
 
 		return err
 	}
 
-	log.Info("index closed.")
+	log.Info("index was closed.")
 
 	return nil
 }
