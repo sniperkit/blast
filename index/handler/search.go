@@ -29,10 +29,10 @@ import (
 )
 
 type SearchHandler struct {
-	client *client.IndexClient
+	client *client.GRPCClient
 }
 
-func NewSearchHandler(c *client.IndexClient) *SearchHandler {
+func NewSearchHandler(c *client.GRPCClient) *SearchHandler {
 	return &SearchHandler{
 		client: c,
 	}

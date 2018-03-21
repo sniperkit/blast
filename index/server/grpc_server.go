@@ -25,13 +25,13 @@ import (
 	"net"
 )
 
-type IndexServer struct {
+type GRPCServer struct {
 	listenAddress string
 	server        *grpc.Server
 	service       *service.IndexService
 }
 
-func NewIndexServer(listenAddress string, indexPath string, indexMapping *mapping.IndexMappingImpl, indexMeta *config.IndexConfig) (*IndexServer, error) {
+func NewGRPCServer(listenAddress string, indexPath string, indexMapping *mapping.IndexMappingImpl, indexMeta *config.IndexConfig) (*GRPCServer, error) {
 	svc, err := service.NewIndexService(indexPath, indexMapping, indexMeta)
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -46,14 +46,14 @@ func NewIndexServer(listenAddress string, indexPath string, indexMapping *mappin
 	svr := grpc.NewServer()
 	pb.RegisterIndexServer(svr, svc)
 
-	return &IndexServer{
+	return &GRPCServer{
 		listenAddress: listenAddress,
 		server:        svr,
 		service:       svc,
 	}, nil
 }
 
-func (s *IndexServer) Start() error {
+func (s *GRPCServer) Start() error {
 	// open index
 	err := s.service.OpenIndex()
 	if err != nil {
@@ -86,7 +86,7 @@ func (s *IndexServer) Start() error {
 	return nil
 }
 
-func (s *IndexServer) Stop() error {
+func (s *GRPCServer) Stop() error {
 	// stop server
 	s.server.GracefulStop()
 

@@ -45,7 +45,7 @@ var getIndexPathCmd = &cobra.Command{
 
 func runEGetIndexPathCmd(cmd *cobra.Command, args []string) error {
 	// create client
-	c, err := client.NewIndexClient(context.Background(), getIndexPathCmdOpts.grpcServerAddress, grpc.WithInsecure())
+	c, err := client.NewGRPCClient(context.Background(), getIndexPathCmdOpts.grpcServerAddress, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}

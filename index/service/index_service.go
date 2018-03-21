@@ -113,7 +113,10 @@ func (s *IndexService) GetIndexPath(ctx context.Context, req *empty.Empty) (*pb.
 func (s *IndexService) GetIndexMapping(ctx context.Context, req *empty.Empty) (*pb.GetIndexMappingResponse, error) {
 	indexMappingAny, err := pb.MarshalAny(s.indexMapping)
 	if err != nil {
-		log.Error(err.Error())
+		log.WithFields(log.Fields{
+			"indexMapping": s.indexMapping,
+			"error":        err.Error(),
+		}).Error("failed to marshal index mapping.")
 		return nil, err
 	}
 
@@ -127,7 +130,10 @@ func (s *IndexService) GetIndexMapping(ctx context.Context, req *empty.Empty) (*
 func (s *IndexService) GetIndexMeta(ctx context.Context, req *empty.Empty) (*pb.GetIndexMetaResponse, error) {
 	configAny, err := pb.MarshalAny(s.indexMeta.Config)
 	if err != nil {
-		log.Error(err.Error())
+		log.WithFields(log.Fields{
+			"indexMeta.Config": s.indexMeta.Config,
+			"error":            err.Error(),
+		}).Error("failed to marshal config.")
 		return nil, err
 	}
 
@@ -146,7 +152,8 @@ func (s *IndexService) PutDocument(ctx context.Context, req *pb.PutDocumentReque
 		log.WithFields(log.Fields{
 			"id":     req.Id,
 			"fields": req.Fields,
-		}).Error(err.Error())
+			"error":  err.Error(),
+		}).Error("failed to unmarshal fields.")
 
 		return nil, err
 	}
@@ -156,7 +163,8 @@ func (s *IndexService) PutDocument(ctx context.Context, req *pb.PutDocumentReque
 		log.WithFields(log.Fields{
 			"id":     req.Id,
 			"fields": fields,
-		}).Error(err.Error())
+			"error":  err.Error(),
+		}).Error("failed to index document.")
 
 		return nil, err
 	}
@@ -171,8 +179,9 @@ func (s *IndexService) GetDocument(ctx context.Context, req *pb.GetDocumentReque
 	doc, err := s.index.Document(req.Id)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"id": req.Id,
-		}).Error(err.Error())
+			"id":    req.Id,
+			"error": err.Error(),
+		}).Error("failed to get document.")
 
 		return nil, err
 	}
@@ -226,7 +235,8 @@ func (s *IndexService) GetDocument(ctx context.Context, req *pb.GetDocumentReque
 		log.WithFields(log.Fields{
 			"id":     req.Id,
 			"fields": fields,
-		}).Error(err.Error())
+			"error":  err.Error(),
+		}).Error("failed to marshal fields.")
 
 		return nil, err
 	}

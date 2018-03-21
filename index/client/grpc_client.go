@@ -24,7 +24,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-type IndexClient struct {
+type GRPCClient struct {
 	server      string
 	dialOptions []grpc.DialOption
 	context     context.Context
@@ -33,7 +33,7 @@ type IndexClient struct {
 	indexClient pb.IndexClient
 }
 
-func NewIndexClient(ctx context.Context, server string, dialOpts ...grpc.DialOption) (*IndexClient, error) {
+func NewGRPCClient(ctx context.Context, server string, dialOpts ...grpc.DialOption) (*GRPCClient, error) {
 	ct, cancel := context.WithCancel(ctx)
 
 	conn, err := grpc.DialContext(ct, server, dialOpts...)
@@ -44,7 +44,7 @@ func NewIndexClient(ctx context.Context, server string, dialOpts ...grpc.DialOpt
 
 	ic := pb.NewIndexClient(conn)
 
-	c := &IndexClient{
+	c := &GRPCClient{
 		server:      server,
 		dialOptions: dialOpts,
 		context:     ct,
@@ -56,7 +56,7 @@ func NewIndexClient(ctx context.Context, server string, dialOpts ...grpc.DialOpt
 	return c, nil
 }
 
-func (c *IndexClient) Close() error {
+func (c *GRPCClient) Close() error {
 	c.cancel()
 	if c.conn != nil {
 		return c.conn.Close()
@@ -64,7 +64,7 @@ func (c *IndexClient) Close() error {
 	return c.context.Err()
 }
 
-func (c *IndexClient) GetIndexPath(ctx context.Context, callOpts ...grpc.CallOption) (string, error) {
+func (c *GRPCClient) GetIndexPath(ctx context.Context, callOpts ...grpc.CallOption) (string, error) {
 	protoReq := &empty.Empty{}
 
 	protoResp, err := c.indexClient.GetIndexPath(ctx, protoReq, callOpts...)
@@ -75,7 +75,7 @@ func (c *IndexClient) GetIndexPath(ctx context.Context, callOpts ...grpc.CallOpt
 	return protoResp.IndexPath, nil
 }
 
-func (c *IndexClient) GetIndexMapping(ctx context.Context, callOpts ...grpc.CallOption) (*mapping.IndexMappingImpl, error) {
+func (c *GRPCClient) GetIndexMapping(ctx context.Context, callOpts ...grpc.CallOption) (*mapping.IndexMappingImpl, error) {
 	protoReq := &empty.Empty{}
 
 	protoResp, err := c.indexClient.GetIndexMapping(ctx, protoReq, callOpts...)
@@ -91,7 +91,7 @@ func (c *IndexClient) GetIndexMapping(ctx context.Context, callOpts ...grpc.Call
 	return im.(*mapping.IndexMappingImpl), nil
 }
 
-func (c *IndexClient) GetIndexMeta(ctx context.Context, callOpts ...grpc.CallOption) (*config.IndexConfig, error) {
+func (c *GRPCClient) GetIndexMeta(ctx context.Context, callOpts ...grpc.CallOption) (*config.IndexConfig, error) {
 	protoReq := &empty.Empty{}
 
 	protoResp, err := c.indexClient.GetIndexMeta(ctx, protoReq, callOpts...)
@@ -112,7 +112,7 @@ func (c *IndexClient) GetIndexMeta(ctx context.Context, callOpts ...grpc.CallOpt
 	return im, nil
 }
 
-func (c *IndexClient) PutDocument(ctx context.Context, id string, fields map[string]interface{}, callOpts ...grpc.CallOption) (string, map[string]interface{}, error) {
+func (c *GRPCClient) PutDocument(ctx context.Context, id string, fields map[string]interface{}, callOpts ...grpc.CallOption) (string, map[string]interface{}, error) {
 	fieldAny, err := pb.MarshalAny(fields)
 	if err != nil {
 		return "", nil, err
@@ -141,7 +141,7 @@ func (c *IndexClient) PutDocument(ctx context.Context, id string, fields map[str
 	return protoResp.Id, fieldsPut, nil
 }
 
-func (c *IndexClient) GetDocument(ctx context.Context, id string, callOpts ...grpc.CallOption) (string, map[string]interface{}, error) {
+func (c *GRPCClient) GetDocument(ctx context.Context, id string, callOpts ...grpc.CallOption) (string, map[string]interface{}, error) {
 	protoReq := &pb.GetDocumentRequest{
 		Id: id,
 	}
@@ -164,7 +164,7 @@ func (c *IndexClient) GetDocument(ctx context.Context, id string, callOpts ...gr
 	return protoResp.Id, fields, nil
 }
 
-func (c *IndexClient) DeleteDocument(ctx context.Context, id string, callOpts ...grpc.CallOption) (string, error) {
+func (c *GRPCClient) DeleteDocument(ctx context.Context, id string, callOpts ...grpc.CallOption) (string, error) {
 	protoReq := &pb.DeleteDocumentRequest{
 		Id: id,
 	}
@@ -177,7 +177,7 @@ func (c *IndexClient) DeleteDocument(ctx context.Context, id string, callOpts ..
 	return protoResp.Id, nil
 }
 
-func (c *IndexClient) Bulk(ctx context.Context, requests []map[string]interface{}, batchSize int32, callOpts ...grpc.CallOption) (int32, int32, int32, int32, error) {
+func (c *GRPCClient) Bulk(ctx context.Context, requests []map[string]interface{}, batchSize int32, callOpts ...grpc.CallOption) (int32, int32, int32, int32, error) {
 	updateRequests := make([]*pb.BulkRequest_UpdateRequest, 0)
 	for _, updateRequest := range requests {
 		r := &pb.BulkRequest_UpdateRequest{}
@@ -227,7 +227,7 @@ func (c *IndexClient) Bulk(ctx context.Context, requests []map[string]interface{
 	return protoResp.PutCount, protoResp.PutErrorCount, protoResp.DeleteCount, protoResp.MethodErrorCount, nil
 }
 
-func (c *IndexClient) Search(ctx context.Context, searchRequest *bleve.SearchRequest, opts ...grpc.CallOption) (*bleve.SearchResult, error) {
+func (c *GRPCClient) Search(ctx context.Context, searchRequest *bleve.SearchRequest, opts ...grpc.CallOption) (*bleve.SearchResult, error) {
 	searchResultAny, err := pb.MarshalAny(searchRequest)
 	if err != nil {
 		return nil, err

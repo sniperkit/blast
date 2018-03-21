@@ -46,7 +46,7 @@ var getIndexMappingCmd = &cobra.Command{
 
 func runEGetIndexMappingCmd(cmd *cobra.Command, args []string) error {
 	// create client
-	c, err := client.NewIndexClient(context.Background(), getIndexMappingCmdOpts.grpcServerAddress, grpc.WithInsecure())
+	c, err := client.NewGRPCClient(context.Background(), getIndexMappingCmdOpts.grpcServerAddress, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}

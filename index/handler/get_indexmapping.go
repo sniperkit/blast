@@ -26,10 +26,10 @@ import (
 )
 
 type GetIndexMappingHandler struct {
-	client *client.IndexClient
+	client *client.GRPCClient
 }
 
-func NewGetIndexMappingHandler(c *client.IndexClient) *GetIndexMappingHandler {
+func NewGetIndexMappingHandler(c *client.GRPCClient) *GetIndexMappingHandler {
 	return &GetIndexMappingHandler{
 		client: c,
 	}

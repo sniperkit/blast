@@ -77,7 +77,7 @@ func runEBulkCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// create client
-	c, err := client.NewIndexClient(context.Background(), bulkCmdOpts.grpcServerAddress, grpc.WithInsecure())
+	c, err := client.NewGRPCClient(context.Background(), bulkCmdOpts.grpcServerAddress, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}

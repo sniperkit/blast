@@ -26,10 +26,10 @@ import (
 )
 
 type GetIndexMetaHandler struct {
-	client *client.IndexClient
+	client *client.GRPCClient
 }
 
-func NewGetIndexMetaHandler(c *client.IndexClient) *GetIndexMetaHandler {
+func NewGetIndexMetaHandler(c *client.GRPCClient) *GetIndexMetaHandler {
 	return &GetIndexMetaHandler{
 		client: c,
 	}

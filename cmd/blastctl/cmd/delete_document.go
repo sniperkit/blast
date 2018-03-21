@@ -52,7 +52,7 @@ func runEDeleteDocumentCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// create client
-	c, err := client.NewIndexClient(context.Background(), deleteDocumentCmdOpts.grpcServerAddress, grpc.WithInsecure())
+	c, err := client.NewGRPCClient(context.Background(), deleteDocumentCmdOpts.grpcServerAddress, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}

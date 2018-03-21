@@ -26,10 +26,10 @@ import (
 )
 
 type GetDocumentHandler struct {
-	client *client.IndexClient
+	client *client.GRPCClient
 }
 
-func NewGetDocumentHandler(c *client.IndexClient) *GetDocumentHandler {
+func NewGetDocumentHandler(c *client.GRPCClient) *GetDocumentHandler {
 	return &GetDocumentHandler{
 		client: c,
 	}

@@ -85,7 +85,7 @@ func runEPutDocumentCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// create client
-	c, err := client.NewIndexClient(context.Background(), putDocumentCmdOpts.grpcServerAddress, grpc.WithInsecure())
+	c, err := client.NewGRPCClient(context.Background(), putDocumentCmdOpts.grpcServerAddress, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}

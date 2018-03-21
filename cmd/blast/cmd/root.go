@@ -220,7 +220,7 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// create gRPC Server
-	indexServer, err := server.NewIndexServer(
+	indexServer, err := server.NewGRPCServer(
 		viper.GetString("grpc_listen_address"),
 		viper.GetString("index_path"),
 		indexMapping,

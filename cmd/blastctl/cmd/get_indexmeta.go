@@ -46,7 +46,7 @@ var getIndexMetaCmd = &cobra.Command{
 
 func runEGetIndexMetaCmd(cmd *cobra.Command, args []string) error {
 	// create client
-	c, err := client.NewIndexClient(context.Background(), getIndexMetaCmdOpts.grpcServerAddress, grpc.WithInsecure())
+	c, err := client.NewGRPCClient(context.Background(), getIndexMetaCmdOpts.grpcServerAddress, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}

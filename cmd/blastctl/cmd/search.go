@@ -130,7 +130,7 @@ func runESearchCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// create client
-	c, err := client.NewIndexClient(context.Background(), searchCmdOpts.grpcServerAddress, grpc.WithInsecure())
+	c, err := client.NewGRPCClient(context.Background(), searchCmdOpts.grpcServerAddress, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}

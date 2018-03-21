@@ -26,10 +26,10 @@ import (
 )
 
 type DeleteDocumentHandler struct {
-	client *client.IndexClient
+	client *client.GRPCClient
 }
 
-func NewDeleteDocumentHandler(c *client.IndexClient) *DeleteDocumentHandler {
+func NewDeleteDocumentHandler(c *client.GRPCClient) *DeleteDocumentHandler {
 	return &DeleteDocumentHandler{
 		client: c,
 	}

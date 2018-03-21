@@ -28,10 +28,10 @@ import (
 )
 
 type PutDocumentHandler struct {
-	client *client.IndexClient
+	client *client.GRPCClient
 }
 
-func NewPutDocumentHandler(c *client.IndexClient) *PutDocumentHandler {
+func NewPutDocumentHandler(c *client.GRPCClient) *PutDocumentHandler {
 	return &PutDocumentHandler{
 		client: c,
 	}

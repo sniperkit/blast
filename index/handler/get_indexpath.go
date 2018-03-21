@@ -25,10 +25,10 @@ import (
 )
 
 type GetIndexPathHandler struct {
-	client *client.IndexClient
+	client *client.GRPCClient
 }
 
-func NewGetIndexPathHandler(c *client.IndexClient) *GetIndexPathHandler {
+func NewGetIndexPathHandler(c *client.GRPCClient) *GetIndexPathHandler {
 	return &GetIndexPathHandler{
 		client: c,
 	}

@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-func TestBlastServer(t *testing.T) {
+func TestGRPCServer(t *testing.T) {
 	dir, _ := os.Getwd()
 
 	listenAddress := "localhost:0"
@@ -53,7 +53,7 @@ func TestBlastServer(t *testing.T) {
 		t.Errorf("could not load kvconfig %v", err)
 	}
 
-	blastServer, err := NewIndexServer(listenAddress, indexPath, indexMapping, indexMeta)
+	blastServer, err := NewGRPCServer(listenAddress, indexPath, indexMapping, indexMeta)
 	if err != nil {
 		t.Fatalf("unexpected error. expected not nil, actual %v", blastServer)
 	}
