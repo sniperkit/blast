@@ -53,7 +53,7 @@ func (s *Supervisor) Start() error {
 		log.WithFields(log.Fields{
 			"listenAddress": s.listenAddress,
 			"error":         err.Error(),
-		}).Error("failed to start Cluster server.")
+		}).Error("failed to create listener.")
 		return err
 	}
 

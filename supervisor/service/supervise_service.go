@@ -17,6 +17,7 @@ package service
 import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/mosuka/blast/pb"
+	_ "github.com/mosuka/blast/supervisor/builtin"
 	"github.com/mosuka/blast/supervisor/config"
 	"github.com/mosuka/blast/supervisor/registry"
 	"github.com/mosuka/blast/supervisor/store"

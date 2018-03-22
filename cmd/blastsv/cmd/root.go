@@ -23,6 +23,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
+	"os/signal"
+	"syscall"
+
 	//"os/signal"
 	//"syscall"
 	"time"
@@ -153,16 +156,26 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 	if viper.GetString("supervisor_config_file") != "" {
 		file, err := os.Open(viper.GetString("supervisor_config_file"))
 		if err != nil {
-			log.Fatal(err.Error())
+			log.WithFields(log.Fields{
+				"supervisorConfigFile": viper.GetString("supervisor_config_file"),
+				"error":                err.Error(),
+			}).Fatal(fmt.Sprintf("failed to open supervisor config file."))
 			return err
 		}
 		defer file.Close()
 
 		supervisorConfig, err = config.LoadSupervisorConfig(file)
 		if err != nil {
-			log.Fatal(err.Error())
+			log.WithFields(log.Fields{
+				"supervisorConfigFile": viper.GetString("supervisor_config_file"),
+				"error":                err.Error(),
+			}).Fatal(fmt.Sprintf("failed to load supervisor config file."))
 			return err
 		}
+
+		log.WithFields(log.Fields{
+			"supervisorConfigFile": viper.GetString("supervisor_config_file"),
+		}).Info(fmt.Sprintf("supervisor config file was loaded."))
 	}
 
 	// create gRPC Server
@@ -171,38 +184,51 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 		supervisorConfig,
 	)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"grpcListenAddress": viper.GetString("grpc_listen_address"),
+			"error":             err.Error(),
+		}).Fatal(fmt.Sprintf("failed to create supervisor."))
+		return err
+	}
+	log.WithFields(log.Fields{
+		"grpcListenAddress": viper.GetString("grpc_listen_address"),
+		"supervisorConfig":  supervisorConfig,
+	}).Info(fmt.Sprintf("supervisor was created."))
+
+	// start gRPC Server
+	err = grpcServer.Start()
+	if err != nil {
 		log.Fatal(err.Error())
 		return err
 	}
-	fmt.Println(grpcServer)
+	log.WithFields(log.Fields{
+		"grpcListenAddress": viper.GetString("grpc_listen_address"),
+		"supervisorConfig":  supervisorConfig,
+	}).Info(fmt.Sprintf("supervisor was started."))
 
-	//// start gRPC Server
-	//err = grpcServer.Start()
-	//if err != nil {
-	//	log.Fatal(err.Error())
-	//	return err
-	//}
-	//
-	//signalChan := make(chan os.Signal, 1)
-	//signal.Notify(signalChan,
-	//	syscall.SIGHUP,
-	//	syscall.SIGINT,
-	//	syscall.SIGTERM,
-	//	syscall.SIGQUIT)
-	//for {
-	//	sig := <-signalChan
-	//
-	//	log.WithFields(log.Fields{
-	//		"signal": sig,
-	//	}).Info("trap signal")
-	//
-	//	err = grpcServer.Stop()
-	//	if err != nil {
-	//		log.Fatal(err.Error())
-	//	}
-	//
-	//	return nil
-	//}
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
+	for {
+		sig := <-signalChan
+
+		log.WithFields(log.Fields{
+			"signal": sig,
+		}).Info("trap signal")
+
+		err = grpcServer.Stop()
+		if err != nil {
+			log.WithFields(log.Fields{
+				"error": err.Error(),
+			}).Fatal("failed to stop supervisor.")
+		}
+		log.Info("supervisor was stopped.")
+
+		return nil
+	}
 
 	return nil
 }
