@@ -172,8 +172,7 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 		file, err := os.Open(viper.GetString("index_mapping_file"))
 		if err != nil {
 			log.WithFields(log.Fields{
-				"indexMappingFile": viper.GetString("index_mapping_file"),
-				"error":            err.Error(),
+				"error": err.Error(),
 			}).Fatal(fmt.Sprintf("failed to open index mapping file."))
 			return err
 		}
@@ -182,15 +181,12 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 		indexMapping, err = config.LoadIndexMapping(file)
 		if err != nil {
 			log.WithFields(log.Fields{
-				"indexMappingFile": viper.GetString("index_mapping_file"),
-				"error":            err.Error(),
+				"error": err.Error(),
 			}).Fatal(fmt.Sprintf("failed to load index mapping file."))
 			return err
 		}
 
-		log.WithFields(log.Fields{
-			"indexMappingFile": viper.GetString("index_mapping_file"),
-		}).Info(fmt.Sprintf("index mapping file was loaded."))
+		log.Info(fmt.Sprintf("index mapping file was loaded."))
 	}
 
 	indexConfig := config.NewIndexConfig()
@@ -198,8 +194,7 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 		file, err := os.Open(viper.GetString("index_config_file"))
 		if err != nil {
 			log.WithFields(log.Fields{
-				"indexConfigFile": viper.GetString("index_config_file"),
-				"error":           err.Error(),
+				"error": err.Error(),
 			}).Fatal(fmt.Sprintf("failed to open index config file."))
 			return err
 		}
@@ -208,15 +203,12 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 		indexConfig, err = config.LoadIndexConfig(file)
 		if err != nil {
 			log.WithFields(log.Fields{
-				"indexConfigFile": viper.GetString("index_config_file"),
-				"error":           err.Error(),
+				"error": err.Error(),
 			}).Fatal(fmt.Sprintf("failed to load index config file."))
 			return err
 		}
 
-		log.WithFields(log.Fields{
-			"indexConfigFile": viper.GetString("index_config_file"),
-		}).Info(fmt.Sprintf("index config file was loaded."))
+		log.Info(fmt.Sprintf("index config file was loaded."))
 	}
 
 	// create gRPC Server
@@ -228,20 +220,11 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 	)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"grpcListenAddress": viper.GetString("grpc_listen_address"),
-			"indexPath":         viper.GetString("index_path"),
-			"indexMapping":      indexMapping,
-			"indexConfig":       indexConfig,
-			"error":             err.Error(),
+			"error": err.Error(),
 		}).Fatal("failed to create index server.")
 		return err
 	}
-	log.WithFields(log.Fields{
-		"grpcListenAddress": viper.GetString("grpc_listen_address"),
-		"indexPath":         viper.GetString("index_path"),
-		"indexMapping":      indexMapping,
-		"indexConfig":       indexConfig,
-	}).Info(fmt.Sprintf("index server was created."))
+	log.Info(fmt.Sprintf("index server was created."))
 
 	// start gRPC Server
 	err = indexServer.Start()
@@ -251,12 +234,7 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 		}).Fatal("failed to start index server.")
 		return err
 	}
-	log.WithFields(log.Fields{
-		"grpcListenAddress": viper.GetString("grpc_listen_address"),
-		"indexPath":         viper.GetString("index_path"),
-		"indexMapping":      indexMapping,
-		"indexConfig":       indexConfig,
-	}).Info(fmt.Sprintf("index server was started."))
+	log.Info(fmt.Sprintf("index server was started."))
 
 	// create HTTP Server
 	httpServer, err := server.NewHTTPServer(
@@ -269,20 +247,11 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 	)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"httpListenAddress": viper.GetString("http_listen_address"),
-			"restURI":           viper.GetString("rest_uri"),
-			"metricsURI":        viper.GetString("metrics_uri"),
-			"grpcListenAddress": viper.GetString("grpc_listen_address"),
-			"error":             err.Error(),
+			"error": err.Error(),
 		}).Fatal("failed to create HTTP server.")
 		return err
 	}
-	log.WithFields(log.Fields{
-		"httpListenAddress": viper.GetString("http_listen_address"),
-		"restURI":           viper.GetString("rest_uri"),
-		"metricsURI":        viper.GetString("metrics_uri"),
-		"grpcListenAddress": viper.GetString("grpc_listen_address"),
-	}).Info(fmt.Sprintf("HTTP server was created."))
+	log.Info(fmt.Sprintf("HTTP server was created."))
 
 	// start HTTP Server
 	err = httpServer.Start()
@@ -292,12 +261,7 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 		}).Fatal("failed to start HTTP server.")
 		return err
 	}
-	log.WithFields(log.Fields{
-		"httpListenAddress": viper.GetString("http_listen_address"),
-		"restURI":           viper.GetString("rest_uri"),
-		"metricsURI":        viper.GetString("metrics_uri"),
-		"grpcListenAddress": viper.GetString("grpc_listen_address"),
-	}).Info(fmt.Sprintf("HTTP server was started."))
+	log.Info(fmt.Sprintf("HTTP server was started."))
 
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan,

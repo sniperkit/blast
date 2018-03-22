@@ -157,8 +157,7 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 		file, err := os.Open(viper.GetString("supervisor_config_file"))
 		if err != nil {
 			log.WithFields(log.Fields{
-				"supervisorConfigFile": viper.GetString("supervisor_config_file"),
-				"error":                err.Error(),
+				"error": err.Error(),
 			}).Fatal(fmt.Sprintf("failed to open supervisor config file."))
 			return err
 		}
@@ -167,15 +166,12 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 		supervisorConfig, err = config.LoadSupervisorConfig(file)
 		if err != nil {
 			log.WithFields(log.Fields{
-				"supervisorConfigFile": viper.GetString("supervisor_config_file"),
-				"error":                err.Error(),
+				"error": err.Error(),
 			}).Fatal(fmt.Sprintf("failed to load supervisor config file."))
 			return err
 		}
 
-		log.WithFields(log.Fields{
-			"supervisorConfigFile": viper.GetString("supervisor_config_file"),
-		}).Info(fmt.Sprintf("supervisor config file was loaded."))
+		log.Info(fmt.Sprintf("supervisor config file was loaded."))
 	}
 
 	// create gRPC Server
@@ -185,26 +181,21 @@ func runERootCmd(cmd *cobra.Command, args []string) error {
 	)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"grpcListenAddress": viper.GetString("grpc_listen_address"),
-			"error":             err.Error(),
+			"error": err.Error(),
 		}).Fatal(fmt.Sprintf("failed to create supervisor."))
 		return err
 	}
-	log.WithFields(log.Fields{
-		"grpcListenAddress": viper.GetString("grpc_listen_address"),
-		"supervisorConfig":  supervisorConfig,
-	}).Info(fmt.Sprintf("supervisor was created."))
+	log.Info(fmt.Sprintf("supervisor was created."))
 
 	// start gRPC Server
 	err = grpcServer.Start()
 	if err != nil {
-		log.Fatal(err.Error())
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Fatal(fmt.Sprintf("failed to start supervisor."))
 		return err
 	}
-	log.WithFields(log.Fields{
-		"grpcListenAddress": viper.GetString("grpc_listen_address"),
-		"supervisorConfig":  supervisorConfig,
-	}).Info(fmt.Sprintf("supervisor was started."))
+	log.Info(fmt.Sprintf("supervisor was started."))
 
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan,
