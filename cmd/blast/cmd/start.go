@@ -15,37 +15,27 @@
 package cmd
 
 import (
-	"fmt"
-	"github.com/mosuka/blast/version"
 	"github.com/spf13/cobra"
-	"os"
 )
 
-type RootCommandOptions struct {
-	versionFlag bool
-}
-
-var rootCmdOpts = RootCommandOptions{
-	versionFlag: false,
-}
-
-var RootCmd = &cobra.Command{
-	Use:   "blast",
-	Short: "Blast",
-	Long:  `The Command Line Interface for the Blast.`,
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		if rootCmdOpts.versionFlag {
-			fmt.Printf("%s\n", version.Version)
-			os.Exit(0)
-		}
-		return nil
-	},
+var startCmd = &cobra.Command{
+	Use:   "start",
+	Short: "Start Blast component",
+	Long:  `The start command starts Blast component.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return cmd.Help()
+		}
+
+		_, _, err := cmd.Find(args)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	},
 }
 
 func init() {
-	RootCmd.Flags().SortFlags = false
-	RootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.versionFlag, "version", "v", rootCmdOpts.versionFlag, "show version number")
+	RootCmd.AddCommand(startCmd)
 }

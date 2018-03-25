@@ -62,7 +62,6 @@ func (s *GRPCServer) Start() error {
 		}).Error("failed to open index.")
 		return err
 	}
-
 	log.Info(fmt.Sprintf("index was opened."))
 
 	// create listener
@@ -74,7 +73,6 @@ func (s *GRPCServer) Start() error {
 		}).Error("failed to create listener.")
 		return err
 	}
-
 	log.Info(fmt.Sprintf("listener was created."))
 
 	// start server
@@ -89,6 +87,7 @@ func (s *GRPCServer) Start() error {
 func (s *GRPCServer) Stop() error {
 	// stop server
 	s.server.GracefulStop()
+	log.Info(fmt.Sprintf("gRPC server was gracefully stopped."))
 
 	// close index
 	err := s.service.CloseIndex()
@@ -98,6 +97,7 @@ func (s *GRPCServer) Stop() error {
 		}).Error("failed to close index.")
 		return err
 	}
+	log.Info(fmt.Sprintf("index was closed."))
 
 	return nil
 }
