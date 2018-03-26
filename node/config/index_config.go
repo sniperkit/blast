@@ -17,6 +17,8 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/blevesearch/bleve/index/store/boltdb"
+	"github.com/blevesearch/bleve/index/upsidedown"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
@@ -30,8 +32,8 @@ type IndexConfig struct {
 
 func NewIndexConfig() *IndexConfig {
 	return &IndexConfig{
-		IndexType: "upside_down",
-		Storage:   "boltdb",
+		IndexType: upsidedown.Name,
+		Storage:   boltdb.Name,
 		Config:    make(map[string]interface{}),
 	}
 }

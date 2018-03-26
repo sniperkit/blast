@@ -41,6 +41,15 @@ var RootCmd = &cobra.Command{
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return cmd.Help()
+		}
+
+		_, _, err := cmd.Find(args)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	},
 }

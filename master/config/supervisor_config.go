@@ -16,6 +16,7 @@ package config
 
 import (
 	"encoding/json"
+	"github.com/mosuka/blast/master/store/file"
 	"io"
 	"io/ioutil"
 )
@@ -27,7 +28,7 @@ type SupervisorConfig struct {
 
 func NewSupervisorConfig() *SupervisorConfig {
 	return &SupervisorConfig{
-		Storage: "file",
+		Storage: file.Name,
 		Config:  make(map[string]interface{}),
 	}
 }

@@ -16,7 +16,7 @@ import (
 )
 
 type StartNodeCmdOpts struct {
-	//configFile string
+	configFile string
 
 	logFormat string
 	logOutput string
@@ -35,7 +35,7 @@ type StartNodeCmdOpts struct {
 }
 
 var defaultStartNodeCmdOpts = StartNodeCmdOpts{
-	//configFile: "",
+	configFile: "",
 
 	logFormat: "text",
 	logOutput: "",
@@ -54,7 +54,7 @@ var defaultStartNodeCmdOpts = StartNodeCmdOpts{
 }
 
 var startNodeCmdOpts = StartNodeCmdOpts{
-	//configFile: defaultStartNodeCmdOpts.configFile,
+	configFile: defaultStartNodeCmdOpts.configFile,
 
 	logFormat: defaultStartNodeCmdOpts.logFormat,
 	logOutput: defaultStartNodeCmdOpts.logOutput,
@@ -77,7 +77,24 @@ var startNodeCmd = &cobra.Command{
 	Short: "start node",
 	Long:  `The start node command starts the Blast node.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		switch startNodeCmdOpts.logFormat {
+		nodeConfig, err := config.NewNodeConfig(startNodeCmdOpts.configFile)
+		if err != nil {
+			return err
+		}
+
+		nodeConfig.BindPFlag("config_file", cmd.Flags().Lookup("config-file"))
+		nodeConfig.BindPFlag("log_format", cmd.Flags().Lookup("log-format"))
+		nodeConfig.BindPFlag("log_output", cmd.Flags().Lookup("log-output"))
+		nodeConfig.BindPFlag("log_level", cmd.Flags().Lookup("log-level"))
+		nodeConfig.BindPFlag("grpc_listen_address", cmd.Flags().Lookup("grpc-listen-address"))
+		nodeConfig.BindPFlag("index_path", cmd.Flags().Lookup("index-path"))
+		nodeConfig.BindPFlag("index_mapping_file", cmd.Flags().Lookup("index-mapping-file"))
+		nodeConfig.BindPFlag("index_config_file", cmd.Flags().Lookup("index-config-file"))
+		nodeConfig.BindPFlag("http_listen_address", cmd.Flags().Lookup("http-listen-address"))
+		nodeConfig.BindPFlag("rest_uri", cmd.Flags().Lookup("rest-uri"))
+		nodeConfig.BindPFlag("metrics_uri", cmd.Flags().Lookup("metrics-uri"))
+
+		switch nodeConfig.GetString("log_format") {
 		case "text":
 			log.SetFormatter(&log.TextFormatter{
 				ForceColors:      false,
@@ -316,7 +333,7 @@ func init() {
 
 	startNodeCmd.Flags().SortFlags = false
 
-	//startNodeCmd.Flags().StringVar(&startNodeCmdOpts.configFile, "config-file", defaultStartNodeCmdOpts.configFile, "config file path")
+	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.configFile, "config-file", defaultStartNodeCmdOpts.configFile, "config file path")
 	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.logFormat, "log-format", defaultStartNodeCmdOpts.logFormat, "log format")
 	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.logOutput, "log-output", defaultStartNodeCmdOpts.logOutput, "log output path")
 	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.logLevel, "log-level", defaultStartNodeCmdOpts.logLevel, "log level")
