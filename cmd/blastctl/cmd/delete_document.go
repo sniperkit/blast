@@ -18,7 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/mosuka/blast/index/client"
+	"github.com/mosuka/blast/node/client"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"time"
