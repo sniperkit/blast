@@ -13,7 +13,7 @@ import (
 )
 
 type StartMasterCmdOpts struct {
-	//configPath string
+	configPath string
 
 	logFormat string
 	logOutput string
@@ -21,39 +21,51 @@ type StartMasterCmdOpts struct {
 
 	grpcListenAddress string
 
-	supervisorConfigFile string
+	superviseConfigPath string
+
+	httpListenAddress string
+
+	restURI    string
+	metricsURI string
 }
 
-var defaultStartMasterCmdOpts = StartMasterCmdOpts{
-	//configPath: "",
+var startMasterCmdOpts = StartMasterCmdOpts{
+	configPath: config.DefaultConfigPath,
 
-	logFormat: "text",
-	logOutput: "",
-	logLevel:  "info",
+	logFormat: config.DefaultLogFormat,
+	logOutput: config.DefaultLogOutput,
+	logLevel:  config.DefaultLogLevel,
 
-	grpcListenAddress: "0.0.0.0:6000",
+	grpcListenAddress: config.DefaultGRPCListenAddress,
 
-	supervisorConfigFile: "",
+	superviseConfigPath: config.DefaultSuperviseConfigPath,
+
+	httpListenAddress: config.DefaultHTTPListenAddress,
+
+	restURI:    config.DefaultRESTURI,
+	metricsURI: config.DefaultMetricsURI,
 }
 
-var startSupervisorCmdOpts = StartMasterCmdOpts{
-	//configPath: defaultStartMasterCmdOpts.configPath,
-
-	logFormat: defaultStartMasterCmdOpts.logFormat,
-	logOutput: defaultStartMasterCmdOpts.logOutput,
-	logLevel:  defaultStartMasterCmdOpts.logLevel,
-
-	grpcListenAddress: defaultStartMasterCmdOpts.grpcListenAddress,
-
-	supervisorConfigFile: defaultStartMasterCmdOpts.supervisorConfigFile,
-}
-
-var startSupervisorCmd = &cobra.Command{
+var startMasterCmd = &cobra.Command{
 	Use:   "master",
 	Short: "start master",
 	Long:  `The start master command starts the Blast master.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		switch startSupervisorCmdOpts.logFormat {
+		masterConfig, err := config.NewConfig(startMasterCmdOpts.configPath)
+		if err != nil {
+			return err
+		}
+
+		masterConfig.BindPFlag("log_format", cmd.Flags().Lookup("log-format"))
+		masterConfig.BindPFlag("log_output", cmd.Flags().Lookup("log-output"))
+		masterConfig.BindPFlag("log_level", cmd.Flags().Lookup("log-level"))
+		masterConfig.BindPFlag("grpc_listen_address", cmd.Flags().Lookup("grpc-listen-address"))
+		masterConfig.BindPFlag("supervise_config_path", cmd.Flags().Lookup("supervise-config-path"))
+		masterConfig.BindPFlag("http_listen_address", cmd.Flags().Lookup("http-listen-address"))
+		masterConfig.BindPFlag("rest_uri", cmd.Flags().Lookup("rest-uri"))
+		masterConfig.BindPFlag("metrics_uri", cmd.Flags().Lookup("metrics-uri"))
+
+		switch masterConfig.GetString("log_format") {
 		case "text":
 			log.SetFormatter(&log.TextFormatter{
 				ForceColors:      false,
@@ -96,7 +108,7 @@ var startSupervisorCmd = &cobra.Command{
 			})
 		}
 
-		switch startSupervisorCmdOpts.logLevel {
+		switch startMasterCmdOpts.logLevel {
 		case "debug":
 			log.SetLevel(log.DebugLevel)
 		case "info":
@@ -113,11 +125,11 @@ var startSupervisorCmd = &cobra.Command{
 			log.SetLevel(log.InfoLevel)
 		}
 
-		if startSupervisorCmdOpts.logOutput == "" {
+		if startMasterCmdOpts.logOutput == "" {
 			log.SetOutput(os.Stdout)
 		} else {
 			var err error
-			logOutput, err := os.OpenFile(startSupervisorCmdOpts.logOutput, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+			logOutput, err := os.OpenFile(startMasterCmdOpts.logOutput, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 			if err != nil {
 				return err
 			} else {
@@ -127,8 +139,8 @@ var startSupervisorCmd = &cobra.Command{
 		}
 
 		supervisorConfig := config.NewSupervisorConfig()
-		if startSupervisorCmdOpts.supervisorConfigFile != "" {
-			file, err := os.Open(startSupervisorCmdOpts.supervisorConfigFile)
+		if startMasterCmdOpts.superviseConfigPath != "" {
+			file, err := os.Open(startMasterCmdOpts.superviseConfigPath)
 			if err != nil {
 				log.WithFields(log.Fields{
 					"error": err.Error(),
@@ -150,7 +162,7 @@ var startSupervisorCmd = &cobra.Command{
 
 		// create gRPC Server
 		grpcServer, err := server.NewGRPCServer(
-			startSupervisorCmdOpts.grpcListenAddress,
+			startMasterCmdOpts.grpcListenAddress,
 			supervisorConfig,
 		)
 		if err != nil {
@@ -199,46 +211,19 @@ var startSupervisorCmd = &cobra.Command{
 	},
 }
 
-//func loadSupervisorConfig() {
-//	viper.SetDefault("log_format", startSupervisorCmdOpts.logFormat)
-//	viper.SetDefault("log_output", startSupervisorCmdOpts.logOutput)
-//	viper.SetDefault("log_level", startSupervisorCmdOpts.logLevel)
-//	viper.SetDefault("grpc_listen_address", startSupervisorCmdOpts.grpcListenAddress)
-//	viper.SetDefault("supervisor_config_file", startSupervisorCmdOpts.supervisorConfigFile)
-//
-//	if viper.GetString("config_file") != "" {
-//		viper.SetConfigFile(viper.GetString("config"))
-//	} else {
-//		viper.SetConfigName("blastsv")
-//		viper.SetConfigType("yaml")
-//		viper.AddConfigPath("/etc")
-//		viper.AddConfigPath("${HOME}/etc")
-//		viper.AddConfigPath("./etc")
-//	}
-//	viper.SetEnvPrefix("blastsv")
-//	viper.AutomaticEnv()
-//
-//	viper.ReadInConfig()
-//}
-
 func init() {
-	//cobra.OnInitialize(loadSupervisorConfig)
+	startMasterCmd.Flags().SortFlags = false
 
-	startSupervisorCmd.Flags().SortFlags = false
+	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.configPath, "config-path", config.DefaultConfigPath, "config path")
 
-	//startSupervisorCmd.Flags().String("config-file", startSupervisorCmdOpts.configPath, "config file path")
-	startSupervisorCmd.Flags().String("log-format", startSupervisorCmdOpts.logFormat, "log format")
-	startSupervisorCmd.Flags().String("log-output", startSupervisorCmdOpts.logOutput, "log output path")
-	startSupervisorCmd.Flags().String("log-level", startSupervisorCmdOpts.logLevel, "log level")
-	startSupervisorCmd.Flags().String("grpc-listen-address", startSupervisorCmdOpts.grpcListenAddress, "address to listen for the gRPC")
-	startSupervisorCmd.Flags().String("supervisor-config-file", startSupervisorCmdOpts.supervisorConfigFile, "supervisor config file path")
+	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.logFormat, "log-format", config.DefaultLogFormat, "log format")
+	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.logOutput, "log-output", config.DefaultLogOutput, "log output")
+	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.logLevel, "log-level", config.DefaultLogLevel, "log level")
+	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.grpcListenAddress, "grpc-listen-address", config.DefaultGRPCListenAddress, "address to listen for the gRPC")
+	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.superviseConfigPath, "supervise-config-path", config.DefaultSuperviseConfigPath, "supervise config path")
+	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.httpListenAddress, "http-listen-address", config.DefaultHTTPListenAddress, "address to listen for the HTTP")
+	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.restURI, "rest-uri", config.DefaultRESTURI, "base URI for REST endpoint")
+	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.metricsURI, "metrics-uri", config.DefaultMetricsURI, "base URI for metrics endpoint")
 
-	//viper.BindPFlag("config_file", startSupervisorCmd.Flags().Lookup("config-file"))
-	//viper.BindPFlag("log_format", startSupervisorCmd.Flags().Lookup("log-format"))
-	//viper.BindPFlag("log_output", startSupervisorCmd.Flags().Lookup("log-output"))
-	//viper.BindPFlag("log_level", startSupervisorCmd.Flags().Lookup("log-level"))
-	//viper.BindPFlag("grpc_listen_address", startSupervisorCmd.Flags().Lookup("grpc-listen-address"))
-	//viper.BindPFlag("supervisor_config_file", startSupervisorCmd.Flags().Lookup("supervisor-config-file"))
-
-	startCmd.AddCommand(startSupervisorCmd)
+	startCmd.AddCommand(startMasterCmd)
 }

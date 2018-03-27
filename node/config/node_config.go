@@ -3,7 +3,7 @@ package config
 import "github.com/spf13/viper"
 
 const (
-	DefaultConfigPath        = "./etc/blast_node.yml"
+	DefaultConfigPath        = "./etc/blast_node.yaml"
 	DefaultLogFormat         = "text"
 	DefaultLogOutput         = ""
 	DefaultLogLevel          = "info"
