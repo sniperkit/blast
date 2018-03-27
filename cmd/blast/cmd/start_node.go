@@ -16,7 +16,7 @@ import (
 )
 
 type StartNodeCmdOpts struct {
-	configFile string
+	configPath string
 
 	logFormat string
 	logOutput string
@@ -25,8 +25,8 @@ type StartNodeCmdOpts struct {
 	grpcListenAddress string
 
 	indexPath        string
-	indexMappingFile string
-	indexConfigFile  string
+	indexMappingPath string
+	indexConfigPath  string
 
 	httpListenAddress string
 
@@ -34,42 +34,23 @@ type StartNodeCmdOpts struct {
 	metricsURI string
 }
 
-var defaultStartNodeCmdOpts = StartNodeCmdOpts{
-	configFile: "",
-
-	logFormat: "text",
-	logOutput: "",
-	logLevel:  "info",
-
-	grpcListenAddress: "0.0.0.0:5000",
-
-	indexPath:        "./data/index",
-	indexMappingFile: "",
-	indexConfigFile:  "",
-
-	httpListenAddress: "0.0.0.0:8000",
-
-	restURI:    "/rest",
-	metricsURI: "/metrics",
-}
-
 var startNodeCmdOpts = StartNodeCmdOpts{
-	configFile: defaultStartNodeCmdOpts.configFile,
+	configPath: config.DefaultConfigPath,
 
-	logFormat: defaultStartNodeCmdOpts.logFormat,
-	logOutput: defaultStartNodeCmdOpts.logOutput,
-	logLevel:  defaultStartNodeCmdOpts.logLevel,
+	logFormat: config.DefaultLogFormat,
+	logOutput: config.DefaultLogOutput,
+	logLevel:  config.DefaultLogLevel,
 
-	grpcListenAddress: defaultStartNodeCmdOpts.grpcListenAddress,
+	grpcListenAddress: config.DefaultGRPCListenAddress,
 
-	indexPath:        defaultStartNodeCmdOpts.indexPath,
-	indexMappingFile: defaultStartNodeCmdOpts.indexMappingFile,
-	indexConfigFile:  defaultStartNodeCmdOpts.indexConfigFile,
+	indexPath:        config.DefaultIndexPath,
+	indexMappingPath: config.DefaultIndexMappingPath,
+	indexConfigPath:  config.DefaultIndexConfigPath,
 
-	httpListenAddress: defaultStartNodeCmdOpts.httpListenAddress,
+	httpListenAddress: config.DefaultHTTPListenAddress,
 
-	restURI:    defaultStartNodeCmdOpts.restURI,
-	metricsURI: defaultStartNodeCmdOpts.metricsURI,
+	restURI:    config.DefaultRESTURI,
+	metricsURI: config.DefaultMetricsURI,
 }
 
 var startNodeCmd = &cobra.Command{
@@ -77,19 +58,18 @@ var startNodeCmd = &cobra.Command{
 	Short: "start node",
 	Long:  `The start node command starts the Blast node.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		nodeConfig, err := config.NewNodeConfig(startNodeCmdOpts.configFile)
+		nodeConfig, err := config.NewConfig(startNodeCmdOpts.configPath)
 		if err != nil {
 			return err
 		}
 
-		nodeConfig.BindPFlag("config_file", cmd.Flags().Lookup("config-file"))
 		nodeConfig.BindPFlag("log_format", cmd.Flags().Lookup("log-format"))
 		nodeConfig.BindPFlag("log_output", cmd.Flags().Lookup("log-output"))
 		nodeConfig.BindPFlag("log_level", cmd.Flags().Lookup("log-level"))
 		nodeConfig.BindPFlag("grpc_listen_address", cmd.Flags().Lookup("grpc-listen-address"))
 		nodeConfig.BindPFlag("index_path", cmd.Flags().Lookup("index-path"))
-		nodeConfig.BindPFlag("index_mapping_file", cmd.Flags().Lookup("index-mapping-file"))
-		nodeConfig.BindPFlag("index_config_file", cmd.Flags().Lookup("index-config-file"))
+		nodeConfig.BindPFlag("index_mapping_path", cmd.Flags().Lookup("index-mapping-path"))
+		nodeConfig.BindPFlag("index_config_path", cmd.Flags().Lookup("index-config-path"))
 		nodeConfig.BindPFlag("http_listen_address", cmd.Flags().Lookup("http-listen-address"))
 		nodeConfig.BindPFlag("rest_uri", cmd.Flags().Lookup("rest-uri"))
 		nodeConfig.BindPFlag("metrics_uri", cmd.Flags().Lookup("metrics-uri"))
@@ -137,7 +117,7 @@ var startNodeCmd = &cobra.Command{
 			})
 		}
 
-		switch startNodeCmdOpts.logLevel {
+		switch nodeConfig.GetString("log_level") {
 		case "debug":
 			log.SetLevel(log.DebugLevel)
 		case "info":
@@ -154,11 +134,11 @@ var startNodeCmd = &cobra.Command{
 			log.SetLevel(log.InfoLevel)
 		}
 
-		if startNodeCmdOpts.logOutput == "" {
+		if nodeConfig.GetString("log_output") == "" {
 			log.SetOutput(os.Stdout)
 		} else {
 			var err error
-			logOutput, err := os.OpenFile(startNodeCmdOpts.logOutput, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+			logOutput, err := os.OpenFile(nodeConfig.GetString("log_output"), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 			if err != nil {
 				return err
 			} else {
@@ -169,8 +149,8 @@ var startNodeCmd = &cobra.Command{
 
 		// create index mapping
 		indexMapping := mapping.NewIndexMapping()
-		if startNodeCmdOpts.indexMappingFile != "" {
-			file, err := os.Open(startNodeCmdOpts.indexMappingFile)
+		if nodeConfig.GetString("index_mapping_path") != "" {
+			file, err := os.Open(nodeConfig.GetString("index_mapping_path"))
 			if err != nil {
 				log.WithFields(log.Fields{
 					"error": err.Error(),
@@ -191,8 +171,8 @@ var startNodeCmd = &cobra.Command{
 		}
 
 		indexConfig := config.NewIndexConfig()
-		if startNodeCmdOpts.indexConfigFile != "" {
-			file, err := os.Open(startNodeCmdOpts.indexConfigFile)
+		if nodeConfig.GetString("index_config_path") != "" {
+			file, err := os.Open(nodeConfig.GetString("index_config_path"))
 			if err != nil {
 				log.WithFields(log.Fields{
 					"error": err.Error(),
@@ -214,8 +194,8 @@ var startNodeCmd = &cobra.Command{
 
 		// create gRPC Server
 		gRPCServer, err := server.NewGRPCServer(
-			startNodeCmdOpts.grpcListenAddress,
-			startNodeCmdOpts.indexPath,
+			nodeConfig.GetString("grpc_listen_address"),
+			nodeConfig.GetString("index_path"),
 			indexMapping,
 			indexConfig,
 		)
@@ -239,11 +219,11 @@ var startNodeCmd = &cobra.Command{
 
 		// create HTTP Server
 		httpServer, err := server.NewHTTPServer(
-			startNodeCmdOpts.httpListenAddress,
-			startNodeCmdOpts.restURI,
-			startNodeCmdOpts.metricsURI,
+			nodeConfig.GetString("http_listen_address"),
+			nodeConfig.GetString("rest_uri"),
+			nodeConfig.GetString("metrics_uri"),
 			context.Background(),
-			startNodeCmdOpts.grpcListenAddress,
+			nodeConfig.GetString("grpc_listen_address"),
 			grpc.WithInsecure(),
 		)
 		if err != nil {
@@ -300,62 +280,21 @@ var startNodeCmd = &cobra.Command{
 	},
 }
 
-//func loadConfig() {
-//	viper.SetDefault("config_file", defaultStartNodeCmdOpts.configFile)
-//	viper.SetDefault("log_format", defaultStartNodeCmdOpts.logFormat)
-//	viper.SetDefault("log_output", defaultStartNodeCmdOpts.logOutput)
-//	viper.SetDefault("log_level", defaultStartNodeCmdOpts.logLevel)
-//	viper.SetDefault("grpc_listen_address", defaultStartNodeCmdOpts.grpcListenAddress)
-//	viper.SetDefault("index_path", defaultStartNodeCmdOpts.indexPath)
-//	viper.SetDefault("index_mapping_file", defaultStartNodeCmdOpts.indexMappingFile)
-//	viper.SetDefault("index_config_file", defaultStartNodeCmdOpts.indexConfigFile)
-//	viper.SetDefault("http_listen_address", defaultStartNodeCmdOpts.httpListenAddress)
-//	viper.SetDefault("rest_uri", defaultStartNodeCmdOpts.restURI)
-//	viper.SetDefault("metrics_uri", defaultStartNodeCmdOpts.metricsURI)
-//
-//	viper.SetEnvPrefix("blast_node")
-//	viper.AutomaticEnv()
-//
-//	if startNodeCmdOpts.configFile != "" {
-//		viper.SetConfigFile(startNodeCmdOpts.configFile)
-//	} else {
-//		viper.SetConfigName("blast")
-//		viper.SetConfigType("yaml")
-//		viper.AddConfigPath("/etc")
-//		viper.AddConfigPath("${HOME}/etc")
-//		viper.AddConfigPath("./etc")
-//	}
-//	viper.ReadInConfig()
-//}
-
 func init() {
-	//cobra.OnInitialize(loadConfig)
-
 	startNodeCmd.Flags().SortFlags = false
 
-	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.configFile, "config-file", defaultStartNodeCmdOpts.configFile, "config file path")
-	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.logFormat, "log-format", defaultStartNodeCmdOpts.logFormat, "log format")
-	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.logOutput, "log-output", defaultStartNodeCmdOpts.logOutput, "log output path")
-	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.logLevel, "log-level", defaultStartNodeCmdOpts.logLevel, "log level")
-	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.grpcListenAddress, "grpc-listen-address", defaultStartNodeCmdOpts.grpcListenAddress, "address to listen for the gRPC")
-	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.indexPath, "index-path", defaultStartNodeCmdOpts.indexPath, "index directory path")
-	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.indexMappingFile, "index-mapping-file", defaultStartNodeCmdOpts.indexMappingFile, "index mapping file path")
-	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.indexConfigFile, "index-config-file", defaultStartNodeCmdOpts.indexConfigFile, "index config file path")
-	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.httpListenAddress, "http-listen-address", defaultStartNodeCmdOpts.httpListenAddress, "address to listen for the HTTP")
-	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.restURI, "rest-uri", defaultStartNodeCmdOpts.restURI, "base URI for REST endpoint")
-	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.metricsURI, "metrics-uri", defaultStartNodeCmdOpts.metricsURI, "base URI for metrics endpoint")
+	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.configPath, "config-path", config.DefaultConfigPath, "config path")
 
-	//viper.BindPFlag("config_file", startNodeCmd.Flags().Lookup("config-file"))
-	//viper.BindPFlag("log_format", startNodeCmd.Flags().Lookup("log-format"))
-	//viper.BindPFlag("log_output", startNodeCmd.Flags().Lookup("log-output"))
-	//viper.BindPFlag("log_level", startNodeCmd.Flags().Lookup("log-level"))
-	//viper.BindPFlag("grpc_listen_address", startNodeCmd.Flags().Lookup("grpc-listen-address"))
-	//viper.BindPFlag("index_path", startNodeCmd.Flags().Lookup("index-path"))
-	//viper.BindPFlag("index_mapping_file", startNodeCmd.Flags().Lookup("index-mapping-file"))
-	//viper.BindPFlag("index_config_file", startNodeCmd.Flags().Lookup("index-config-file"))
-	//viper.BindPFlag("http_listen_address", startNodeCmd.Flags().Lookup("http-listen-address"))
-	//viper.BindPFlag("rest_uri", startNodeCmd.Flags().Lookup("rest-uri"))
-	//viper.BindPFlag("metrics_uri", startNodeCmd.Flags().Lookup("metrics-uri"))
+	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.logFormat, "log-format", config.DefaultLogFormat, "log format")
+	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.logOutput, "log-output", config.DefaultLogOutput, "log output")
+	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.logLevel, "log-level", config.DefaultLogLevel, "log level")
+	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.grpcListenAddress, "grpc-listen-address", config.DefaultGRPCListenAddress, "address to listen for the gRPC")
+	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.indexPath, "index-path", config.DefaultIndexPath, "index directory path")
+	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.indexMappingPath, "index-mapping-path", config.DefaultIndexMappingPath, "index mapping path")
+	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.indexConfigPath, "index-config-path", config.DefaultIndexConfigPath, "index config path")
+	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.httpListenAddress, "http-listen-address", config.DefaultHTTPListenAddress, "address to listen for the HTTP")
+	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.restURI, "rest-uri", config.DefaultRESTURI, "base URI for REST endpoint")
+	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.metricsURI, "metrics-uri", config.DefaultMetricsURI, "base URI for metrics endpoint")
 
 	startCmd.AddCommand(startNodeCmd)
 }

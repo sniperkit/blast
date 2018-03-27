@@ -13,7 +13,7 @@ import (
 )
 
 type StartMasterCmdOpts struct {
-	//configFile string
+	//configPath string
 
 	logFormat string
 	logOutput string
@@ -25,7 +25,7 @@ type StartMasterCmdOpts struct {
 }
 
 var defaultStartMasterCmdOpts = StartMasterCmdOpts{
-	//configFile: "",
+	//configPath: "",
 
 	logFormat: "text",
 	logOutput: "",
@@ -37,7 +37,7 @@ var defaultStartMasterCmdOpts = StartMasterCmdOpts{
 }
 
 var startSupervisorCmdOpts = StartMasterCmdOpts{
-	//configFile: defaultStartMasterCmdOpts.configFile,
+	//configPath: defaultStartMasterCmdOpts.configPath,
 
 	logFormat: defaultStartMasterCmdOpts.logFormat,
 	logOutput: defaultStartMasterCmdOpts.logOutput,
@@ -226,7 +226,7 @@ func init() {
 
 	startSupervisorCmd.Flags().SortFlags = false
 
-	//startSupervisorCmd.Flags().String("config-file", startSupervisorCmdOpts.configFile, "config file path")
+	//startSupervisorCmd.Flags().String("config-file", startSupervisorCmdOpts.configPath, "config file path")
 	startSupervisorCmd.Flags().String("log-format", startSupervisorCmdOpts.logFormat, "log format")
 	startSupervisorCmd.Flags().String("log-output", startSupervisorCmdOpts.logOutput, "log output path")
 	startSupervisorCmd.Flags().String("log-level", startSupervisorCmdOpts.logLevel, "log level")

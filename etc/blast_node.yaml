@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-log_format: color
-log_output:
+log_format: text
 log_level: info
+log_output:
 
 grpc_listen_address: 0.0.0.0:5000
 http_listen_address: 0.0.0.0:8000
 
-index_path: ./data/index2
-index_mapping_file: ./etc/index_mapping.json
-index_config_file: ./etc/index_config.json
+index_path: ./data/index
+index_mapping_path: ./etc/index_mapping.json
+index_config_path: ./etc/index_config.json
 
 rest_uri: /rest
 metrics_uri: /metrics
