@@ -18,7 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/mosuka/blast/node/client"
+	blastgrpc "github.com/mosuka/blast/node/client/grpc"
 	"github.com/mosuka/blast/node/config"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
@@ -46,7 +46,7 @@ var getIndexMetaCmd = &cobra.Command{
 
 func runEGetIndexMetaCmd(cmd *cobra.Command, args []string) error {
 	// create client
-	c, err := client.NewGRPCClient(context.Background(), getIndexMetaCmdOpts.grpcServerAddress, grpc.WithInsecure())
+	c, err := blastgrpc.NewGRPCClient(context.Background(), getIndexMetaCmdOpts.grpcServerAddress, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}

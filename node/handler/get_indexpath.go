@@ -17,7 +17,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"github.com/mosuka/blast/node/client"
+	"github.com/mosuka/blast/node/client/grpc"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
@@ -25,10 +25,10 @@ import (
 )
 
 type GetIndexPathHandler struct {
-	client *client.GRPCClient
+	client *grpc.GRPCClient
 }
 
-func NewGetIndexPathHandler(c *client.GRPCClient) *GetIndexPathHandler {
+func NewGetIndexPathHandler(c *grpc.GRPCClient) *GetIndexPathHandler {
 	return &GetIndexPathHandler{
 		client: c,
 	}

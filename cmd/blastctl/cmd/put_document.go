@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/buger/jsonparser"
-	"github.com/mosuka/blast/node/client"
+	blastgrpc "github.com/mosuka/blast/node/client/grpc"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"time"
@@ -85,7 +85,7 @@ func runEPutDocumentCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// create client
-	c, err := client.NewGRPCClient(context.Background(), putDocumentCmdOpts.grpcServerAddress, grpc.WithInsecure())
+	c, err := blastgrpc.NewGRPCClient(context.Background(), putDocumentCmdOpts.grpcServerAddress, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}

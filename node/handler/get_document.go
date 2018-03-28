@@ -18,7 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/gorilla/mux"
-	"github.com/mosuka/blast/node/client"
+	"github.com/mosuka/blast/node/client/grpc"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
@@ -26,10 +26,10 @@ import (
 )
 
 type GetDocumentHandler struct {
-	client *client.GRPCClient
+	client *grpc.GRPCClient
 }
 
-func NewGetDocumentHandler(c *client.GRPCClient) *GetDocumentHandler {
+func NewGetDocumentHandler(c *grpc.GRPCClient) *GetDocumentHandler {
 	return &GetDocumentHandler{
 		client: c,
 	}

@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"github.com/blevesearch/bleve"
 	"github.com/buger/jsonparser"
-	"github.com/mosuka/blast/node/client"
+	"github.com/mosuka/blast/node/client/grpc"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
@@ -29,10 +29,10 @@ import (
 )
 
 type SearchHandler struct {
-	client *client.GRPCClient
+	client *grpc.GRPCClient
 }
 
-func NewSearchHandler(c *client.GRPCClient) *SearchHandler {
+func NewSearchHandler(c *grpc.GRPCClient) *SearchHandler {
 	return &SearchHandler{
 		client: c,
 	}

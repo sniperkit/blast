@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"github.com/buger/jsonparser"
 	"github.com/gorilla/mux"
-	"github.com/mosuka/blast/node/client"
+	"github.com/mosuka/blast/node/client/grpc"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
@@ -28,10 +28,10 @@ import (
 )
 
 type PutDocumentHandler struct {
-	client *client.GRPCClient
+	client *grpc.GRPCClient
 }
 
-func NewPutDocumentHandler(c *client.GRPCClient) *PutDocumentHandler {
+func NewPutDocumentHandler(c *grpc.GRPCClient) *PutDocumentHandler {
 	return &PutDocumentHandler{
 		client: c,
 	}

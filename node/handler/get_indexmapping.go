@@ -18,7 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/blevesearch/bleve/mapping"
-	"github.com/mosuka/blast/node/client"
+	"github.com/mosuka/blast/node/client/grpc"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
@@ -26,10 +26,10 @@ import (
 )
 
 type GetIndexMappingHandler struct {
-	client *client.GRPCClient
+	client *grpc.GRPCClient
 }
 
-func NewGetIndexMappingHandler(c *client.GRPCClient) *GetIndexMappingHandler {
+func NewGetIndexMappingHandler(c *grpc.GRPCClient) *GetIndexMappingHandler {
 	return &GetIndexMappingHandler{
 		client: c,
 	}

@@ -17,7 +17,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"github.com/mosuka/blast/node/client"
+	"github.com/mosuka/blast/node/client/grpc"
 	"github.com/mosuka/blast/node/config"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -26,10 +26,10 @@ import (
 )
 
 type GetIndexMetaHandler struct {
-	client *client.GRPCClient
+	client *grpc.GRPCClient
 }
 
-func NewGetIndexMetaHandler(c *client.GRPCClient) *GetIndexMetaHandler {
+func NewGetIndexMetaHandler(c *grpc.GRPCClient) *GetIndexMetaHandler {
 	return &GetIndexMetaHandler{
 		client: c,
 	}

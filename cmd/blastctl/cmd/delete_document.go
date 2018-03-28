@@ -18,7 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/mosuka/blast/node/client"
+	blastgrpc "github.com/mosuka/blast/node/client/grpc"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"time"
@@ -52,7 +52,7 @@ func runEDeleteDocumentCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// create client
-	c, err := client.NewGRPCClient(context.Background(), deleteDocumentCmdOpts.grpcServerAddress, grpc.WithInsecure())
+	c, err := blastgrpc.NewGRPCClient(context.Background(), deleteDocumentCmdOpts.grpcServerAddress, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}

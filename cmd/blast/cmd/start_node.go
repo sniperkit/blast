@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"github.com/blevesearch/bleve/mapping"
 	"github.com/mosuka/blast/node/config"
-	"github.com/mosuka/blast/node/server"
+	blastgrpc "github.com/mosuka/blast/node/server/grpc"
+	blasthttp "github.com/mosuka/blast/node/server/http"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
@@ -193,7 +194,7 @@ var startNodeCmd = &cobra.Command{
 		}
 
 		// create gRPC Server
-		gRPCServer, err := server.NewGRPCServer(
+		gRPCServer, err := blastgrpc.NewGRPCServer(
 			nodeConfig.GetString("grpc_listen_address"),
 			nodeConfig.GetString("index_path"),
 			indexMapping,
@@ -218,7 +219,7 @@ var startNodeCmd = &cobra.Command{
 		log.Info(fmt.Sprintf("gRPC server was started."))
 
 		// create HTTP Server
-		httpServer, err := server.NewHTTPServer(
+		httpServer, err := blasthttp.NewHTTPServer(
 			nodeConfig.GetString("http_listen_address"),
 			nodeConfig.GetString("rest_uri"),
 			nodeConfig.GetString("metrics_uri"),

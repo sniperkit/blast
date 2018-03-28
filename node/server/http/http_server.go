@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package server
+package http
 
 import (
 	"context"
 	"fmt"
 	"github.com/gorilla/mux"
-	"github.com/mosuka/blast/node/client"
+	blastgrpc "github.com/mosuka/blast/node/client/grpc"
 	"github.com/mosuka/blast/node/handler"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
@@ -30,12 +30,12 @@ import (
 type HTTPServer struct {
 	listener   net.Listener
 	router     *mux.Router
-	grpcClient *client.GRPCClient
+	grpcClient *blastgrpc.GRPCClient
 }
 
 func NewHTTPServer(httpListenAddress string, restPath string, metricsPath string, ctx context.Context, grpcListenAddress string, dialOpts ...grpc.DialOption) (*HTTPServer, error) {
 	// create client
-	grpcClient, err := client.NewGRPCClient(ctx, grpcListenAddress, dialOpts...)
+	grpcClient, err := blastgrpc.NewGRPCClient(ctx, grpcListenAddress, dialOpts...)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error": err.Error(),

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package server
+package grpc
 
 import (
 	"github.com/mosuka/blast/node/config"
@@ -28,8 +28,8 @@ func TestGRPCServer(t *testing.T) {
 	listenAddress := "localhost:0"
 	indexPath, _ := ioutil.TempDir("/tmp", "blast")
 	indexPath = indexPath + "/index/data"
-	indexMappingPath := dir + "/../etc/index_mapping.json"
-	indexMetaPath := dir + "/../etc/index_meta.json"
+	indexMappingPath := dir + "/../../../etc/index_mapping.json"
+	indexMetaPath := dir + "/../../../etc/index_config.json"
 
 	indexMappingFile, err := os.Open(indexMappingPath)
 	if err != nil {

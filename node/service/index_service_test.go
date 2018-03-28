@@ -21,12 +21,12 @@ import (
 	"testing"
 )
 
-func TestBlastGRPCService(t *testing.T) {
+func TestIndexService(t *testing.T) {
 	dir, _ := os.Getwd()
 
 	indexPath, _ := ioutil.TempDir("/tmp", "indigo")
-	indexMappingPath := dir + "/../etc/index_mapping.json"
-	indexMetaPath := dir + "/../etc/index_meta.json"
+	indexMappingPath := dir + "/../../etc/index_mapping.json"
+	indexMetaPath := dir + "/../../etc/index_config.json"
 
 	indexMappingFile, err := os.Open(indexMappingPath)
 	if err != nil {

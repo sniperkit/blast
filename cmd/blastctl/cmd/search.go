@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"github.com/blevesearch/bleve"
 	"github.com/buger/jsonparser"
-	"github.com/mosuka/blast/node/client"
+	blastgrpc "github.com/mosuka/blast/node/client/grpc"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"time"
@@ -130,7 +130,7 @@ func runESearchCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// create client
-	c, err := client.NewGRPCClient(context.Background(), searchCmdOpts.grpcServerAddress, grpc.WithInsecure())
+	c, err := blastgrpc.NewGRPCClient(context.Background(), searchCmdOpts.grpcServerAddress, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}

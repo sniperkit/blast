@@ -18,7 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/buger/jsonparser"
-	"github.com/mosuka/blast/node/client"
+	"github.com/mosuka/blast/node/client/grpc"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
@@ -27,10 +27,10 @@ import (
 )
 
 type BulkHandler struct {
-	client *client.GRPCClient
+	client *grpc.GRPCClient
 }
 
-func NewBulkHandler(c *client.GRPCClient) *BulkHandler {
+func NewBulkHandler(c *grpc.GRPCClient) *BulkHandler {
 	return &BulkHandler{
 		client: c,
 	}

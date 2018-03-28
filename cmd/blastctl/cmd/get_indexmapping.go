@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/blevesearch/bleve/mapping"
-	"github.com/mosuka/blast/node/client"
+	blastgrpc "github.com/mosuka/blast/node/client/grpc"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"time"
@@ -46,7 +46,7 @@ var getIndexMappingCmd = &cobra.Command{
 
 func runEGetIndexMappingCmd(cmd *cobra.Command, args []string) error {
 	// create client
-	c, err := client.NewGRPCClient(context.Background(), getIndexMappingCmdOpts.grpcServerAddress, grpc.WithInsecure())
+	c, err := blastgrpc.NewGRPCClient(context.Background(), getIndexMappingCmdOpts.grpcServerAddress, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
