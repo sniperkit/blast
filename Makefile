@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-GOARCH = amd64
-GOOS = linux
 VERSION = 0.1.0
-
-LDFLAGS = -ldflags "-X \"github.com/mosuka/blast/version.Version=${VERSION}\""
+GOOS = linux
+GOARCH = amd64
+BUILD_TAGS =
 
 GO := CGO_ENABLED=0 GO15VENDOREXPERIMENT=1 go
 
@@ -26,8 +25,7 @@ PROTOBUFS = $(shell find . -name '*.proto' -print0 | xargs -0 -n1 dirname | sort
 
 TARGET_PACKAGES = $(shell find . -name 'main.go' -print0 | xargs -0 -n1 dirname | sort --unique | grep -v /vendor/)
 
-BUILD_TAGS = "-tags=''"
-#BUILD_TAGS = "-tags=full"
+LDFLAGS = -ldflags "-X \"github.com/mosuka/blast/version.Version=${VERSION}\""
 
 .DEFAULT_GOAL := build
 
@@ -48,8 +46,10 @@ format:
 
 .PHONY: test
 test:
-	@echo ">> running tests"
-	@$(GO) test -tags=${BUILD_TAGS} ${LDFLAGS} $(PACKAGES)
+	@echo ">> testing all packages"
+	@echo "   VERSION    = $(VERSION)"
+	@echo "   BUILD_TAGS = $(BUILD_TAGS)"
+	@$(GO) test -v -tags="${BUILD_TAGS}" ${LDFLAGS} $(PACKAGES)
 
 .PHONY: build
 build:
