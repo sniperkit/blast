@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -32,7 +33,14 @@ func NewWriter(s *Store) (Writer, error) {
 }
 
 func (w *Writer) Write(key string, value map[string]interface{}) error {
-	file, err := os.Open(key)
+	dir := filepath.Dir(key)
+
+	err := os.MkdirAll(dir, 0777)
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Create(key)
 	if err != nil {
 		return err
 	}

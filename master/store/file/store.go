@@ -21,7 +21,7 @@ import (
 
 const (
 	Name            = "file"
-	DefaultBasePath = "/etc/blast"
+	DefaultBasePath = "./etc/blast"
 )
 
 func init() {
