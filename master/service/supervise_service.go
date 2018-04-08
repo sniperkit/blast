@@ -46,12 +46,7 @@ func NewSuperviseService(svMeta *config.SupervisorConfig) (*SuperviseService, er
 }
 
 func (s *SuperviseService) PutNode(ctx context.Context, req *pb.PutNodeRequest) (*empty.Empty, error) {
-	writer, err := s.store.Writer()
-	if err != nil {
-		return nil, err
-	}
-
-	err = writer.PutNode(req.Cluster, req.Node)
+	err := s.store.PutNode(req.Cluster, req.Node)
 	if err != nil {
 		return nil, err
 	}
@@ -60,12 +55,7 @@ func (s *SuperviseService) PutNode(ctx context.Context, req *pb.PutNodeRequest) 
 }
 
 func (s *SuperviseService) GetNode(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeResponse, error) {
-	reader, err := s.store.Reader()
-	if err != nil {
-		return nil, err
-	}
-
-	value, err := reader.GetNode(req.Cluster, req.Node)
+	value, err := s.store.GetNode(req.Cluster, req.Node)
 	if err != nil {
 		return nil, err
 	}
@@ -81,12 +71,7 @@ func (s *SuperviseService) GetNode(ctx context.Context, req *pb.GetNodeRequest) 
 }
 
 func (s *SuperviseService) DeleteNode(ctx context.Context, req *pb.DeleteNodeRequest) (*empty.Empty, error) {
-	writer, err := s.store.Writer()
-	if err != nil {
-		return nil, err
-	}
-
-	err = writer.DeleteNode(req.Cluster, req.Node)
+	err := s.store.DeleteNode(req.Cluster, req.Node)
 	if err != nil {
 		return nil, err
 	}
