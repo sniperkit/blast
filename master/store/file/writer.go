@@ -16,6 +16,7 @@ package file
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -35,25 +36,35 @@ func NewWriter(s *Store) (Writer, error) {
 func (w *Writer) Write(key string, value map[string]interface{}) error {
 	dir := filepath.Dir(key)
 
-	err := os.MkdirAll(dir, 0777)
-	if err != nil {
-		return err
+	// check directory
+	_, err := os.Stat(dir)
+	if os.IsNotExist(err) {
+		err := os.MkdirAll(dir, 0777)
+		if err != nil {
+			return err
+		}
 	}
 
-	file, err := os.Create(key)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
+	// check file
+	_, err = os.Stat(key)
+	if os.IsNotExist(err) {
+		file, err := os.Create(key)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
 
-	jsonBytes, err := json.MarshalIndent(value, "", "  ")
-	if err != nil {
-		return err
-	}
+		jsonBytes, err := json.MarshalIndent(value, "", "  ")
+		if err != nil {
+			return err
+		}
 
-	_, err = file.Write(jsonBytes)
-	if err != nil {
-		return err
+		_, err = file.Write(jsonBytes)
+		if err != nil {
+			return err
+		}
+	} else {
+		return errors.New("file already exists")
 	}
 
 	return nil

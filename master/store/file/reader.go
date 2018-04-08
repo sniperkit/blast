@@ -32,6 +32,12 @@ func NewReader(s *Store) (Reader, error) {
 }
 
 func (r *Reader) Read(key string) (map[string]interface{}, error) {
+	// check file
+	_, err := os.Stat(key)
+	if os.IsNotExist(err) {
+		return nil, err
+	}
+
 	file, err := os.Open(key)
 	if err != nil {
 		return nil, err
@@ -44,7 +50,7 @@ func (r *Reader) Read(key string) (map[string]interface{}, error) {
 	}
 
 	var data map[string]interface{}
-	err = json.Unmarshal(jsonBytes, data)
+	err = json.Unmarshal(jsonBytes, &data)
 
 	return data, nil
 }
