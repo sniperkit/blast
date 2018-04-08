@@ -31,7 +31,7 @@ func NewReader(s *Store) (Reader, error) {
 	}, nil
 }
 
-func (r *Reader) Read(key string) (map[string]interface{}, error) {
+func (r *Reader) Get(key string) (map[string]interface{}, error) {
 	// check file
 	_, err := os.Stat(key)
 	if os.IsNotExist(err) {
@@ -58,7 +58,7 @@ func (r *Reader) Read(key string) (map[string]interface{}, error) {
 func (r *Reader) GetNode(cluster string, node string) (map[string]interface{}, error) {
 	key := fmt.Sprintf("%s/clusters/%s/nodes/%s.json", r.store.BasePath, cluster, node)
 
-	value, err := r.Read(key)
+	value, err := r.Get(key)
 	if err != nil {
 		return nil, err
 	}

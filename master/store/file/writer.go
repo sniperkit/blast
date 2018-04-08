@@ -33,7 +33,7 @@ func NewWriter(s *Store) (Writer, error) {
 	}, nil
 }
 
-func (w *Writer) Write(key string, value map[string]interface{}) error {
+func (w *Writer) Put(key string, value map[string]interface{}) error {
 	dir := filepath.Dir(key)
 
 	// check directory
@@ -70,6 +70,21 @@ func (w *Writer) Write(key string, value map[string]interface{}) error {
 	return nil
 }
 
+func (w *Writer) Delete(key string) error {
+	// check file
+	_, err := os.Stat(key)
+	if os.IsNotExist(err) {
+		return err
+	}
+
+	err = os.Remove(key)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (w *Writer) PutNode(cluster string, node string) error {
 	key := fmt.Sprintf("%s/clusters/%s/nodes/%s.json", w.store.BasePath, cluster, node)
 
@@ -77,13 +92,13 @@ func (w *Writer) PutNode(cluster string, node string) error {
 
 	value["timestamp"] = time.Now().Format(time.RFC3339Nano)
 
-	return w.Write(key, value)
+	return w.Put(key, value)
 }
 
 func (w *Writer) DeleteNode(cluster string, node string) error {
 	key := fmt.Sprintf("%s/clusters/%s/nodes/%s.json", w.store.BasePath, cluster, node)
 
-	err := os.Remove(key)
+	err := w.Delete(key)
 	if err != nil {
 		return err
 	}
