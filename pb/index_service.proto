@@ -14,89 +14,20 @@
 
 syntax = "proto3";
 
-import "google/protobuf/any.proto";
+package blast;
+
+option go_package = "pb";
+
+import "pb/message.proto";
 import "google/protobuf/empty.proto";
 
-package pb;
-
 service Index {
-    rpc GetIndexPath(google.protobuf.Empty) returns (GetIndexPathResponse) {}
-    rpc GetIndexMapping(google.protobuf.Empty) returns (GetIndexMappingResponse) {}
-    rpc GetIndexMeta(google.protobuf.Empty) returns (GetIndexMetaResponse) {}
-    rpc PutDocument(PutDocumentRequest) returns (PutDocumentResponse) {}
-    rpc GetDocument(GetDocumentRequest) returns (GetDocumentResponse) {}
-    rpc DeleteDocument(DeleteDocumentRequest) returns (DeleteDocumentResponse) {}
-    rpc Bulk(BulkRequest) returns (BulkResponse) {}
-    rpc Search(SearchRequest) returns (SearchResponse) {}
-}
-
-message GetIndexPathResponse {
-    string index_path = 1;
-}
-
-message GetIndexMappingResponse {
-    google.protobuf.Any index_mapping = 1;
-}
-
-message GetIndexMetaResponse {
-    string index_type = 1;
-    string storage = 2;
-    google.protobuf.Any config = 3;
-}
-
-message PutDocumentRequest {
-    string id = 1;
-    google.protobuf.Any fields = 2;
-}
-
-message PutDocumentResponse {
-    string id = 1;
-    google.protobuf.Any fields = 2;
-}
-
-message GetDocumentRequest {
-    string id = 1;
-}
-
-message GetDocumentResponse {
-    string id = 1;
-    google.protobuf.Any fields = 2;
-}
-
-message DeleteDocumentRequest {
-    string id = 1;
-}
-
-message DeleteDocumentResponse {
-    string id = 1;
-}
-
-message BulkRequest {
-    message UpdateRequest {
-        message Document {
-            string id = 1;
-            google.protobuf.Any fields = 2;
-        }
-
-        string method = 1;
-        Document document = 2;
-    }
-
-    int32 batch_size = 1;
-    repeated UpdateRequest update_requests = 2;
-}
-
-message BulkResponse {
-    int32 put_count = 1;
-    int32 put_error_count = 2;
-    int32 delete_count = 3;
-    int32 method_error_count = 4;
-}
-
-message SearchRequest {
-    google.protobuf.Any search_request = 1;
-}
-
-message SearchResponse {
-    google.protobuf.Any search_result = 1;
+    rpc GetIndexPath(google.protobuf.Empty) returns (blast.GetIndexPathResponse) {}
+    rpc GetIndexMapping(google.protobuf.Empty) returns (blast.GetIndexMappingResponse) {}
+    rpc GetIndexMeta(google.protobuf.Empty) returns (blast.GetIndexMetaResponse) {}
+    rpc PutDocument(blast.PutDocumentRequest) returns (blast.PutDocumentResponse) {}
+    rpc GetDocument(blast.GetDocumentRequest) returns (blast.GetDocumentResponse) {}
+    rpc DeleteDocument(blast.DeleteDocumentRequest) returns (blast.DeleteDocumentResponse) {}
+    rpc Bulk(blast.BulkRequest) returns (blast.BulkResponse) {}
+    rpc Search(blast.SearchRequest) returns (blast.SearchResponse) {}
 }

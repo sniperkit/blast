@@ -14,32 +14,15 @@
 
 syntax = "proto3";
 
-import "google/protobuf/any.proto";
+package blast;
+
+option go_package = "pb";
+
+import "pb/message.proto";
 import "google/protobuf/empty.proto";
 
-package pb;
-
 service Cluster {
-    rpc PutNode (PutNodeRequest) returns (google.protobuf.Empty) {}
-    rpc GetNode (GetNodeRequest) returns (GetNodeResponse) {}
-    rpc DeleteNode (DeleteNodeRequest) returns (google.protobuf.Empty) {}
-}
-
-message PutNodeRequest {
-    string cluster = 1;
-    string node = 2;
-}
-
-message GetNodeRequest {
-    string cluster = 1;
-    string node = 2;
-}
-
-message GetNodeResponse {
-    google.protobuf.Any value = 1;
-}
-
-message DeleteNodeRequest {
-    string cluster = 1;
-    string node = 2;
+    rpc PutNode (blast.PutNodeRequest) returns (google.protobuf.Empty) {}
+    rpc GetNode (blast.GetNodeRequest) returns (blast.GetNodeResponse) {}
+    rpc DeleteNode (blast.DeleteNodeRequest) returns (google.protobuf.Empty) {}
 }
