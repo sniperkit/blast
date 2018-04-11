@@ -54,9 +54,9 @@ test:
 .PHONY: build
 build:
 	@echo ">> building binaries"
-	@for target_pkg in $(TARGET_PACKAGES); do echo $$target_pkg; GOARCH=$(GOARCH) GOOS=$(GOOS) $(GO) build ${BUILD_TAGS} ${LDFLAGS} -o ./bin/`basename $$target_pkg` $$target_pkg; done
+	@for target_pkg in $(TARGET_PACKAGES); do echo $$target_pkg; GOARCH=$(GOARCH) GOOS=$(GOOS) $(GO) build -tags="${BUILD_TAGS}" ${LDFLAGS} -o ./bin/`basename $$target_pkg` $$target_pkg; done
 
 .PHONY: install
 install:
 	@echo ">> installing binaries"
-	@for target_pkg in $(TARGET_PACKAGES); do echo $$target_pkg; GOARCH=$(GOARCH) GOOS=$(GOOS) $(GO) install ${BUILD_TAGS} ${LDFLAGS} $$target_pkg; done
+	@for target_pkg in $(TARGET_PACKAGES); do echo $$target_pkg; GOARCH=$(GOARCH) GOOS=$(GOOS) $(GO) install -tags="${BUILD_TAGS}" ${LDFLAGS} $$target_pkg; done
