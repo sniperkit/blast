@@ -58,8 +58,8 @@ func runEGetIndexMetaCmd(cmd *cobra.Command, args []string) error {
 
 	indexMeta, err := c.GetIndexMeta(ctx)
 	resp := struct {
-		IndexMeta *config.IndexConfig `json:"index_meta,omitempty"`
-		Error     error               `json:"error,omitempty"`
+		IndexMeta *config.IndexMeta `json:"index_meta,omitempty"`
+		Error     error             `json:"error,omitempty"`
 	}{
 		IndexMeta: indexMeta,
 		Error:     err,

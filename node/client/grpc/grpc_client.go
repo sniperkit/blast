@@ -91,7 +91,7 @@ func (c *GRPCClient) GetIndexMapping(ctx context.Context, callOpts ...grpc.CallO
 	return im.(*mapping.IndexMappingImpl), nil
 }
 
-func (c *GRPCClient) GetIndexMeta(ctx context.Context, callOpts ...grpc.CallOption) (*config.IndexConfig, error) {
+func (c *GRPCClient) GetIndexMeta(ctx context.Context, callOpts ...grpc.CallOption) (*config.IndexMeta, error) {
 	protoReq := &empty.Empty{}
 
 	protoResp, err := c.indexClient.GetIndexMeta(ctx, protoReq, callOpts...)
@@ -104,7 +104,7 @@ func (c *GRPCClient) GetIndexMeta(ctx context.Context, callOpts ...grpc.CallOpti
 		return nil, err
 	}
 
-	im := config.NewIndexConfig()
+	im := config.NewIndexMeta()
 	im.IndexType = protoResp.IndexType
 	im.Storage = protoResp.Storage
 	im.Config = *cfg.(*map[string]interface{})

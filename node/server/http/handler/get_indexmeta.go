@@ -68,8 +68,8 @@ func (h *GetIndexMetaHandler) ServeHTTP(w http.ResponseWriter, req *http.Request
 	// request
 	indexMeta, err := h.client.GetIndexMeta(ctx)
 	resp := struct {
-		IndexMeta *config.IndexConfig `json:"index_metag,omitempty"`
-		Error     error               `json:"error,omitempty"`
+		IndexMeta *config.IndexMeta `json:"index_metag,omitempty"`
+		Error     error             `json:"error,omitempty"`
 	}{
 		IndexMeta: indexMeta,
 		Error:     err,

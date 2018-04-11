@@ -49,7 +49,7 @@ func TestGRPCClient(t *testing.T) {
 	}
 	defer indexMetaFile.Close()
 
-	indexMeta, err := config.LoadIndexConfig(indexMetaFile)
+	indexMeta, err := config.LoadIndexMeta(indexMetaFile)
 	if err != nil {
 		t.Errorf("could not load kvconfig %v", err)
 	}

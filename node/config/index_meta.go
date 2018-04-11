@@ -24,28 +24,28 @@ import (
 	"io/ioutil"
 )
 
-type IndexConfig struct {
+type IndexMeta struct {
 	IndexType string                 `json:"index_type"`
 	Storage   string                 `json:"storage"`
 	Config    map[string]interface{} `json:"config,omitempty"`
 }
 
-func NewIndexConfig() *IndexConfig {
-	return &IndexConfig{
+func NewIndexMeta() *IndexMeta {
+	return &IndexMeta{
 		IndexType: upsidedown.Name,
 		Storage:   boltdb.Name,
 		Config:    make(map[string]interface{}),
 	}
 }
 
-func LoadIndexConfig(reader io.Reader) (*IndexConfig, error) {
-	indexMeta := NewIndexConfig()
+func LoadIndexMeta(reader io.Reader) (*IndexMeta, error) {
+	indexMeta := NewIndexMeta()
 
 	resourceBytes, err := ioutil.ReadAll(reader)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error": err.Error(),
-		}).Error(fmt.Sprintf("failed to read index config."))
+		}).Error(fmt.Sprintf("failed to read index meta file."))
 		return nil, err
 	}
 
@@ -53,7 +53,7 @@ func LoadIndexConfig(reader io.Reader) (*IndexConfig, error) {
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error": err.Error(),
-		}).Error(fmt.Sprintf("failed to unmarshal index config."))
+		}).Error(fmt.Sprintf("failed to unmarshal index meta."))
 		return nil, err
 	}
 

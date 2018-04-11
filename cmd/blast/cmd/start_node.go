@@ -185,7 +185,7 @@ var startNodeCmd = &cobra.Command{
 			log.Info(fmt.Sprintf("index mapping file was loaded."))
 		}
 
-		indexConfig := config.NewIndexConfig()
+		indexConfig := config.NewIndexMeta()
 		if nodeConfig.GetString("index_config_path") != "" {
 			file, err := os.Open(nodeConfig.GetString("index_config_path"))
 			if err != nil {
@@ -196,7 +196,7 @@ var startNodeCmd = &cobra.Command{
 			}
 			defer file.Close()
 
-			indexConfig, err = config.LoadIndexConfig(file)
+			indexConfig, err = config.LoadIndexMeta(file)
 			if err != nil {
 				log.WithFields(log.Fields{
 					"error": err.Error(),

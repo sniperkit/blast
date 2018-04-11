@@ -31,11 +31,11 @@ import (
 type IndexService struct {
 	indexPath    string
 	indexMapping *mapping.IndexMappingImpl
-	indexMeta    *config.IndexConfig
+	indexMeta    *config.IndexMeta
 	index        bleve.Index
 }
 
-func NewIndexService(indexPath string, indexMapping *mapping.IndexMappingImpl, indexMeta *config.IndexConfig) (*IndexService, error) {
+func NewIndexService(indexPath string, indexMapping *mapping.IndexMappingImpl, indexMeta *config.IndexMeta) (*IndexService, error) {
 	return &IndexService{
 		indexPath:    indexPath,
 		indexMapping: indexMapping,

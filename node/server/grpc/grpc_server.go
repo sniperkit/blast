@@ -31,7 +31,7 @@ type GRPCServer struct {
 	service       *service.IndexService
 }
 
-func NewGRPCServer(listenAddress string, indexPath string, indexMapping *mapping.IndexMappingImpl, indexMeta *config.IndexConfig) (*GRPCServer, error) {
+func NewGRPCServer(listenAddress string, indexPath string, indexMapping *mapping.IndexMappingImpl, indexMeta *config.IndexMeta) (*GRPCServer, error) {
 	svc, err := service.NewIndexService(indexPath, indexMapping, indexMeta)
 	if err != nil {
 		log.WithFields(log.Fields{
