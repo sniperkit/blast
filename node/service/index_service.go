@@ -21,7 +21,7 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	_ "github.com/mosuka/blast/node/builtin"
 	"github.com/mosuka/blast/node/config"
-	"github.com/mosuka/blast/pb"
+	"github.com/mosuka/blast/protobuf"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"os"
@@ -102,16 +102,16 @@ func (s *IndexService) CloseIndex() error {
 	return nil
 }
 
-func (s *IndexService) GetIndexPath(ctx context.Context, req *empty.Empty) (*pb.GetIndexPathResponse, error) {
-	protoGetIndexPathResponse := &pb.GetIndexPathResponse{
+func (s *IndexService) GetIndexPath(ctx context.Context, req *empty.Empty) (*protobuf.GetIndexPathResponse, error) {
+	protoGetIndexPathResponse := &protobuf.GetIndexPathResponse{
 		IndexPath: s.indexPath,
 	}
 
 	return protoGetIndexPathResponse, nil
 }
 
-func (s *IndexService) GetIndexMapping(ctx context.Context, req *empty.Empty) (*pb.GetIndexMappingResponse, error) {
-	indexMappingAny, err := pb.MarshalAny(s.indexMapping)
+func (s *IndexService) GetIndexMapping(ctx context.Context, req *empty.Empty) (*protobuf.GetIndexMappingResponse, error) {
+	indexMappingAny, err := protobuf.MarshalAny(s.indexMapping)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"indexMapping": s.indexMapping,
@@ -120,15 +120,15 @@ func (s *IndexService) GetIndexMapping(ctx context.Context, req *empty.Empty) (*
 		return nil, err
 	}
 
-	protoGetIndexMappingResponse := &pb.GetIndexMappingResponse{
+	protoGetIndexMappingResponse := &protobuf.GetIndexMappingResponse{
 		IndexMapping: &indexMappingAny,
 	}
 
 	return protoGetIndexMappingResponse, nil
 }
 
-func (s *IndexService) GetIndexMeta(ctx context.Context, req *empty.Empty) (*pb.GetIndexMetaResponse, error) {
-	configAny, err := pb.MarshalAny(s.indexMeta.Config)
+func (s *IndexService) GetIndexMeta(ctx context.Context, req *empty.Empty) (*protobuf.GetIndexMetaResponse, error) {
+	configAny, err := protobuf.MarshalAny(s.indexMeta.Config)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"indexMeta.Config": s.indexMeta.Config,
@@ -137,7 +137,7 @@ func (s *IndexService) GetIndexMeta(ctx context.Context, req *empty.Empty) (*pb.
 		return nil, err
 	}
 
-	protoGetIndexTypeResponse := &pb.GetIndexMetaResponse{
+	protoGetIndexTypeResponse := &protobuf.GetIndexMetaResponse{
 		IndexType: s.indexMeta.IndexType,
 		Storage:   s.indexMeta.Storage,
 		Config:    &configAny,
@@ -146,8 +146,8 @@ func (s *IndexService) GetIndexMeta(ctx context.Context, req *empty.Empty) (*pb.
 	return protoGetIndexTypeResponse, nil
 }
 
-func (s *IndexService) PutDocument(ctx context.Context, req *pb.PutDocumentRequest) (*pb.PutDocumentResponse, error) {
-	fields, err := pb.UnmarshalAny(req.Fields)
+func (s *IndexService) PutDocument(ctx context.Context, req *protobuf.PutDocumentRequest) (*protobuf.PutDocumentResponse, error) {
+	fields, err := protobuf.UnmarshalAny(req.Fields)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"id":     req.Id,
@@ -169,13 +169,13 @@ func (s *IndexService) PutDocument(ctx context.Context, req *pb.PutDocumentReque
 		return nil, err
 	}
 
-	return &pb.PutDocumentResponse{
+	return &protobuf.PutDocumentResponse{
 		Id:     req.Id,
 		Fields: req.Fields,
 	}, nil
 }
 
-func (s *IndexService) GetDocument(ctx context.Context, req *pb.GetDocumentRequest) (*pb.GetDocumentResponse, error) {
+func (s *IndexService) GetDocument(ctx context.Context, req *protobuf.GetDocumentRequest) (*protobuf.GetDocumentResponse, error) {
 	doc, err := s.index.Document(req.Id)
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -230,7 +230,7 @@ func (s *IndexService) GetDocument(ctx context.Context, req *pb.GetDocumentReque
 		}
 	}
 
-	fieldsAny, err := pb.MarshalAny(fields)
+	fieldsAny, err := protobuf.MarshalAny(fields)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"id":     req.Id,
@@ -241,13 +241,13 @@ func (s *IndexService) GetDocument(ctx context.Context, req *pb.GetDocumentReque
 		return nil, err
 	}
 
-	return &pb.GetDocumentResponse{
+	return &protobuf.GetDocumentResponse{
 		Id:     req.Id,
 		Fields: &fieldsAny,
 	}, nil
 }
 
-func (s *IndexService) DeleteDocument(ctx context.Context, req *pb.DeleteDocumentRequest) (*pb.DeleteDocumentResponse, error) {
+func (s *IndexService) DeleteDocument(ctx context.Context, req *protobuf.DeleteDocumentRequest) (*protobuf.DeleteDocumentResponse, error) {
 	err := s.index.Delete(req.Id)
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -257,12 +257,12 @@ func (s *IndexService) DeleteDocument(ctx context.Context, req *pb.DeleteDocumen
 		return nil, err
 	}
 
-	return &pb.DeleteDocumentResponse{
+	return &protobuf.DeleteDocumentResponse{
 		Id: req.Id,
 	}, nil
 }
 
-func (s *IndexService) Bulk(ctx context.Context, req *pb.BulkRequest) (*pb.BulkResponse, error) {
+func (s *IndexService) Bulk(ctx context.Context, req *protobuf.BulkRequest) (*protobuf.BulkResponse, error) {
 	var (
 		processedCount   int32
 		putCount         int32
@@ -278,7 +278,7 @@ func (s *IndexService) Bulk(ctx context.Context, req *pb.BulkRequest) (*pb.BulkR
 
 		switch updateRequest.Method {
 		case "put":
-			fields, err := pb.UnmarshalAny(updateRequest.Document.Fields)
+			fields, err := protobuf.UnmarshalAny(updateRequest.Document.Fields)
 			if err != nil {
 				log.WithFields(log.Fields{
 					"updateRequest": updateRequest,
@@ -333,7 +333,7 @@ func (s *IndexService) Bulk(ctx context.Context, req *pb.BulkRequest) (*pb.BulkR
 		}
 	}
 
-	return &pb.BulkResponse{
+	return &protobuf.BulkResponse{
 		PutCount:         putCount,
 		PutErrorCount:    putErrorCount,
 		DeleteCount:      deleteCount,
@@ -341,8 +341,8 @@ func (s *IndexService) Bulk(ctx context.Context, req *pb.BulkRequest) (*pb.BulkR
 	}, nil
 }
 
-func (s *IndexService) Search(ctx context.Context, req *pb.SearchRequest) (*pb.SearchResponse, error) {
-	searchRequest, err := pb.UnmarshalAny(req.SearchRequest)
+func (s *IndexService) Search(ctx context.Context, req *protobuf.SearchRequest) (*protobuf.SearchResponse, error) {
+	searchRequest, err := protobuf.UnmarshalAny(req.SearchRequest)
 	if err != nil {
 		log.Error(err.Error())
 
@@ -356,14 +356,14 @@ func (s *IndexService) Search(ctx context.Context, req *pb.SearchRequest) (*pb.S
 		return nil, err
 	}
 
-	searchResultAny, err := pb.MarshalAny(searchResult)
+	searchResultAny, err := protobuf.MarshalAny(searchResult)
 	if err != nil {
 		log.Error(err.Error())
 
 		return nil, err
 	}
 
-	return &pb.SearchResponse{
+	return &protobuf.SearchResponse{
 		SearchResult: &searchResultAny,
 	}, nil
 }

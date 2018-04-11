@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	blastgrpc "github.com/mosuka/blast/node/client/grpc"
-	"github.com/mosuka/blast/node/handler"
+	"github.com/mosuka/blast/node/server/http/handler"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"

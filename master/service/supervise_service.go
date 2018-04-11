@@ -20,7 +20,7 @@ import (
 	"github.com/mosuka/blast/master/config"
 	"github.com/mosuka/blast/master/registry"
 	"github.com/mosuka/blast/master/store"
-	"github.com/mosuka/blast/pb"
+	"github.com/mosuka/blast/protobuf"
 	"golang.org/x/net/context"
 )
 
@@ -45,7 +45,7 @@ func NewSuperviseService(svMeta *config.SupervisorConfig) (*SuperviseService, er
 	}, nil
 }
 
-func (s *SuperviseService) PutNode(ctx context.Context, req *pb.PutNodeRequest) (*empty.Empty, error) {
+func (s *SuperviseService) PutNode(ctx context.Context, req *protobuf.PutNodeRequest) (*empty.Empty, error) {
 	err := s.store.PutNode(req.Cluster, req.Node)
 	if err != nil {
 		return nil, err
@@ -54,23 +54,23 @@ func (s *SuperviseService) PutNode(ctx context.Context, req *pb.PutNodeRequest) 
 	return &empty.Empty{}, nil
 }
 
-func (s *SuperviseService) GetNode(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeResponse, error) {
+func (s *SuperviseService) GetNode(ctx context.Context, req *protobuf.GetNodeRequest) (*protobuf.GetNodeResponse, error) {
 	value, err := s.store.GetNode(req.Cluster, req.Node)
 	if err != nil {
 		return nil, err
 	}
 
-	valueAny, err := pb.MarshalAny(value)
+	valueAny, err := protobuf.MarshalAny(value)
 	if err != nil {
 		return nil, err
 	}
 
-	return &pb.GetNodeResponse{
+	return &protobuf.GetNodeResponse{
 		Value: &valueAny,
 	}, nil
 }
 
-func (s *SuperviseService) DeleteNode(ctx context.Context, req *pb.DeleteNodeRequest) (*empty.Empty, error) {
+func (s *SuperviseService) DeleteNode(ctx context.Context, req *protobuf.DeleteNodeRequest) (*empty.Empty, error) {
 	err := s.store.DeleteNode(req.Cluster, req.Node)
 	if err != nil {
 		return nil, err

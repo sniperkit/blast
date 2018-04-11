@@ -19,7 +19,7 @@ import (
 	"github.com/blevesearch/bleve/mapping"
 	"github.com/mosuka/blast/node/config"
 	"github.com/mosuka/blast/node/service"
-	"github.com/mosuka/blast/pb"
+	"github.com/mosuka/blast/protobuf"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"net"
@@ -44,7 +44,7 @@ func NewGRPCServer(listenAddress string, indexPath string, indexMapping *mapping
 	}
 
 	svr := grpc.NewServer()
-	pb.RegisterIndexServer(svr, svc)
+	protobuf.RegisterIndexServer(svr, svc)
 
 	return &GRPCServer{
 		listenAddress: listenAddress,

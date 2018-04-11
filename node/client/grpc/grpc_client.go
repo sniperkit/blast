@@ -20,7 +20,7 @@ import (
 	"github.com/blevesearch/bleve/mapping"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/mosuka/blast/node/config"
-	"github.com/mosuka/blast/pb"
+	"github.com/mosuka/blast/protobuf"
 	"google.golang.org/grpc"
 )
 
@@ -30,7 +30,7 @@ type GRPCClient struct {
 	context     context.Context
 	cancel      context.CancelFunc
 	conn        *grpc.ClientConn
-	indexClient pb.IndexClient
+	indexClient protobuf.IndexClient
 }
 
 func NewGRPCClient(ctx context.Context, server string, dialOpts ...grpc.DialOption) (*GRPCClient, error) {
@@ -42,7 +42,7 @@ func NewGRPCClient(ctx context.Context, server string, dialOpts ...grpc.DialOpti
 		return nil, err
 	}
 
-	ic := pb.NewIndexClient(conn)
+	ic := protobuf.NewIndexClient(conn)
 
 	c := &GRPCClient{
 		server:      server,
@@ -83,7 +83,7 @@ func (c *GRPCClient) GetIndexMapping(ctx context.Context, callOpts ...grpc.CallO
 		return nil, err
 	}
 
-	im, err := pb.UnmarshalAny(protoResp.IndexMapping)
+	im, err := protobuf.UnmarshalAny(protoResp.IndexMapping)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (c *GRPCClient) GetIndexMeta(ctx context.Context, callOpts ...grpc.CallOpti
 		return nil, err
 	}
 
-	cfg, err := pb.UnmarshalAny(protoResp.Config)
+	cfg, err := protobuf.UnmarshalAny(protoResp.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -113,12 +113,12 @@ func (c *GRPCClient) GetIndexMeta(ctx context.Context, callOpts ...grpc.CallOpti
 }
 
 func (c *GRPCClient) PutDocument(ctx context.Context, id string, fields map[string]interface{}, callOpts ...grpc.CallOption) (string, map[string]interface{}, error) {
-	fieldAny, err := pb.MarshalAny(fields)
+	fieldAny, err := protobuf.MarshalAny(fields)
 	if err != nil {
 		return "", nil, err
 	}
 
-	protoReq := &pb.PutDocumentRequest{
+	protoReq := &protobuf.PutDocumentRequest{
 		Id:     id,
 		Fields: &fieldAny,
 	}
@@ -128,7 +128,7 @@ func (c *GRPCClient) PutDocument(ctx context.Context, id string, fields map[stri
 		return "", nil, err
 	}
 
-	fieldsTmp, err := pb.UnmarshalAny(protoResp.Fields)
+	fieldsTmp, err := protobuf.UnmarshalAny(protoResp.Fields)
 	if err != nil {
 		return "", nil, err
 	}
@@ -142,7 +142,7 @@ func (c *GRPCClient) PutDocument(ctx context.Context, id string, fields map[stri
 }
 
 func (c *GRPCClient) GetDocument(ctx context.Context, id string, callOpts ...grpc.CallOption) (string, map[string]interface{}, error) {
-	protoReq := &pb.GetDocumentRequest{
+	protoReq := &protobuf.GetDocumentRequest{
 		Id: id,
 	}
 
@@ -151,7 +151,7 @@ func (c *GRPCClient) GetDocument(ctx context.Context, id string, callOpts ...grp
 		return "", nil, err
 	}
 
-	fieldsTmp, err := pb.UnmarshalAny(protoResp.Fields)
+	fieldsTmp, err := protobuf.UnmarshalAny(protoResp.Fields)
 	if err != nil {
 		return "", nil, err
 	}
@@ -165,7 +165,7 @@ func (c *GRPCClient) GetDocument(ctx context.Context, id string, callOpts ...grp
 }
 
 func (c *GRPCClient) DeleteDocument(ctx context.Context, id string, callOpts ...grpc.CallOption) (string, error) {
-	protoReq := &pb.DeleteDocumentRequest{
+	protoReq := &protobuf.DeleteDocumentRequest{
 		Id: id,
 	}
 
@@ -178,9 +178,9 @@ func (c *GRPCClient) DeleteDocument(ctx context.Context, id string, callOpts ...
 }
 
 func (c *GRPCClient) Bulk(ctx context.Context, requests []map[string]interface{}, batchSize int32, callOpts ...grpc.CallOption) (int32, int32, int32, int32, error) {
-	updateRequests := make([]*pb.BulkRequest_UpdateRequest, 0)
+	updateRequests := make([]*protobuf.BulkRequest_UpdateRequest, 0)
 	for _, updateRequest := range requests {
-		r := &pb.BulkRequest_UpdateRequest{}
+		r := &protobuf.BulkRequest_UpdateRequest{}
 
 		// check method
 		if _, ok := updateRequest["method"]; ok {
@@ -190,7 +190,7 @@ func (c *GRPCClient) Bulk(ctx context.Context, requests []map[string]interface{}
 		// check document
 		var document map[string]interface{}
 		if _, ok := updateRequest["document"]; ok {
-			d := &pb.BulkRequest_UpdateRequest_Document{}
+			d := &protobuf.BulkRequest_UpdateRequest_Document{}
 
 			document = updateRequest["document"].(map[string]interface{})
 
@@ -201,7 +201,7 @@ func (c *GRPCClient) Bulk(ctx context.Context, requests []map[string]interface{}
 
 			// check document.fields
 			if _, ok := document["fields"]; ok {
-				fields, err := pb.MarshalAny(document["fields"].(map[string]interface{}))
+				fields, err := protobuf.MarshalAny(document["fields"].(map[string]interface{}))
 				if err != nil {
 					continue
 				}
@@ -214,7 +214,7 @@ func (c *GRPCClient) Bulk(ctx context.Context, requests []map[string]interface{}
 		updateRequests = append(updateRequests, r)
 	}
 
-	protoReq := &pb.BulkRequest{
+	protoReq := &protobuf.BulkRequest{
 		BatchSize:      batchSize,
 		UpdateRequests: updateRequests,
 	}
@@ -228,12 +228,12 @@ func (c *GRPCClient) Bulk(ctx context.Context, requests []map[string]interface{}
 }
 
 func (c *GRPCClient) Search(ctx context.Context, searchRequest *bleve.SearchRequest, opts ...grpc.CallOption) (*bleve.SearchResult, error) {
-	searchResultAny, err := pb.MarshalAny(searchRequest)
+	searchResultAny, err := protobuf.MarshalAny(searchRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	protoReq := &pb.SearchRequest{
+	protoReq := &protobuf.SearchRequest{
 		SearchRequest: &searchResultAny,
 	}
 
@@ -242,7 +242,7 @@ func (c *GRPCClient) Search(ctx context.Context, searchRequest *bleve.SearchRequ
 		return nil, err
 	}
 
-	searchResult, err := pb.UnmarshalAny(protoResp.SearchResult)
+	searchResult, err := protobuf.UnmarshalAny(protoResp.SearchResult)
 
 	return searchResult.(*bleve.SearchResult), err
 }

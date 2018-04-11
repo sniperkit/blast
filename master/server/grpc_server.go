@@ -17,7 +17,7 @@ package server
 import (
 	"github.com/mosuka/blast/master/config"
 	"github.com/mosuka/blast/master/service"
-	"github.com/mosuka/blast/pb"
+	"github.com/mosuka/blast/protobuf"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"net"
@@ -37,7 +37,7 @@ func NewGRPCServer(listenAddress string, config *config.SupervisorConfig) (*GRPC
 
 	svr := grpc.NewServer()
 
-	pb.RegisterClusterServer(svr, svc)
+	protobuf.RegisterClusterServer(svr, svc)
 
 	return &GRPCServer{
 		listenAddress: listenAddress,

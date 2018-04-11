@@ -16,7 +16,7 @@ syntax = "proto3";
 
 package blast;
 
-option go_package = "pb";
+option go_package = "protobuf";
 
 import "google/protobuf/any.proto";
 import "google/protobuf/empty.proto";

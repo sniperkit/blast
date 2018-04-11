@@ -16,9 +16,9 @@ syntax = "proto3";
 
 package blast;
 
-option go_package = "pb";
+option go_package = "protobuf";
 
-import "pb/message.proto";
+import "protobuf/message.proto";
 import "google/protobuf/empty.proto";
 
 service Cluster {

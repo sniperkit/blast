@@ -16,7 +16,7 @@ package client
 
 import (
 	"context"
-	"github.com/mosuka/blast/pb"
+	"github.com/mosuka/blast/protobuf"
 	"google.golang.org/grpc"
 )
 
@@ -26,7 +26,7 @@ type GRPCClient struct {
 	context       context.Context
 	cancel        context.CancelFunc
 	conn          *grpc.ClientConn
-	clusterClient pb.ClusterClient
+	clusterClient protobuf.ClusterClient
 }
 
 func NewGRPCClient(ctx context.Context, server string, dialOpts ...grpc.DialOption) (*GRPCClient, error) {
@@ -38,7 +38,7 @@ func NewGRPCClient(ctx context.Context, server string, dialOpts ...grpc.DialOpti
 		return nil, err
 	}
 
-	ic := pb.NewClusterClient(conn)
+	ic := protobuf.NewClusterClient(conn)
 
 	c := &GRPCClient{
 		server:        server,
@@ -61,7 +61,7 @@ func (c *GRPCClient) Close() error {
 }
 
 func (c *GRPCClient) PutNode(ctx context.Context, cluster string, node string, callOpts ...grpc.CallOption) error {
-	protoReq := &pb.PutNodeRequest{
+	protoReq := &protobuf.PutNodeRequest{
 		Cluster: cluster,
 		Node:    node,
 	}
@@ -75,7 +75,7 @@ func (c *GRPCClient) PutNode(ctx context.Context, cluster string, node string, c
 }
 
 func (c *GRPCClient) GetNode(ctx context.Context, cluster string, node string, callOpts ...grpc.CallOption) (*map[string]interface{}, error) {
-	protoReq := &pb.GetNodeRequest{
+	protoReq := &protobuf.GetNodeRequest{
 		Cluster: cluster,
 		Node:    node,
 	}
@@ -85,7 +85,7 @@ func (c *GRPCClient) GetNode(ctx context.Context, cluster string, node string, c
 		return nil, err
 	}
 
-	valueTmp, err := pb.UnmarshalAny(protoResp.Value)
+	valueTmp, err := protobuf.UnmarshalAny(protoResp.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (c *GRPCClient) GetNode(ctx context.Context, cluster string, node string, c
 }
 
 func (c *GRPCClient) DeleteNode(ctx context.Context, cluster string, node string, callOpts ...grpc.CallOption) error {
-	protoReq := &pb.DeleteNodeRequest{
+	protoReq := &protobuf.DeleteNodeRequest{
 		Cluster: cluster,
 		Node:    node,
 	}
