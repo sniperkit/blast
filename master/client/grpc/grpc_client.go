@@ -39,18 +39,18 @@ func NewGRPCClient(ctx context.Context, server string, dialOpts ...grpc.DialOpti
 		return nil, err
 	}
 
-	ic := protobuf.NewClusterClient(conn)
+	clusterClient := protobuf.NewClusterClient(conn)
 
-	c := &GRPCClient{
+	grpcClient := &GRPCClient{
 		server:        server,
 		dialOptions:   dialOpts,
 		context:       ct,
 		cancel:        cancel,
 		conn:          conn,
-		clusterClient: ic,
+		clusterClient: clusterClient,
 	}
 
-	return c, nil
+	return grpcClient, nil
 }
 
 func (c *GRPCClient) Close() error {
