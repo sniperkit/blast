@@ -12,39 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package config
+package index
 
 import (
 	"encoding/json"
-	"github.com/mosuka/blast/master/store/file"
+	"fmt"
+	"github.com/blevesearch/bleve/mapping"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 )
 
-type SupervisorConfig struct {
-	Storage string                 `json:"storage"`
-	Config  map[string]interface{} `json:"config,omitempty"`
-}
-
-func NewSupervisorConfig() *SupervisorConfig {
-	return &SupervisorConfig{
-		Storage: file.Name,
-		Config:  make(map[string]interface{}),
-	}
-}
-
-func LoadSupervisorConfig(reader io.Reader) (*SupervisorConfig, error) {
-	supervisorConfig := NewSupervisorConfig()
+func LoadIndexMapping(reader io.Reader) (*mapping.IndexMappingImpl, error) {
+	indexMapping := mapping.NewIndexMapping()
 
 	resourceBytes, err := ioutil.ReadAll(reader)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Error(fmt.Sprintf("failed to read index mapping."))
 		return nil, err
 	}
 
-	err = json.Unmarshal(resourceBytes, supervisorConfig)
+	err = json.Unmarshal(resourceBytes, indexMapping)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Error(fmt.Sprintf("failed to unmarshal index mapping."))
 		return nil, err
 	}
 
-	return supervisorConfig, nil
+	return indexMapping, nil
 }

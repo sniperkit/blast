@@ -17,9 +17,6 @@ package grpc
 import (
 	"context"
 	"github.com/blevesearch/bleve"
-	"github.com/blevesearch/bleve/mapping"
-	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/mosuka/blast/node/config"
 	"github.com/mosuka/blast/protobuf"
 	"google.golang.org/grpc"
 )
@@ -64,53 +61,53 @@ func (c *GRPCClient) Close() error {
 	return c.context.Err()
 }
 
-func (c *GRPCClient) GetIndexPath(ctx context.Context, callOpts ...grpc.CallOption) (string, error) {
-	protoReq := &empty.Empty{}
+//func (c *GRPCClient) GetIndexPath(ctx context.Context, callOpts ...grpc.CallOption) (string, error) {
+//	protoReq := &empty.Empty{}
+//
+//	protoResp, err := c.indexClient.GetIndexPath(ctx, protoReq, callOpts...)
+//	if err != nil {
+//		return "", err
+//	}
+//
+//	return protoResp.IndexPath, nil
+//}
 
-	protoResp, err := c.indexClient.GetIndexPath(ctx, protoReq, callOpts...)
-	if err != nil {
-		return "", err
-	}
+//func (c *GRPCClient) GetIndexMapping(ctx context.Context, callOpts ...grpc.CallOption) (*mapping.IndexMappingImpl, error) {
+//	protoReq := &empty.Empty{}
+//
+//	protoResp, err := c.indexClient.GetIndexMapping(ctx, protoReq, callOpts...)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	im, err := protobuf.UnmarshalAny(protoResp.IndexMapping)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return im.(*mapping.IndexMappingImpl), nil
+//}
 
-	return protoResp.IndexPath, nil
-}
-
-func (c *GRPCClient) GetIndexMapping(ctx context.Context, callOpts ...grpc.CallOption) (*mapping.IndexMappingImpl, error) {
-	protoReq := &empty.Empty{}
-
-	protoResp, err := c.indexClient.GetIndexMapping(ctx, protoReq, callOpts...)
-	if err != nil {
-		return nil, err
-	}
-
-	im, err := protobuf.UnmarshalAny(protoResp.IndexMapping)
-	if err != nil {
-		return nil, err
-	}
-
-	return im.(*mapping.IndexMappingImpl), nil
-}
-
-func (c *GRPCClient) GetIndexMeta(ctx context.Context, callOpts ...grpc.CallOption) (*config.IndexMeta, error) {
-	protoReq := &empty.Empty{}
-
-	protoResp, err := c.indexClient.GetIndexMeta(ctx, protoReq, callOpts...)
-	if err != nil {
-		return nil, err
-	}
-
-	cfg, err := protobuf.UnmarshalAny(protoResp.Config)
-	if err != nil {
-		return nil, err
-	}
-
-	im := config.NewIndexMeta()
-	im.IndexType = protoResp.IndexType
-	im.Storage = protoResp.Storage
-	im.Config = *cfg.(*map[string]interface{})
-
-	return im, nil
-}
+//func (c *GRPCClient) GetIndexMeta(ctx context.Context, callOpts ...grpc.CallOption) (*config.IndexMeta, error) {
+//	protoReq := &empty.Empty{}
+//
+//	protoResp, err := c.indexClient.GetIndexMeta(ctx, protoReq, callOpts...)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	cfg, err := protobuf.UnmarshalAny(protoResp.Config)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	im := config.NewIndexMeta()
+//	im.IndexType = protoResp.IndexType
+//	im.Storage = protoResp.Storage
+//	im.Config = *cfg.(*map[string]interface{})
+//
+//	return im, nil
+//}
 
 func (c *GRPCClient) PutDocument(ctx context.Context, id string, fields map[string]interface{}, callOpts ...grpc.CallOption) (string, map[string]interface{}, error) {
 	fieldAny, err := protobuf.MarshalAny(fields)

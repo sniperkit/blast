@@ -15,14 +15,9 @@
 package handler
 
 import (
-	"context"
-	"encoding/json"
 	"github.com/mosuka/blast/node/client/grpc"
-	"github.com/mosuka/blast/node/config"
 	log "github.com/sirupsen/logrus"
 	"net/http"
-	"strconv"
-	"time"
 )
 
 type GetIndexMetaHandler struct {
@@ -46,49 +41,49 @@ func (h *GetIndexMetaHandler) ServeHTTP(w http.ResponseWriter, req *http.Request
 		"url":            req.URL,
 	}).Info("")
 
-	// request timeout
-	requestTimeout := DefaultRequestTimeout
-	if req.URL.Query().Get("requestTimeout") != "" {
-		i, err := strconv.Atoi(req.URL.Query().Get("requestTimeout"))
-		if err != nil {
-			log.WithFields(log.Fields{
-				"err": err,
-			}).Error("failed to set batch size")
+	//// request timeout
+	//requestTimeout := DefaultRequestTimeout
+	//if req.URL.Query().Get("requestTimeout") != "" {
+	//	i, err := strconv.Atoi(req.URL.Query().Get("requestTimeout"))
+	//	if err != nil {
+	//		log.WithFields(log.Fields{
+	//			"err": err,
+	//		}).Error("failed to set batch size")
+	//
+	//		Error(w, err.Error(), http.StatusBadRequest)
+	//		return
+	//	}
+	//	requestTimeout = i
+	//}
 
-			Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		requestTimeout = i
-	}
+	//// create context
+	//ctx, cancel := context.WithTimeout(context.Background(), time.Duration(requestTimeout)*time.Millisecond)
+	//defer cancel()
 
-	// create context
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(requestTimeout)*time.Millisecond)
-	defer cancel()
+	//// request
+	//indexMeta, err := h.client.GetIndexMeta(ctx)
+	//resp := struct {
+	//	IndexMeta *config.IndexMeta `json:"index_metag,omitempty"`
+	//	Error     error             `json:"error,omitempty"`
+	//}{
+	//	IndexMeta: indexMeta,
+	//	Error:     err,
+	//}
 
-	// request
-	indexMeta, err := h.client.GetIndexMeta(ctx)
-	resp := struct {
-		IndexMeta *config.IndexMeta `json:"index_metag,omitempty"`
-		Error     error             `json:"error,omitempty"`
-	}{
-		IndexMeta: indexMeta,
-		Error:     err,
-	}
-
-	// output response
-	output, err := json.MarshalIndent(resp, "", "  ")
-	if err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Error("failed to create response")
-
-		Error(w, err.Error(), http.StatusServiceUnavailable)
-		return
-	}
+	//// output response
+	//output, err := json.MarshalIndent(resp, "", "  ")
+	//if err != nil {
+	//	log.WithFields(log.Fields{
+	//		"err": err,
+	//	}).Error("failed to create response")
+	//
+	//	Error(w, err.Error(), http.StatusServiceUnavailable)
+	//	return
+	//}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Write(output)
+	//w.Write(output)
 
 	return
 }

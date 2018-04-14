@@ -25,4 +25,12 @@ service Cluster {
     rpc PutNode (blast.PutNodeRequest) returns (google.protobuf.Empty) {}
     rpc GetNode (blast.GetNodeRequest) returns (blast.GetNodeResponse) {}
     rpc DeleteNode (blast.DeleteNodeRequest) returns (google.protobuf.Empty) {}
+
+    rpc PutIndexMapping (blast.PutIndexMappingRequest) returns (google.protobuf.Empty) {}
+    rpc GetIndexMapping (blast.GetIndexMappingRequest) returns (blast.GetIndexMappingResponse) {}
+    rpc DeleteIndexMapping (blast.DeleteIndexMappingRequest) returns (google.protobuf.Empty) {}
+
+    rpc PutIndexMeta (blast.PutIndexMetaRequest) returns (google.protobuf.Empty) {}
+    rpc GetIndexMeta (blast.GetIndexMetaRequest) returns (blast.GetIndexMetaResponse) {}
+    rpc DeleteIndexMeta (blast.DeleteIndexMetaRequest) returns (google.protobuf.Empty) {}
 }

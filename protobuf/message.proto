@@ -21,20 +21,6 @@ option go_package = "protobuf";
 import "google/protobuf/any.proto";
 import "google/protobuf/empty.proto";
 
-message GetIndexPathResponse {
-    string index_path = 1;
-}
-
-message GetIndexMappingResponse {
-    google.protobuf.Any index_mapping = 1;
-}
-
-message GetIndexMetaResponse {
-    string index_type = 1;
-    string storage = 2;
-    google.protobuf.Any config = 3;
-}
-
 message PutDocumentRequest {
     string id = 1;
     google.protobuf.Any fields = 2;
@@ -109,4 +95,38 @@ message GetNodeResponse {
 message DeleteNodeRequest {
     string cluster = 1;
     string node = 2;
+}
+
+message PutIndexMappingRequest {
+    string cluster = 1;
+    google.protobuf.Any index_mapping = 2;
+}
+
+message GetIndexMappingRequest {
+    string cluster = 1;
+}
+
+message GetIndexMappingResponse {
+    google.protobuf.Any index_mapping = 1;
+}
+
+message DeleteIndexMappingRequest {
+    string cluster = 1;
+}
+
+message PutIndexMetaRequest {
+    string cluster = 1;
+    google.protobuf.Any index_meta = 2;
+}
+
+message GetIndexMetaRequest {
+    string cluster = 1;
+}
+
+message GetIndexMetaResponse {
+    google.protobuf.Any index_meta = 1;
+}
+
+message DeleteIndexMetaRequest {
+    string cluster = 1;
 }

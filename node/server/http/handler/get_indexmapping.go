@@ -15,14 +15,14 @@
 package handler
 
 import (
-	"context"
-	"encoding/json"
-	"github.com/blevesearch/bleve/mapping"
+	//"context"
+	//"encoding/json"
+	//"github.com/blevesearch/bleve/mapping"
 	"github.com/mosuka/blast/node/client/grpc"
 	log "github.com/sirupsen/logrus"
 	"net/http"
-	"strconv"
-	"time"
+	//"strconv"
+	//"time"
 )
 
 type GetIndexMappingHandler struct {
@@ -46,49 +46,49 @@ func (h *GetIndexMappingHandler) ServeHTTP(w http.ResponseWriter, req *http.Requ
 		"url":            req.URL,
 	}).Info("")
 
-	// request timeout
-	requestTimeout := DefaultRequestTimeout
-	if req.URL.Query().Get("requestTimeout") != "" {
-		i, err := strconv.Atoi(req.URL.Query().Get("requestTimeout"))
-		if err != nil {
-			log.WithFields(log.Fields{
-				"err": err,
-			}).Error("failed to set batch size")
+	//// request timeout
+	//requestTimeout := DefaultRequestTimeout
+	//if req.URL.Query().Get("requestTimeout") != "" {
+	//	i, err := strconv.Atoi(req.URL.Query().Get("requestTimeout"))
+	//	if err != nil {
+	//		log.WithFields(log.Fields{
+	//			"err": err,
+	//		}).Error("failed to set batch size")
+	//
+	//		Error(w, err.Error(), http.StatusBadRequest)
+	//		return
+	//	}
+	//	requestTimeout = i
+	//}
 
-			Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		requestTimeout = i
-	}
+	//// create context
+	//ctx, cancel := context.WithTimeout(context.Background(), time.Duration(requestTimeout)*time.Millisecond)
+	//defer cancel()
 
-	// create context
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(requestTimeout)*time.Millisecond)
-	defer cancel()
+	//// request
+	//indexMapping, err := h.client.GetIndexMapping(ctx)
+	//resp := struct {
+	//	IndexMapping *mapping.IndexMappingImpl `json:"index_mapping,omitempty"`
+	//	Error        error                     `json:"error,omitempty"`
+	//}{
+	//	IndexMapping: indexMapping,
+	//	Error:        err,
+	//}
 
-	// request
-	indexMapping, err := h.client.GetIndexMapping(ctx)
-	resp := struct {
-		IndexMapping *mapping.IndexMappingImpl `json:"index_mapping,omitempty"`
-		Error        error                     `json:"error,omitempty"`
-	}{
-		IndexMapping: indexMapping,
-		Error:        err,
-	}
-
-	// output response
-	output, err := json.MarshalIndent(resp, "", "  ")
-	if err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Error("failed to create response")
-
-		Error(w, err.Error(), http.StatusServiceUnavailable)
-		return
-	}
+	//// output response
+	//output, err := json.MarshalIndent(resp, "", "  ")
+	//if err != nil {
+	//	log.WithFields(log.Fields{
+	//		"err": err,
+	//	}).Error("failed to create response")
+	//
+	//	Error(w, err.Error(), http.StatusServiceUnavailable)
+	//	return
+	//}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Write(output)
+	//w.Write(output)
 
 	return
 }

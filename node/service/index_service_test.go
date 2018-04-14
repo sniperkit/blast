@@ -15,7 +15,7 @@
 package service
 
 import (
-	"github.com/mosuka/blast/node/config"
+	"github.com/mosuka/blast/index"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -25,8 +25,8 @@ func TestIndexService(t *testing.T) {
 	dir, _ := os.Getwd()
 
 	indexPath, _ := ioutil.TempDir("/tmp", "indigo")
-	indexMappingPath := dir + "/../../etc/index_mapping.json"
-	indexMetaPath := dir + "/../../etc/index_config.json"
+	indexMappingPath := dir + "/../../example/config/index_mapping.json"
+	indexMetaPath := dir + "/../../example/config/index_meta.json"
 
 	indexMappingFile, err := os.Open(indexMappingPath)
 	if err != nil {
@@ -34,7 +34,7 @@ func TestIndexService(t *testing.T) {
 	}
 	defer indexMappingFile.Close()
 
-	indexMapping, err := config.LoadIndexMapping(indexMappingFile)
+	indexMapping, err := index.LoadIndexMapping(indexMappingFile)
 	if err != nil {
 		t.Errorf("could not load IndexMapping : %v", err)
 	}
@@ -45,7 +45,7 @@ func TestIndexService(t *testing.T) {
 	}
 	defer indexMetaFile.Close()
 
-	indexMeta, err := config.LoadIndexMeta(indexMetaFile)
+	indexMeta, err := index.LoadIndexMeta(indexMetaFile)
 	if err != nil {
 		t.Errorf("could not load kvconfig : %v", err)
 	}

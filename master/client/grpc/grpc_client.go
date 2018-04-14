@@ -16,6 +16,7 @@ package grpc
 
 import (
 	"context"
+	"github.com/blevesearch/bleve/mapping"
 	"github.com/mosuka/blast/protobuf"
 	"google.golang.org/grpc"
 )
@@ -105,6 +106,53 @@ func (c *GRPCClient) DeleteNode(ctx context.Context, cluster string, node string
 	}
 
 	_, err := c.clusterClient.DeleteNode(ctx, protoReq, callOpts...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *GRPCClient) PutIndexMapping(ctx context.Context, cluster string, node *mapping.IndexMappingImpl, callOpts ...grpc.CallOption) error {
+	indexMappingAny, err := protobuf.MarshalAny(node)
+
+	protoReq := &protobuf.PutIndexMappingRequest{
+		Cluster:      cluster,
+		IndexMapping: &indexMappingAny,
+	}
+
+	_, err = c.clusterClient.PutIndexMapping(ctx, protoReq, callOpts...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *GRPCClient) GetIndexMapping(ctx context.Context, cluster string, callOpts ...grpc.CallOption) (*mapping.IndexMappingImpl, error) {
+	protoReq := &protobuf.GetIndexMappingRequest{
+		Cluster: cluster,
+	}
+
+	protoResp, err := c.clusterClient.GetIndexMapping(ctx, protoReq, callOpts...)
+	if err != nil {
+		return nil, err
+	}
+
+	indexMapping, err := protobuf.UnmarshalAny(protoResp.IndexMapping)
+	if err != nil {
+		return nil, err
+	}
+
+	return indexMapping.(*mapping.IndexMappingImpl), nil
+}
+
+func (c *GRPCClient) DeleteIndexMapping(ctx context.Context, cluster string, node string, callOpts ...grpc.CallOption) error {
+	protoReq := &protobuf.DeleteIndexMappingRequest{
+		Cluster: cluster,
+	}
+
+	_, err := c.clusterClient.DeleteIndexMapping(ctx, protoReq, callOpts...)
 	if err != nil {
 		return err
 	}

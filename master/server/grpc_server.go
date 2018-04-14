@@ -15,7 +15,7 @@
 package server
 
 import (
-	"github.com/mosuka/blast/master/config"
+	"github.com/mosuka/blast/cluster"
 	"github.com/mosuka/blast/master/service"
 	"github.com/mosuka/blast/protobuf"
 	log "github.com/sirupsen/logrus"
@@ -26,11 +26,11 @@ import (
 type GRPCServer struct {
 	listenAddress string
 	server        *grpc.Server
-	service       *service.SuperviseService
+	service       *service.ClusterService
 }
 
-func NewGRPCServer(listenAddress string, config *config.SupervisorConfig) (*GRPCServer, error) {
-	svc, err := service.NewSuperviseService(config)
+func NewGRPCServer(listenAddress string, config *cluster.ClusterMeta) (*GRPCServer, error) {
+	svc, err := service.NewClusterService(config)
 	if err != nil {
 		return nil, err
 	}

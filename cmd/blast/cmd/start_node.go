@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/blevesearch/bleve/mapping"
+	"github.com/mosuka/blast/index"
 	"github.com/mosuka/blast/node/config"
 	blastgrpc "github.com/mosuka/blast/node/server/grpc"
 	blasthttp "github.com/mosuka/blast/node/server/http"
@@ -174,7 +175,7 @@ var startNodeCmd = &cobra.Command{
 			}
 			defer file.Close()
 
-			indexMapping, err = config.LoadIndexMapping(file)
+			indexMapping, err = index.LoadIndexMapping(file)
 			if err != nil {
 				log.WithFields(log.Fields{
 					"error": err.Error(),
@@ -185,7 +186,7 @@ var startNodeCmd = &cobra.Command{
 			log.Info(fmt.Sprintf("index mapping file was loaded."))
 		}
 
-		indexConfig := config.NewIndexMeta()
+		indexConfig := index.NewIndexMeta()
 		if nodeConfig.GetString("index_config_path") != "" {
 			file, err := os.Open(nodeConfig.GetString("index_config_path"))
 			if err != nil {
@@ -196,7 +197,7 @@ var startNodeCmd = &cobra.Command{
 			}
 			defer file.Close()
 
-			indexConfig, err = config.LoadIndexMeta(file)
+			indexConfig, err = index.LoadIndexMeta(file)
 			if err != nil {
 				log.WithFields(log.Fields{
 					"error": err.Error(),

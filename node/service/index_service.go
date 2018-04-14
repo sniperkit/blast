@@ -18,9 +18,8 @@ import (
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/document"
 	"github.com/blevesearch/bleve/mapping"
-	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/mosuka/blast/index"
 	_ "github.com/mosuka/blast/node/builtin"
-	"github.com/mosuka/blast/node/config"
 	"github.com/mosuka/blast/protobuf"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -31,11 +30,11 @@ import (
 type IndexService struct {
 	indexPath    string
 	indexMapping *mapping.IndexMappingImpl
-	indexMeta    *config.IndexMeta
+	indexMeta    *index.IndexMeta
 	index        bleve.Index
 }
 
-func NewIndexService(indexPath string, indexMapping *mapping.IndexMappingImpl, indexMeta *config.IndexMeta) (*IndexService, error) {
+func NewIndexService(indexPath string, indexMapping *mapping.IndexMappingImpl, indexMeta *index.IndexMeta) (*IndexService, error) {
 	return &IndexService{
 		indexPath:    indexPath,
 		indexMapping: indexMapping,
@@ -102,49 +101,49 @@ func (s *IndexService) CloseIndex() error {
 	return nil
 }
 
-func (s *IndexService) GetIndexPath(ctx context.Context, req *empty.Empty) (*protobuf.GetIndexPathResponse, error) {
-	protoGetIndexPathResponse := &protobuf.GetIndexPathResponse{
-		IndexPath: s.indexPath,
-	}
+//func (s *IndexService) GetIndexPath(ctx context.Context, req *empty.Empty) (*protobuf.GetIndexPathResponse, error) {
+//	protoGetIndexPathResponse := &protobuf.GetIndexPathResponse{
+//		IndexPath: s.indexPath,
+//	}
+//
+//	return protoGetIndexPathResponse, nil
+//}
 
-	return protoGetIndexPathResponse, nil
-}
+//func (s *IndexService) GetIndexMapping(ctx context.Context, req *empty.Empty) (*protobuf.GetIndexMappingResponse, error) {
+//	indexMappingAny, err := protobuf.MarshalAny(s.indexMapping)
+//	if err != nil {
+//		log.WithFields(log.Fields{
+//			"indexMapping": s.indexMapping,
+//			"error":        err.Error(),
+//		}).Error("failed to marshal index mapping.")
+//		return nil, err
+//	}
+//
+//	protoGetIndexMappingResponse := &protobuf.GetIndexMappingResponse{
+//		IndexMapping: &indexMappingAny,
+//	}
+//
+//	return protoGetIndexMappingResponse, nil
+//}
 
-func (s *IndexService) GetIndexMapping(ctx context.Context, req *empty.Empty) (*protobuf.GetIndexMappingResponse, error) {
-	indexMappingAny, err := protobuf.MarshalAny(s.indexMapping)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"indexMapping": s.indexMapping,
-			"error":        err.Error(),
-		}).Error("failed to marshal index mapping.")
-		return nil, err
-	}
-
-	protoGetIndexMappingResponse := &protobuf.GetIndexMappingResponse{
-		IndexMapping: &indexMappingAny,
-	}
-
-	return protoGetIndexMappingResponse, nil
-}
-
-func (s *IndexService) GetIndexMeta(ctx context.Context, req *empty.Empty) (*protobuf.GetIndexMetaResponse, error) {
-	configAny, err := protobuf.MarshalAny(s.indexMeta.Config)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"indexMeta.Config": s.indexMeta.Config,
-			"error":            err.Error(),
-		}).Error("failed to marshal config.")
-		return nil, err
-	}
-
-	protoGetIndexTypeResponse := &protobuf.GetIndexMetaResponse{
-		IndexType: s.indexMeta.IndexType,
-		Storage:   s.indexMeta.Storage,
-		Config:    &configAny,
-	}
-
-	return protoGetIndexTypeResponse, nil
-}
+//func (s *IndexService) GetIndexMeta(ctx context.Context, req *empty.Empty) (*protobuf.GetIndexMetaResponse, error) {
+//	configAny, err := protobuf.MarshalAny(s.indexMeta.Config)
+//	if err != nil {
+//		log.WithFields(log.Fields{
+//			"indexMeta.Config": s.indexMeta.Config,
+//			"error":            err.Error(),
+//		}).Error("failed to marshal config.")
+//		return nil, err
+//	}
+//
+//	protoGetIndexTypeResponse := &protobuf.GetIndexMetaResponse{
+//		IndexType: s.indexMeta.IndexType,
+//		Storage:   s.indexMeta.Storage,
+//		Config:    &configAny,
+//	}
+//
+//	return protoGetIndexTypeResponse, nil
+//}
 
 func (s *IndexService) PutDocument(ctx context.Context, req *protobuf.PutDocumentRequest) (*protobuf.PutDocumentResponse, error) {
 	fields, err := protobuf.UnmarshalAny(req.Fields)

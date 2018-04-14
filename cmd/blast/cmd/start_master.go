@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/mosuka/blast/cluster"
 	"github.com/mosuka/blast/master/config"
 	"github.com/mosuka/blast/master/server"
 	log "github.com/sirupsen/logrus"
@@ -152,7 +153,7 @@ var startMasterCmd = &cobra.Command{
 			defer logOutput.Close()
 		}
 
-		supervisorConfig := config.NewSupervisorConfig()
+		supervisorConfig := cluster.NewClusterMeta()
 		if startMasterCmdOpts.superviseConfigPath != "" {
 			file, err := os.Open(startMasterCmdOpts.superviseConfigPath)
 			if err != nil {
@@ -163,7 +164,7 @@ var startMasterCmd = &cobra.Command{
 			}
 			defer file.Close()
 
-			supervisorConfig, err = config.LoadSupervisorConfig(file)
+			supervisorConfig, err = cluster.LoadClusterMeta(file)
 			if err != nil {
 				log.WithFields(log.Fields{
 					"error": err.Error(),

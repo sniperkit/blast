@@ -12,35 +12,50 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package config
+package index
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/blevesearch/bleve/mapping"
+	"github.com/blevesearch/bleve/index/store/boltdb"
+	"github.com/blevesearch/bleve/index/upsidedown"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 )
 
-func LoadIndexMapping(reader io.Reader) (*mapping.IndexMappingImpl, error) {
-	indexMapping := mapping.NewIndexMapping()
+type IndexMeta struct {
+	IndexType string                 `json:"index_type"`
+	Storage   string                 `json:"storage"`
+	Config    map[string]interface{} `json:"config,omitempty"`
+}
+
+func NewIndexMeta() *IndexMeta {
+	return &IndexMeta{
+		IndexType: upsidedown.Name,
+		Storage:   boltdb.Name,
+		Config:    make(map[string]interface{}),
+	}
+}
+
+func LoadIndexMeta(reader io.Reader) (*IndexMeta, error) {
+	indexMeta := NewIndexMeta()
 
 	resourceBytes, err := ioutil.ReadAll(reader)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error": err.Error(),
-		}).Error(fmt.Sprintf("failed to read index mapping."))
+		}).Error(fmt.Sprintf("failed to read index meta file."))
 		return nil, err
 	}
 
-	err = json.Unmarshal(resourceBytes, indexMapping)
+	err = json.Unmarshal(resourceBytes, indexMeta)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error": err.Error(),
-		}).Error(fmt.Sprintf("failed to unmarshal index mapping."))
+		}).Error(fmt.Sprintf("failed to unmarshal index meta."))
 		return nil, err
 	}
 
-	return indexMapping, nil
+	return indexMeta, nil
 }

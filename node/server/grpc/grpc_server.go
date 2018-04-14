@@ -17,7 +17,7 @@ package grpc
 import (
 	"fmt"
 	"github.com/blevesearch/bleve/mapping"
-	"github.com/mosuka/blast/node/config"
+	"github.com/mosuka/blast/index"
 	"github.com/mosuka/blast/node/service"
 	"github.com/mosuka/blast/protobuf"
 	log "github.com/sirupsen/logrus"
@@ -31,7 +31,7 @@ type GRPCServer struct {
 	service       *service.IndexService
 }
 
-func NewGRPCServer(listenAddress string, indexPath string, indexMapping *mapping.IndexMappingImpl, indexMeta *config.IndexMeta) (*GRPCServer, error) {
+func NewGRPCServer(listenAddress string, indexPath string, indexMapping *mapping.IndexMappingImpl, indexMeta *index.IndexMeta) (*GRPCServer, error) {
 	svc, err := service.NewIndexService(indexPath, indexMapping, indexMeta)
 	if err != nil {
 		log.WithFields(log.Fields{
