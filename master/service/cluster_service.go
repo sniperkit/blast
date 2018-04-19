@@ -63,6 +63,7 @@ func (s *ClusterService) PutNode(ctx context.Context, req *protobuf.PutNodeReque
 		req.NodeInfo.Timestamp = time.Now().Format(time.RFC3339Nano)
 	}
 
+	// NodeInfo -> JSON string ([]byte)
 	marshaler := jsonpb.Marshaler{
 		EmitDefaults: true,
 		Indent:       "  ",
@@ -70,6 +71,7 @@ func (s *ClusterService) PutNode(ctx context.Context, req *protobuf.PutNodeReque
 	}
 	value, err := marshaler.MarshalToString(req.NodeInfo)
 
+	// put JSON string ([]byte)
 	err = s.store.Put(key, []byte(value))
 	if err != nil {
 		return nil, err
@@ -81,16 +83,17 @@ func (s *ClusterService) PutNode(ctx context.Context, req *protobuf.PutNodeReque
 func (s *ClusterService) GetNode(ctx context.Context, req *protobuf.GetNodeRequest) (*protobuf.GetNodeResponse, error) {
 	key := fmt.Sprintf("%s/clusters/%s/nodes/%s.json", s.config["base_path"].(string), req.Cluster, req.Node)
 
+	// get JSON string ([]byte)
 	value, err := s.store.Get(key)
 	if err != nil {
 		return nil, err
 	}
 
+	// JSON string -> NodeInfo
+	nodeInfo := &protobuf.NodeInfo{}
 	unmarshaler := jsonpb.Unmarshaler{
 		AllowUnknownFields: true,
 	}
-
-	nodeInfo := &protobuf.NodeInfo{}
 	err = unmarshaler.Unmarshal(bytes.NewReader(value), nodeInfo)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -116,20 +119,20 @@ func (s *ClusterService) DeleteNode(ctx context.Context, req *protobuf.DeleteNod
 func (s *ClusterService) PutIndexMapping(ctx context.Context, req *protobuf.PutIndexMappingRequest) (*empty.Empty, error) {
 	key := fmt.Sprintf("%s/clusters/%s/index_mapping.json", s.config["base_path"].(string), req.Cluster)
 
-	// Any -> mapping.IndexMappingImpl
+	// Any -> IndexMappingImpl
 	v, err := protobuf.UnmarshalAny(req.IndexMapping)
 	if err != nil {
 		return nil, err
 	}
 	indexMapping := v.(*mapping.IndexMappingImpl)
 
-	// IndexMappingImple -> JSON String
+	// IndexMappingImple -> JSON string ([]byte)
 	value, err := json.MarshalIndent(indexMapping, "", "  ")
 	if err != nil {
 		return nil, err
 	}
 
-	// Put Index Mapping in JSON Format to Store.
+	// put JSON string ([]byte)
 	err = s.store.Put(key, []byte(value))
 	if err != nil {
 		return nil, err
