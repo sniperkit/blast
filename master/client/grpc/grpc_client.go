@@ -184,3 +184,21 @@ func (c *GRPCClient) PutIndexMeta(ctx context.Context, cluster string, indexMeta
 
 	return nil
 }
+
+func (c *GRPCClient) GetIndexMeta(ctx context.Context, cluster string, callOpts ...grpc.CallOption) (*index.IndexMeta, error) {
+	protoReq := &protobuf.GetIndexMetaRequest{
+		Cluster: cluster,
+	}
+
+	protoResp, err := c.clusterClient.GetIndexMeta(ctx, protoReq, callOpts...)
+	if err != nil {
+		return nil, err
+	}
+
+	indexMeta, err := protobuf.UnmarshalAny(protoResp.IndexMeta)
+	if err != nil {
+		return nil, err
+	}
+
+	return indexMeta.(*index.IndexMeta), nil
+}

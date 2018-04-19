@@ -206,8 +206,30 @@ func (s *ClusterService) PutIndexMeta(ctx context.Context, req *protobuf.PutInde
 }
 
 func (s *ClusterService) GetIndexMeta(ctx context.Context, req *protobuf.GetIndexMetaRequest) (*protobuf.GetIndexMetaResponse, error) {
+	key := fmt.Sprintf("%s/clusters/%s/index_meta.json", s.config["base_path"].(string), req.Cluster)
 
-	return &protobuf.GetIndexMetaResponse{}, nil
+	// get JSON string ([]byte)
+	value, err := s.store.Get(key)
+	if err != nil {
+		return nil, err
+	}
+
+	// JSON string ([]byte) -> IndexMappingImpl
+	indexMeta := index.NewIndexMeta()
+	err = json.Unmarshal(value, &indexMeta)
+	if err != nil {
+		return nil, err
+	}
+
+	// IndexMapping -> Any
+	any, err := protobuf.MarshalAny(indexMeta)
+	if err != nil {
+		return nil, err
+	}
+
+	return &protobuf.GetIndexMetaResponse{
+		IndexMeta: &any,
+	}, nil
 }
 
 func (s *ClusterService) DeleteIndexMeta(ctx context.Context, req *protobuf.DeleteIndexMetaRequest) (*empty.Empty, error) {
