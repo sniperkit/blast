@@ -18,7 +18,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/blevesearch/bleve/mapping"
 	blastgrpc "github.com/mosuka/blast/master/client/grpc"
 	"github.com/mosuka/blast/master/config"
 	"github.com/spf13/cobra"
@@ -61,15 +60,16 @@ var deleteIndexMappingCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(deleteIndexMappingCmdOpts.requestTimeout)*time.Millisecond)
 		defer cancel()
 
-		indexMapping, err := c.GetIndexMapping(ctx, deleteIndexMappingCmdOpts.cluster)
+		err = c.DeleteIndexMapping(ctx, deleteIndexMappingCmdOpts.cluster)
+		if err != nil {
+			return err
+		}
 		resp := struct {
-			Cluster      string                    `json:"cluster,omitempty"`
-			IndexMapping *mapping.IndexMappingImpl `json:"index_mapping,omitempty"`
-			Error        error                     `json:"error,omitempty"`
+			Cluster string `json:"cluster,omitempty"`
+			Error   error  `json:"error,omitempty"`
 		}{
-			Cluster:      deleteIndexMappingCmdOpts.cluster,
-			IndexMapping: indexMapping,
-			Error:        err,
+			Cluster: deleteIndexMappingCmdOpts.cluster,
+			Error:   err,
 		}
 
 		// output response

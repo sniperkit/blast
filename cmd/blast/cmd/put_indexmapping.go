@@ -84,6 +84,9 @@ var putIndexMappingCmd = &cobra.Command{
 
 		// put node
 		err = c.PutIndexMapping(ctx, putIndexMappingCmdOpts.cluster, indexMapping)
+		if err != nil {
+			return err
+		}
 		resp := struct {
 			Cluster      string                    `json:"cluster,omitempty"`
 			IndexMapping *mapping.IndexMappingImpl `json:"index_mapping,omitempty"`

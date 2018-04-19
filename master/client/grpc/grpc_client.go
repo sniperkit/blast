@@ -155,7 +155,7 @@ func (c *GRPCClient) GetIndexMapping(ctx context.Context, cluster string, callOp
 	return indexMapping.(*mapping.IndexMappingImpl), nil
 }
 
-func (c *GRPCClient) DeleteIndexMapping(ctx context.Context, cluster string, node string, callOpts ...grpc.CallOption) error {
+func (c *GRPCClient) DeleteIndexMapping(ctx context.Context, cluster string, callOpts ...grpc.CallOption) error {
 	protoReq := &protobuf.DeleteIndexMappingRequest{
 		Cluster: cluster,
 	}

@@ -69,6 +69,9 @@ var deleteNodeCmd = &cobra.Command{
 
 		// get document from index
 		err = c.DeleteNode(ctx, getNodeCmdOpts.cluster, getNodeCmdOpts.node)
+		if err != nil {
+			return err
+		}
 		resp := struct {
 			Cluster string `json:"cluster,omitempty"`
 			Node    string `json:"node,omitempty"`

@@ -69,6 +69,9 @@ var putNodeCmd = &cobra.Command{
 
 		// put node
 		err = c.PutNode(ctx, putNodeCmdOpts.cluster, putNodeCmdOpts.node)
+		if err != nil {
+			return err
+		}
 		resp := struct {
 			Cluster string `json:"cluster,omitempty"`
 			Node    string `json:"node,omitempty"`

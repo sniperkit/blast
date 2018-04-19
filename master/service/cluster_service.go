@@ -142,11 +142,39 @@ func (s *ClusterService) PutIndexMapping(ctx context.Context, req *protobuf.PutI
 }
 
 func (s *ClusterService) GetIndexMapping(ctx context.Context, req *protobuf.GetIndexMappingRequest) (*protobuf.GetIndexMappingResponse, error) {
+	key := fmt.Sprintf("%s/clusters/%s/index_mapping.json", s.config["base_path"].(string), req.Cluster)
 
-	return &protobuf.GetIndexMappingResponse{}, nil
+	// get JSON string ([]byte)
+	value, err := s.store.Get(key)
+	if err != nil {
+		return nil, err
+	}
+
+	// JSON string ([]byte) -> IndexMappingImpl
+	indexMapping := mapping.NewIndexMapping()
+	err = json.Unmarshal(value, &indexMapping)
+	if err != nil {
+		return nil, err
+	}
+
+	// IndexMapping -> Any
+	any, err := protobuf.MarshalAny(indexMapping)
+	if err != nil {
+		return nil, err
+	}
+
+	return &protobuf.GetIndexMappingResponse{
+		IndexMapping: &any,
+	}, nil
 }
 
 func (s *ClusterService) DeleteIndexMapping(ctx context.Context, req *protobuf.DeleteIndexMappingRequest) (*empty.Empty, error) {
+	key := fmt.Sprintf("%s/clusters/%s/index_mapping.json", s.config["base_path"].(string), req.Cluster)
+
+	err := s.store.Delete(key)
+	if err != nil {
+		return nil, err
+	}
 
 	return &empty.Empty{}, nil
 }
