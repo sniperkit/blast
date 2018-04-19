@@ -19,7 +19,7 @@ log_level: info
 grpc_listen_address: 0.0.0.0:5100
 http_listen_address: 0.0.0.0:8000
 
-supervisor_config_path: ./etc/supervisor_config.json
+cluster_meta_path: ./example/config/cluster_meta.json
 
 rest_uri: /rest
 metrics_uri: /metrics

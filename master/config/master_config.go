@@ -17,15 +17,15 @@ package config
 import "github.com/spf13/viper"
 
 const (
-	DefaultConfigPath          = "./etc/blast_master.yaml"
-	DefaultLogFormat           = "text"
-	DefaultLogOutput           = ""
-	DefaultLogLevel            = "info"
-	DefaultGRPCListenAddress   = "0.0.0.0:5000"
-	DefaultSuperviseConfigPath = "./etc/supervise_config.json"
-	DefaultHTTPListenAddress   = "0.0.0.0:8000"
-	DefaultRESTURI             = "/rest"
-	DefaultMetricsURI          = "/metrics"
+	DefaultConfigPath        = "./etc/blast_master.yaml"
+	DefaultLogFormat         = "text"
+	DefaultLogOutput         = ""
+	DefaultLogLevel          = "info"
+	DefaultGRPCListenAddress = "0.0.0.0:5000"
+	DefaultClusterMetaPath   = "./etc/supervise_config.json"
+	DefaultHTTPListenAddress = "0.0.0.0:8000"
+	DefaultRESTURI           = "/rest"
+	DefaultMetricsURI        = "/metrics"
 )
 
 func NewConfig(configPath string) (*viper.Viper, error) {
@@ -34,7 +34,7 @@ func NewConfig(configPath string) (*viper.Viper, error) {
 	masterConfig.SetDefault("log_output", DefaultLogOutput)
 	masterConfig.SetDefault("log_level", DefaultLogLevel)
 	masterConfig.SetDefault("grpc_listen_address", DefaultGRPCListenAddress)
-	masterConfig.SetDefault("supervise_config_path", DefaultSuperviseConfigPath)
+	masterConfig.SetDefault("supervise_config_path", DefaultClusterMetaPath)
 	masterConfig.SetDefault("http_listen_address", DefaultHTTPListenAddress)
 	masterConfig.SetDefault("rest_uri", DefaultRESTURI)
 	masterConfig.SetDefault("metrics_uri", DefaultMetricsURI)

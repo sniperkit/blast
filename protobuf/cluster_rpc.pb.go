@@ -21,6 +21,7 @@ It has these top-level messages:
 	BulkResponse
 	SearchRequest
 	SearchResponse
+	NodeInfo
 	PutNodeRequest
 	GetNodeRequest
 	GetNodeResponse

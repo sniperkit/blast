@@ -1,7 +1,6 @@
 package file
 
 import (
-	"fmt"
 	"io/ioutil"
 	"testing"
 )
@@ -19,19 +18,20 @@ func TestStore(t *testing.T) {
 		t.Fatalf("failed to create file store. %v", err)
 	}
 
-	err = store.PutNode("test_cluster", "test_node")
+	err = store.Put("test_key", []byte("test_value"))
 	if err != nil {
 		t.Fatalf("failed to put node to store. %v", err)
 	}
 
-	data, err := store.GetNode("test_cluster", "test_node")
+	value, err := store.Get("test_key")
 	if err != nil {
 		t.Fatalf("failed to get node from store. %v", err)
 	}
+	if string(value) != "test_value" {
+		t.Fatalf("got %v\nwant %v", string(value), "test_value")
+	}
 
-	fmt.Println(data)
-
-	err = store.DeleteNode("test_cluster", "test_node")
+	err = store.Delete("test_key")
 	if err != nil {
 		t.Fatalf("failed to delete node from store. %v", err)
 	}

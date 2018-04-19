@@ -36,7 +36,7 @@ type StartMasterCmdOpts struct {
 
 	grpcListenAddress string
 
-	superviseConfigPath string
+	clusterMetaPath string
 
 	httpListenAddress string
 
@@ -53,7 +53,7 @@ var startMasterCmdOpts = StartMasterCmdOpts{
 
 	grpcListenAddress: config.DefaultGRPCListenAddress,
 
-	superviseConfigPath: config.DefaultSuperviseConfigPath,
+	clusterMetaPath: config.DefaultClusterMetaPath,
 
 	httpListenAddress: config.DefaultHTTPListenAddress,
 
@@ -75,7 +75,7 @@ var startMasterCmd = &cobra.Command{
 		masterConfig.BindPFlag("log_output", cmd.Flags().Lookup("log-output"))
 		masterConfig.BindPFlag("log_level", cmd.Flags().Lookup("log-level"))
 		masterConfig.BindPFlag("grpc_listen_address", cmd.Flags().Lookup("grpc-listen-address"))
-		masterConfig.BindPFlag("supervise_config_path", cmd.Flags().Lookup("supervise-config-path"))
+		masterConfig.BindPFlag("cluster_meta_path", cmd.Flags().Lookup("cluster-meta-path"))
 		masterConfig.BindPFlag("http_listen_address", cmd.Flags().Lookup("http-listen-address"))
 		masterConfig.BindPFlag("rest_uri", cmd.Flags().Lookup("rest-uri"))
 		masterConfig.BindPFlag("metrics_uri", cmd.Flags().Lookup("metrics-uri"))
@@ -123,7 +123,7 @@ var startMasterCmd = &cobra.Command{
 			})
 		}
 
-		switch startMasterCmdOpts.logLevel {
+		switch masterConfig.GetString("log_level") {
 		case "debug":
 			log.SetLevel(log.DebugLevel)
 		case "info":
@@ -140,7 +140,7 @@ var startMasterCmd = &cobra.Command{
 			log.SetLevel(log.InfoLevel)
 		}
 
-		if startMasterCmdOpts.logOutput == "" {
+		if masterConfig.GetString("log_output") == "" {
 			log.SetOutput(os.Stdout)
 		} else {
 			var err error
@@ -153,32 +153,32 @@ var startMasterCmd = &cobra.Command{
 			defer logOutput.Close()
 		}
 
-		supervisorConfig := cluster.NewClusterMeta()
-		if startMasterCmdOpts.superviseConfigPath != "" {
-			file, err := os.Open(startMasterCmdOpts.superviseConfigPath)
+		clusterMeta := cluster.NewClusterMeta()
+		if masterConfig.GetString("cluster_meta_path") != "" {
+			file, err := os.Open(masterConfig.GetString("cluster_meta_path"))
 			if err != nil {
 				log.WithFields(log.Fields{
 					"error": err.Error(),
-				}).Fatal(fmt.Sprintf("failed to open supervisor config file."))
+				}).Fatal(fmt.Sprintf("failed to open cluster meta file."))
 				return err
 			}
 			defer file.Close()
 
-			supervisorConfig, err = cluster.LoadClusterMeta(file)
+			clusterMeta, err = cluster.LoadClusterMeta(file)
 			if err != nil {
 				log.WithFields(log.Fields{
 					"error": err.Error(),
-				}).Fatal(fmt.Sprintf("failed to load supervisor config file."))
+				}).Fatal(fmt.Sprintf("failed to load cluster meta file."))
 				return err
 			}
 
-			log.Info(fmt.Sprintf("supervisor config file was loaded."))
+			log.Info(fmt.Sprintf("cluster meta file was loaded."))
 		}
 
 		// create gRPC Server
 		grpcServer, err := server.NewGRPCServer(
-			startMasterCmdOpts.grpcListenAddress,
-			supervisorConfig,
+			masterConfig.GetString("grpc_listen_address"),
+			clusterMeta,
 		)
 		if err != nil {
 			log.WithFields(log.Fields{
@@ -235,7 +235,7 @@ func init() {
 	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.logOutput, "log-output", config.DefaultLogOutput, "log output")
 	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.logLevel, "log-level", config.DefaultLogLevel, "log level")
 	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.grpcListenAddress, "grpc-listen-address", config.DefaultGRPCListenAddress, "address to listen for the gRPC")
-	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.superviseConfigPath, "supervise-config-path", config.DefaultSuperviseConfigPath, "supervise config path")
+	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.clusterMetaPath, "cluster-meta-path", config.DefaultClusterMetaPath, "cluster meta path")
 	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.httpListenAddress, "http-listen-address", config.DefaultHTTPListenAddress, "address to listen for the HTTP")
 	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.restURI, "rest-uri", config.DefaultRESTURI, "base URI for REST endpoint")
 	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.metricsURI, "metrics-uri", config.DefaultMetricsURI, "base URI for metrics endpoint")

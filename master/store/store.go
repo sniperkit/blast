@@ -15,8 +15,13 @@
 package store
 
 type Store interface {
-	PutNode(string, string) error
-	GetNode(string, string) (map[string]interface{}, error)
-	DeleteNode(string, string) error
+	Put(string, []byte) error
+	Get(string) ([]byte, error)
+	Delete(string) error
+
+	//PutNode(string, string) error
+	//GetNode(string, string) (map[string]interface{}, error)
+	//DeleteNode(string, string) error
+
 	Close() error
 }

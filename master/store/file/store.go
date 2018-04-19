@@ -15,16 +15,12 @@
 package file
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
-	"github.com/blevesearch/bleve/mapping"
 	"github.com/mosuka/blast/master/registry"
 	"github.com/mosuka/blast/master/store"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"time"
 )
 
 const (
@@ -53,7 +49,7 @@ func NewStore(config map[string]interface{}) (store.Store, error) {
 	return &store, nil
 }
 
-func (s *Store) Put(key string, value map[string]interface{}) error {
+func (s *Store) Put(key string, value []byte) error {
 	dir := filepath.Dir(key)
 
 	// check directory
@@ -74,12 +70,7 @@ func (s *Store) Put(key string, value map[string]interface{}) error {
 		}
 		defer file.Close()
 
-		jsonBytes, err := json.MarshalIndent(value, "", "  ")
-		if err != nil {
-			return err
-		}
-
-		_, err = file.Write(jsonBytes)
+		_, err = file.Write(value)
 		if err != nil {
 			return err
 		}
@@ -90,7 +81,7 @@ func (s *Store) Put(key string, value map[string]interface{}) error {
 	return nil
 }
 
-func (s *Store) Get(key string) (map[string]interface{}, error) {
+func (s *Store) Get(key string) ([]byte, error) {
 	// check file
 	_, err := os.Stat(key)
 	if os.IsNotExist(err) {
@@ -103,15 +94,12 @@ func (s *Store) Get(key string) (map[string]interface{}, error) {
 	}
 	defer file.Close()
 
-	jsonBytes, err := ioutil.ReadAll(file)
+	value, err := ioutil.ReadAll(file)
 	if err != nil {
 		return nil, err
 	}
 
-	var data map[string]interface{}
-	err = json.Unmarshal(jsonBytes, &data)
-
-	return data, nil
+	return value, nil
 }
 
 func (s *Store) Delete(key string) error {
@@ -129,55 +117,55 @@ func (s *Store) Delete(key string) error {
 	return nil
 }
 
-func (s *Store) PutNode(cluster string, node string) error {
-	key := fmt.Sprintf("%s/clusters/%s/nodes/%s.json", s.BasePath, cluster, node)
+//func (s *Store) PutNode(cluster string, node string) error {
+//	key := fmt.Sprintf("%s/clusters/%s/nodes/%s.json", s.BasePath, cluster, node)
+//
+//	value := make(map[string]interface{})
+//
+//	value["timestamp"] = time.Now().Format(time.RFC3339Nano)
+//
+//	return s.Put(key, value)
+//}
 
-	value := make(map[string]interface{})
+//func (s *Store) GetNode(cluster string, node string) (map[string]interface{}, error) {
+//	key := fmt.Sprintf("%s/clusters/%s/nodes/%s.json", s.BasePath, cluster, node)
+//
+//	value, err := s.Get(key)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return value, nil
+//}
 
-	value["timestamp"] = time.Now().Format(time.RFC3339Nano)
+//func (s *Store) DeleteNode(cluster string, node string) error {
+//	key := fmt.Sprintf("%s/clusters/%s/nodes/%s.json", s.BasePath, cluster, node)
+//
+//	err := s.Delete(key)
+//	if err != nil {
+//		return err
+//	}
+//
+//	return nil
+//}
 
-	return s.Put(key, value)
-}
+//func (s *Store) PutIndexMapping(cluster string, indexMapping string) error {
+//	key := fmt.Sprintf("%s/clusters/%s/index_mapping.json", s.BasePath, cluster)
+//
+//	s.Put(key, nil)
+//
+//	return nil
+//}
 
-func (s *Store) GetNode(cluster string, node string) (map[string]interface{}, error) {
-	key := fmt.Sprintf("%s/clusters/%s/nodes/%s.json", s.BasePath, cluster, node)
+//func (s *Store) GetIndexMapping(cluter string) (*mapping.IndexMappingImpl, error) {
+//
+//	return nil, nil
+//}
 
-	value, err := s.Get(key)
-	if err != nil {
-		return nil, err
-	}
-
-	return value, nil
-}
-
-func (s *Store) DeleteNode(cluster string, node string) error {
-	key := fmt.Sprintf("%s/clusters/%s/nodes/%s.json", s.BasePath, cluster, node)
-
-	err := s.Delete(key)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *Store) PutIndexMapping(cluster string, indexMapping string) error {
-	key := fmt.Sprintf("%s/clusters/%s/index_mapping.json", s.BasePath, cluster)
-
-	s.Put(key, nil)
-
-	return nil
-}
-
-func (s *Store) GetIndexMapping(cluter string) (*mapping.IndexMappingImpl, error) {
-
-	return nil, nil
-}
-
-func (s *Store) DeleteIndexMapping(cluster string) error {
-
-	return nil
-}
+//func (s *Store) DeleteIndexMapping(cluster string) error {
+//
+//	return nil
+//}
 
 func (s *Store) Close() error {
 	return nil

@@ -15,6 +15,9 @@
 package service
 
 import (
+	"bytes"
+	"fmt"
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/mosuka/blast/cluster"
 	_ "github.com/mosuka/blast/master/builtin"
@@ -22,6 +25,7 @@ import (
 	"github.com/mosuka/blast/master/store"
 	"github.com/mosuka/blast/protobuf"
 	"golang.org/x/net/context"
+	"time"
 )
 
 type ClusterService struct {
@@ -46,7 +50,25 @@ func NewClusterService(clusterMeta *cluster.ClusterMeta) (*ClusterService, error
 }
 
 func (s *ClusterService) PutNode(ctx context.Context, req *protobuf.PutNodeRequest) (*empty.Empty, error) {
-	err := s.store.PutNode(req.Cluster, req.Node)
+	key := fmt.Sprintf("%s/clusters/%s/nodes/%s.json", s.config["base_path"].(string), req.Cluster, req.Node)
+
+	if req.NodeInfo == nil {
+		req.NodeInfo = &protobuf.NodeInfo{}
+		req.NodeInfo.Cluster = req.Cluster
+		req.NodeInfo.Node = req.Node
+		req.NodeInfo.Status = ""
+		req.NodeInfo.Role = ""
+		req.NodeInfo.Timestamp = time.Now().Format(time.RFC3339Nano)
+	}
+
+	marshaler := jsonpb.Marshaler{
+		EmitDefaults: true,
+		Indent:       "  ",
+		OrigName:     false,
+	}
+	value, err := marshaler.MarshalToString(req.NodeInfo)
+
+	err = s.store.Put(key, []byte(value))
 	if err != nil {
 		return nil, err
 	}
@@ -55,23 +77,33 @@ func (s *ClusterService) PutNode(ctx context.Context, req *protobuf.PutNodeReque
 }
 
 func (s *ClusterService) GetNode(ctx context.Context, req *protobuf.GetNodeRequest) (*protobuf.GetNodeResponse, error) {
-	value, err := s.store.GetNode(req.Cluster, req.Node)
+	key := fmt.Sprintf("%s/clusters/%s/nodes/%s.json", s.config["base_path"].(string), req.Cluster, req.Node)
+
+	value, err := s.store.Get(key)
 	if err != nil {
 		return nil, err
 	}
 
-	valueAny, err := protobuf.MarshalAny(value)
+	unmarshaler := jsonpb.Unmarshaler{
+		AllowUnknownFields: true,
+	}
+
+	nodeInfo := &protobuf.NodeInfo{}
+	err = unmarshaler.Unmarshal(bytes.NewReader(value), nodeInfo)
 	if err != nil {
+		fmt.Println(err.Error())
 		return nil, err
 	}
 
 	return &protobuf.GetNodeResponse{
-		Value: &valueAny,
+		NodeInfo: nodeInfo,
 	}, nil
 }
 
 func (s *ClusterService) DeleteNode(ctx context.Context, req *protobuf.DeleteNodeRequest) (*empty.Empty, error) {
-	err := s.store.DeleteNode(req.Cluster, req.Node)
+	key := fmt.Sprintf("%s/clusters/%s/nodes/%s.json", s.config["base_path"].(string), req.Cluster, req.Node)
+
+	err := s.store.Delete(key)
 	if err != nil {
 		return nil, err
 	}

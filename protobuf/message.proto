@@ -78,9 +78,18 @@ message SearchResponse {
     google.protobuf.Any search_result = 1;
 }
 
+message NodeInfo {
+    string cluster = 1;
+    string node = 2;
+    string role = 3;
+    string status = 4;
+    string timestamp = 5;
+}
+
 message PutNodeRequest {
     string cluster = 1;
     string node = 2;
+    NodeInfo node_info = 3;
 }
 
 message GetNodeRequest {
@@ -89,7 +98,7 @@ message GetNodeRequest {
 }
 
 message GetNodeResponse {
-    google.protobuf.Any value = 1;
+    NodeInfo node_info = 1;
 }
 
 message DeleteNodeRequest {

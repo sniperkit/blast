@@ -16,7 +16,9 @@ package grpc
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/blevesearch/bleve/mapping"
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/mosuka/blast/protobuf"
 	"google.golang.org/grpc"
 )
@@ -86,14 +88,20 @@ func (c *GRPCClient) GetNode(ctx context.Context, cluster string, node string, c
 		return nil, err
 	}
 
-	valueTmp, err := protobuf.UnmarshalAny(protoResp.Value)
+	marshaler := jsonpb.Marshaler{
+		EmitDefaults: true,
+		Indent:       "  ",
+		OrigName:     false,
+	}
+	jsonStr, err := marshaler.MarshalToString(protoResp.NodeInfo)
 	if err != nil {
 		return nil, err
 	}
 
 	var value map[string]interface{}
-	if valueTmp != nil {
-		value = *valueTmp.(*map[string]interface{})
+	err = json.Unmarshal([]byte(jsonStr), &value)
+	if err != nil {
+		return nil, err
 	}
 
 	return &value, nil
