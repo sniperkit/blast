@@ -19,6 +19,7 @@ import (
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/mapping"
 	google_protobuf "github.com/golang/protobuf/ptypes/any"
+	"github.com/mosuka/blast/index"
 	"reflect"
 )
 
@@ -32,6 +33,7 @@ func init() {
 	typeRegistry["interface {}"] = reflect.TypeOf((map[string]interface{})(nil))
 	typeRegistry["bleve.SearchRequest"] = reflect.TypeOf(bleve.SearchRequest{})
 	typeRegistry["bleve.SearchResult"] = reflect.TypeOf(bleve.SearchResult{})
+	typeRegistry["index.IndexMeta"] = reflect.TypeOf(index.IndexMeta{})
 }
 
 func MarshalAny(instance interface{}) (google_protobuf.Any, error) {

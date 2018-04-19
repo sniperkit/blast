@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"github.com/blevesearch/bleve/mapping"
 	"github.com/golang/protobuf/jsonpb"
+	"github.com/mosuka/blast/index"
 	"github.com/mosuka/blast/protobuf"
 	"google.golang.org/grpc"
 )
@@ -121,8 +122,8 @@ func (c *GRPCClient) DeleteNode(ctx context.Context, cluster string, node string
 	return nil
 }
 
-func (c *GRPCClient) PutIndexMapping(ctx context.Context, cluster string, node *mapping.IndexMappingImpl, callOpts ...grpc.CallOption) error {
-	indexMappingAny, err := protobuf.MarshalAny(node)
+func (c *GRPCClient) PutIndexMapping(ctx context.Context, cluster string, indexMapping *mapping.IndexMappingImpl, callOpts ...grpc.CallOption) error {
+	indexMappingAny, err := protobuf.MarshalAny(indexMapping)
 
 	protoReq := &protobuf.PutIndexMappingRequest{
 		Cluster:      cluster,
@@ -161,6 +162,22 @@ func (c *GRPCClient) DeleteIndexMapping(ctx context.Context, cluster string, cal
 	}
 
 	_, err := c.clusterClient.DeleteIndexMapping(ctx, protoReq, callOpts...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *GRPCClient) PutIndexMeta(ctx context.Context, cluster string, indexMeta *index.IndexMeta, callOpts ...grpc.CallOption) error {
+	indexMetaAny, err := protobuf.MarshalAny(indexMeta)
+
+	protoReq := &protobuf.PutIndexMetaRequest{
+		Cluster:   cluster,
+		IndexMeta: &indexMetaAny,
+	}
+
+	_, err = c.clusterClient.PutIndexMeta(ctx, protoReq, callOpts...)
 	if err != nil {
 		return err
 	}

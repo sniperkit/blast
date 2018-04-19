@@ -22,6 +22,7 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/mosuka/blast/cluster"
+	"github.com/mosuka/blast/index"
 	_ "github.com/mosuka/blast/master/builtin"
 	"github.com/mosuka/blast/master/registry"
 	"github.com/mosuka/blast/master/store"
@@ -180,6 +181,26 @@ func (s *ClusterService) DeleteIndexMapping(ctx context.Context, req *protobuf.D
 }
 
 func (s *ClusterService) PutIndexMeta(ctx context.Context, req *protobuf.PutIndexMetaRequest) (*empty.Empty, error) {
+	key := fmt.Sprintf("%s/clusters/%s/index_meta.json", s.config["base_path"].(string), req.Cluster)
+
+	// Any -> IndexMeta
+	v, err := protobuf.UnmarshalAny(req.IndexMeta)
+	if err != nil {
+		return nil, err
+	}
+	indexMeta := v.(*index.IndexMeta)
+
+	// IndexMeta -> JSON string ([]byte)
+	value, err := json.MarshalIndent(indexMeta, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	// put JSON string ([]byte)
+	err = s.store.Put(key, []byte(value))
+	if err != nil {
+		return nil, err
+	}
 
 	return &empty.Empty{}, nil
 }
