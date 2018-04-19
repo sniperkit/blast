@@ -202,3 +202,16 @@ func (c *GRPCClient) GetIndexMeta(ctx context.Context, cluster string, callOpts 
 
 	return indexMeta.(*index.IndexMeta), nil
 }
+
+func (c *GRPCClient) DeleteIndexMeta(ctx context.Context, cluster string, callOpts ...grpc.CallOption) error {
+	protoReq := &protobuf.DeleteIndexMetaRequest{
+		Cluster: cluster,
+	}
+
+	_, err := c.clusterClient.DeleteIndexMeta(ctx, protoReq, callOpts...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -233,6 +233,12 @@ func (s *ClusterService) GetIndexMeta(ctx context.Context, req *protobuf.GetInde
 }
 
 func (s *ClusterService) DeleteIndexMeta(ctx context.Context, req *protobuf.DeleteIndexMetaRequest) (*empty.Empty, error) {
+	key := fmt.Sprintf("%s/clusters/%s/index_meta.json", s.config["base_path"].(string), req.Cluster)
+
+	err := s.store.Delete(key)
+	if err != nil {
+		return nil, err
+	}
 
 	return &empty.Empty{}, nil
 }
