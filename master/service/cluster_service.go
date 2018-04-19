@@ -16,7 +16,9 @@ package service
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"github.com/blevesearch/bleve/mapping"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/mosuka/blast/cluster"
@@ -112,6 +114,26 @@ func (s *ClusterService) DeleteNode(ctx context.Context, req *protobuf.DeleteNod
 }
 
 func (s *ClusterService) PutIndexMapping(ctx context.Context, req *protobuf.PutIndexMappingRequest) (*empty.Empty, error) {
+	key := fmt.Sprintf("%s/clusters/%s/index_mapping.json", s.config["base_path"].(string), req.Cluster)
+
+	// Any -> mapping.IndexMappingImpl
+	v, err := protobuf.UnmarshalAny(req.IndexMapping)
+	if err != nil {
+		return nil, err
+	}
+	indexMapping := v.(*mapping.IndexMappingImpl)
+
+	// IndexMappingImple -> JSON String
+	value, err := json.MarshalIndent(indexMapping, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	// Put Index Mapping in JSON Format to Store.
+	err = s.store.Put(key, []byte(value))
+	if err != nil {
+		return nil, err
+	}
 
 	return &empty.Empty{}, nil
 }
