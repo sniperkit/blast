@@ -18,8 +18,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/mosuka/blast/config"
 	blastgrpc "github.com/mosuka/blast/node/client/grpc"
-	"github.com/mosuka/blast/node/config"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"time"
@@ -33,7 +33,7 @@ type GetDocumentCmdOpts struct {
 }
 
 var getDocumentCmdOpts = GetDocumentCmdOpts{
-	grpcServerAddress: config.DefaultGRPCListenAddress,
+	grpcServerAddress: config.DefaultNodeGRPCListenAddress,
 	dialTimeout:       5000,
 	requestTimeout:    5000,
 	id:                "",
@@ -93,7 +93,7 @@ var getDocumentCmd = &cobra.Command{
 func init() {
 	getDocumentCmd.Flags().SortFlags = false
 
-	getDocumentCmd.Flags().StringVar(&getDocumentCmdOpts.grpcServerAddress, "grpc-server-address", getDocumentCmdOpts.grpcServerAddress, "Blast server to connect to using gRPC")
+	getDocumentCmd.Flags().StringVar(&getDocumentCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultNodeGRPCListenAddress, "Blast server to connect to using gRPC")
 	getDocumentCmd.Flags().IntVar(&getDocumentCmdOpts.dialTimeout, "dial-timeout", getDocumentCmdOpts.dialTimeout, "dial timeout")
 	getDocumentCmd.Flags().IntVar(&getDocumentCmdOpts.requestTimeout, "request-timeout", getDocumentCmdOpts.requestTimeout, "request timeout")
 	getDocumentCmd.Flags().StringVar(&getDocumentCmdOpts.id, "id", getDocumentCmdOpts.id, "document id")

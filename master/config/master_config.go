@@ -14,30 +14,21 @@
 
 package config
 
-import "github.com/spf13/viper"
-
-const (
-	DefaultConfigPath        = ""
-	DefaultLogFormat         = "text"
-	DefaultLogOutput         = ""
-	DefaultLogLevel          = "info"
-	DefaultGRPCListenAddress = "0.0.0.0:5000"
-	DefaultClusterMetaPath   = ""
-	DefaultHTTPListenAddress = "0.0.0.0:8000"
-	DefaultRESTURI           = "/rest"
-	DefaultMetricsURI        = "/metrics"
+import (
+	"github.com/mosuka/blast/config"
+	"github.com/spf13/viper"
 )
 
-func NewConfig(configPath string) (*viper.Viper, error) {
+func NewMasterConfig(configPath string) (*viper.Viper, error) {
 	masterConfig := viper.New()
-	masterConfig.SetDefault("log_format", DefaultLogFormat)
-	masterConfig.SetDefault("log_output", DefaultLogOutput)
-	masterConfig.SetDefault("log_level", DefaultLogLevel)
-	masterConfig.SetDefault("grpc_listen_address", DefaultGRPCListenAddress)
-	masterConfig.SetDefault("supervise_config_path", DefaultClusterMetaPath)
-	masterConfig.SetDefault("http_listen_address", DefaultHTTPListenAddress)
-	masterConfig.SetDefault("rest_uri", DefaultRESTURI)
-	masterConfig.SetDefault("metrics_uri", DefaultMetricsURI)
+	masterConfig.SetDefault("log_format", config.DefaultLogFormat)
+	masterConfig.SetDefault("log_output", config.DefaultLogOutput)
+	masterConfig.SetDefault("log_level", config.DefaultLogLevel)
+	masterConfig.SetDefault("grpc_listen_address", config.DefaultMasterGRPCListenAddress)
+	masterConfig.SetDefault("http_listen_address", config.DefaultMasterHTTPListenAddress)
+	masterConfig.SetDefault("cluster_meta_path", config.DefaultClusterMetaPath)
+	masterConfig.SetDefault("rest_uri", config.DefaultRESTURI)
+	masterConfig.SetDefault("metrics_uri", config.DefaultMetricsURI)
 
 	masterConfig.SetEnvPrefix("blast_master")
 	masterConfig.AutomaticEnv()

@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"github.com/blevesearch/bleve"
 	"github.com/buger/jsonparser"
+	"github.com/mosuka/blast/config"
 	blastgrpc "github.com/mosuka/blast/node/client/grpc"
-	"github.com/mosuka/blast/node/config"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"time"
@@ -47,7 +47,7 @@ type SearchCommandOptions struct {
 }
 
 var searchCmdOpts = SearchCommandOptions{
-	grpcServerAddress: config.DefaultGRPCListenAddress,
+	grpcServerAddress: config.DefaultNodeGRPCListenAddress,
 	dialTimeout:       15000,
 	requestTimeout:    15000,
 	request:           "",

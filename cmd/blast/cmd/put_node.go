@@ -18,8 +18,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/mosuka/blast/config"
 	blastgrpc "github.com/mosuka/blast/master/client/grpc"
-	"github.com/mosuka/blast/master/config"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"time"
@@ -34,7 +34,7 @@ type PutNodeCmdOpts struct {
 }
 
 var putNodeCmdOpts = PutNodeCmdOpts{
-	grpcServerAddress: config.DefaultGRPCListenAddress,
+	grpcServerAddress: config.DefaultMasterGRPCListenAddress,
 	dialTimeout:       5000,
 	requestTimeout:    5000,
 	cluster:           "",
@@ -103,7 +103,7 @@ var putNodeCmd = &cobra.Command{
 func init() {
 	putNodeCmd.Flags().SortFlags = false
 
-	putNodeCmd.Flags().StringVar(&putNodeCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultGRPCListenAddress, "Blast server to connect to using gRPC")
+	putNodeCmd.Flags().StringVar(&putNodeCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultMasterGRPCListenAddress, "Blast server to connect to using gRPC")
 	putNodeCmd.Flags().IntVar(&putNodeCmdOpts.dialTimeout, "dial-timeout", putNodeCmdOpts.dialTimeout, "dial timeout")
 	putNodeCmd.Flags().IntVar(&putNodeCmdOpts.requestTimeout, "request-timeout", putNodeCmdOpts.requestTimeout, "request timeout")
 	putNodeCmd.Flags().StringVar(&putNodeCmdOpts.cluster, "cluster", putNodeCmdOpts.cluster, "cluster")

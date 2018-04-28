@@ -18,9 +18,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/mosuka/blast/config"
 	"github.com/mosuka/blast/index"
 	blastgrpc "github.com/mosuka/blast/master/client/grpc"
-	"github.com/mosuka/blast/master/config"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"time"
@@ -34,7 +34,7 @@ type GetIndexMetaCmdOpts struct {
 }
 
 var getIndexMetaCmdOpts = GetIndexMetaCmdOpts{
-	grpcServerAddress: config.DefaultGRPCListenAddress,
+	grpcServerAddress: config.DefaultMasterGRPCListenAddress,
 	dialTimeout:       5000,
 	requestTimeout:    5000,
 	cluster:           "",
@@ -96,7 +96,7 @@ var getIndexMetaCmd = &cobra.Command{
 func init() {
 	getIndexMetaCmd.Flags().SortFlags = false
 
-	getIndexMetaCmd.Flags().StringVar(&getIndexMetaCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultGRPCListenAddress, "Blast server to connect to using gRPC")
+	getIndexMetaCmd.Flags().StringVar(&getIndexMetaCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultMasterGRPCListenAddress, "Blast server to connect to using gRPC")
 	getIndexMetaCmd.Flags().IntVar(&getIndexMetaCmdOpts.dialTimeout, "dial-timeout", getIndexMetaCmdOpts.dialTimeout, "dial timeout")
 	getIndexMetaCmd.Flags().IntVar(&getIndexMetaCmdOpts.requestTimeout, "request-timeout", getIndexMetaCmdOpts.requestTimeout, "request timeout")
 	getIndexMetaCmd.Flags().StringVar(&getIndexMetaCmdOpts.cluster, "cluster", getIndexMetaCmdOpts.cluster, "cluster")

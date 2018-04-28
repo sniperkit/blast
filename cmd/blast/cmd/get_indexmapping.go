@@ -19,10 +19,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/blevesearch/bleve/mapping"
+	"github.com/mosuka/blast/config"
 	mastergrpc "github.com/mosuka/blast/master/client/grpc"
-	masterconfig "github.com/mosuka/blast/master/config"
 	nodegrpc "github.com/mosuka/blast/node/client/grpc"
-	nodeconfig "github.com/mosuka/blast/node/config"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"time"
@@ -37,8 +36,8 @@ type GetIndexMappingCmdOpts struct {
 }
 
 var getIndexMappingCmdOpts = GetIndexMappingCmdOpts{
-	masterAddress:  masterconfig.DefaultGRPCListenAddress,
-	nodeAddress:    nodeconfig.DefaultGRPCListenAddress,
+	masterAddress:  config.DefaultMasterGRPCListenAddress,
+	nodeAddress:    config.DefaultNodeGRPCListenAddress,
 	dialTimeout:    5000,
 	requestTimeout: 5000,
 	cluster:        "",
@@ -115,11 +114,11 @@ var getIndexMappingCmd = &cobra.Command{
 func init() {
 	getIndexMappingCmd.Flags().SortFlags = false
 
-	getIndexMappingCmd.Flags().StringVar(&getIndexMappingCmdOpts.masterAddress, "master-address", masterconfig.DefaultGRPCListenAddress, "Blast master to connect to using gRPC")
-	getIndexMappingCmd.Flags().StringVar(&getIndexMappingCmdOpts.nodeAddress, "node-address", nodeconfig.DefaultGRPCListenAddress, "Blast node to connect to using gRPC")
+	getIndexMappingCmd.Flags().StringVar(&getIndexMappingCmdOpts.masterAddress, "master-address", config.DefaultMasterGRPCListenAddress, "Blast master to connect to using gRPC")
+	getIndexMappingCmd.Flags().StringVar(&getIndexMappingCmdOpts.nodeAddress, "node-address", config.DefaultNodeGRPCListenAddress, "Blast node to connect to using gRPC")
 	getIndexMappingCmd.Flags().IntVar(&getIndexMappingCmdOpts.dialTimeout, "dial-timeout", getIndexMappingCmdOpts.dialTimeout, "dial timeout")
 	getIndexMappingCmd.Flags().IntVar(&getIndexMappingCmdOpts.requestTimeout, "request-timeout", getIndexMappingCmdOpts.requestTimeout, "request timeout")
-	getIndexMappingCmd.Flags().StringVar(&getIndexMappingCmdOpts.cluster, "cluster", getIndexMappingCmdOpts.cluster, "cluster")
+	getIndexMappingCmd.Flags().StringVar(&getIndexMappingCmdOpts.cluster, "cluster", getIndexMappingCmdOpts.cluster, "cluster name. only used in connect to Blast master")
 
 	getCmd.AddCommand(getIndexMappingCmd)
 }

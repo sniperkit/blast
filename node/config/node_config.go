@@ -15,35 +15,22 @@
 package config
 
 import (
+	"github.com/mosuka/blast/config"
 	"github.com/spf13/viper"
 )
 
-const (
-	DefaultConfigPath        = ""
-	DefaultLogFormat         = "text"
-	DefaultLogOutput         = ""
-	DefaultLogLevel          = "info"
-	DefaultGRPCListenAddress = "0.0.0.0:5000"
-	DefaultIndexPath         = "./data/index"
-	DefaultIndexMappingPath  = ""
-	DefaultIndexConfigPath   = ""
-	DefaultHTTPListenAddress = "0.0.0.0:8000"
-	DefaultRESTURI           = "/rest"
-	DefaultMetricsURI        = "/metrics"
-)
-
-func NewConfig(configPath string) (*viper.Viper, error) {
+func NewNodeConfig(configPath string) (*viper.Viper, error) {
 	nodeConfig := viper.New()
-	nodeConfig.SetDefault("log_format", DefaultLogFormat)
-	nodeConfig.SetDefault("log_output", DefaultLogOutput)
-	nodeConfig.SetDefault("log_level", DefaultLogLevel)
-	nodeConfig.SetDefault("grpc_listen_address", DefaultGRPCListenAddress)
-	nodeConfig.SetDefault("index_path", DefaultIndexPath)
-	nodeConfig.SetDefault("index_mapping_path", DefaultIndexMappingPath)
-	nodeConfig.SetDefault("index_config_path", DefaultIndexConfigPath)
-	nodeConfig.SetDefault("http_listen_address", DefaultHTTPListenAddress)
-	nodeConfig.SetDefault("rest_uri", DefaultRESTURI)
-	nodeConfig.SetDefault("metrics_uri", DefaultMetricsURI)
+	nodeConfig.SetDefault("log_format", config.DefaultLogFormat)
+	nodeConfig.SetDefault("log_output", config.DefaultLogOutput)
+	nodeConfig.SetDefault("log_level", config.DefaultLogLevel)
+	nodeConfig.SetDefault("grpc_listen_address", config.DefaultNodeGRPCListenAddress)
+	nodeConfig.SetDefault("index_path", config.DefaultIndexPath)
+	nodeConfig.SetDefault("index_mapping_path", config.DefaultIndexMappingPath)
+	nodeConfig.SetDefault("index_config_path", config.DefaultIndexConfigPath)
+	nodeConfig.SetDefault("http_listen_address", config.DefaultNodeHTTPListenAddress)
+	nodeConfig.SetDefault("rest_uri", config.DefaultRESTURI)
+	nodeConfig.SetDefault("metrics_uri", config.DefaultMetricsURI)
 
 	nodeConfig.SetEnvPrefix("blast_node")
 	nodeConfig.AutomaticEnv()

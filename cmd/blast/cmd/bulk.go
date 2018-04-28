@@ -19,8 +19,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/buger/jsonparser"
+	"github.com/mosuka/blast/config"
 	blastgrpc "github.com/mosuka/blast/node/client/grpc"
-	"github.com/mosuka/blast/node/config"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"time"
@@ -36,7 +36,7 @@ type BulkCmdOpts struct {
 }
 
 var bulkCmdOpts = BulkCmdOpts{
-	grpcServerAddress: config.DefaultGRPCListenAddress,
+	grpcServerAddress: config.DefaultNodeGRPCListenAddress,
 	dialTimeout:       60000,
 	requestTimeout:    60000,
 	batchSize:         1000,
@@ -122,7 +122,7 @@ var bulkCmd = &cobra.Command{
 func init() {
 	bulkCmd.Flags().SortFlags = false
 
-	bulkCmd.Flags().StringVar(&bulkCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultGRPCListenAddress, "Blast server to connect to using gRPC")
+	bulkCmd.Flags().StringVar(&bulkCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultNodeGRPCListenAddress, "Blast server to connect to using gRPC")
 	bulkCmd.Flags().IntVar(&bulkCmdOpts.dialTimeout, "dial-timeout", bulkCmdOpts.dialTimeout, "dial timeout")
 	bulkCmd.Flags().IntVar(&bulkCmdOpts.requestTimeout, "request-timeout", bulkCmdOpts.requestTimeout, "request timeout")
 	bulkCmd.Flags().Int32Var(&bulkCmdOpts.batchSize, "batch-size", bulkCmdOpts.batchSize, "batch size of bulk request")

@@ -18,8 +18,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/mosuka/blast/config"
 	blastgrpc "github.com/mosuka/blast/master/client/grpc"
-	"github.com/mosuka/blast/master/config"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"time"
@@ -33,7 +33,7 @@ type DeleteIndexMetaCmdOpts struct {
 }
 
 var deleteIndexMetaCmdOpts = DeleteIndexMetaCmdOpts{
-	grpcServerAddress: config.DefaultGRPCListenAddress,
+	grpcServerAddress: config.DefaultMasterGRPCListenAddress,
 	dialTimeout:       5000,
 	requestTimeout:    5000,
 	cluster:           "",
@@ -93,7 +93,7 @@ var deleteIndexMetaCmd = &cobra.Command{
 func init() {
 	deleteIndexMetaCmd.Flags().SortFlags = false
 
-	deleteIndexMetaCmd.Flags().StringVar(&deleteIndexMetaCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultGRPCListenAddress, "Blast server to connect to using gRPC")
+	deleteIndexMetaCmd.Flags().StringVar(&deleteIndexMetaCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultMasterGRPCListenAddress, "Blast server to connect to using gRPC")
 	deleteIndexMetaCmd.Flags().IntVar(&deleteIndexMetaCmdOpts.dialTimeout, "dial-timeout", deleteIndexMetaCmdOpts.dialTimeout, "dial timeout")
 	deleteIndexMetaCmd.Flags().IntVar(&deleteIndexMetaCmdOpts.requestTimeout, "request-timeout", deleteIndexMetaCmdOpts.requestTimeout, "request timeout")
 	deleteIndexMetaCmd.Flags().StringVar(&deleteIndexMetaCmdOpts.cluster, "cluster", deleteIndexMetaCmdOpts.cluster, "cluster")

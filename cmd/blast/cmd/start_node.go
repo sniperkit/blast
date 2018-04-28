@@ -18,8 +18,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/blevesearch/bleve/mapping"
+	"github.com/mosuka/blast/config"
 	"github.com/mosuka/blast/index"
-	"github.com/mosuka/blast/node/config"
+	nodeconfig "github.com/mosuka/blast/node/config"
 	blastgrpc "github.com/mosuka/blast/node/server/grpc"
 	blasthttp "github.com/mosuka/blast/node/server/http"
 	log "github.com/sirupsen/logrus"
@@ -57,13 +58,13 @@ var startNodeCmdOpts = StartNodeCmdOpts{
 	logOutput: config.DefaultLogOutput,
 	logLevel:  config.DefaultLogLevel,
 
-	grpcListenAddress: config.DefaultGRPCListenAddress,
+	grpcListenAddress: config.DefaultNodeGRPCListenAddress,
 
 	indexPath:        config.DefaultIndexPath,
 	indexMappingPath: config.DefaultIndexMappingPath,
 	indexConfigPath:  config.DefaultIndexConfigPath,
 
-	httpListenAddress: config.DefaultHTTPListenAddress,
+	httpListenAddress: config.DefaultNodeHTTPListenAddress,
 
 	restURI:    config.DefaultRESTURI,
 	metricsURI: config.DefaultMetricsURI,
@@ -74,7 +75,7 @@ var startNodeCmd = &cobra.Command{
 	Short: "start node",
 	Long:  `The start node command starts the Blast node.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		nodeConfig, err := config.NewConfig(startNodeCmdOpts.configPath)
+		nodeConfig, err := nodeconfig.NewNodeConfig(startNodeCmdOpts.configPath)
 		if err != nil {
 			return err
 		}
@@ -304,11 +305,11 @@ func init() {
 	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.logFormat, "log-format", config.DefaultLogFormat, "log format")
 	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.logOutput, "log-output", config.DefaultLogOutput, "log output")
 	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.logLevel, "log-level", config.DefaultLogLevel, "log level")
-	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.grpcListenAddress, "grpc-listen-address", config.DefaultGRPCListenAddress, "address to listen for the gRPC")
+	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.grpcListenAddress, "grpc-listen-address", config.DefaultNodeGRPCListenAddress, "address to listen for the gRPC")
 	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.indexPath, "index-path", config.DefaultIndexPath, "index directory path")
 	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.indexMappingPath, "index-mapping-path", config.DefaultIndexMappingPath, "index mapping path")
 	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.indexConfigPath, "index-config-path", config.DefaultIndexConfigPath, "index config path")
-	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.httpListenAddress, "http-listen-address", config.DefaultHTTPListenAddress, "address to listen for the HTTP")
+	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.httpListenAddress, "http-listen-address", config.DefaultNodeHTTPListenAddress, "address to listen for the HTTP")
 	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.restURI, "rest-uri", config.DefaultRESTURI, "base URI for REST endpoint")
 	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.metricsURI, "metrics-uri", config.DefaultMetricsURI, "base URI for metrics endpoint")
 
