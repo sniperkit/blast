@@ -19,15 +19,14 @@ package blast;
 option go_package = "protobuf";
 
 import "protobuf/message.proto";
-//import "google/protobuf/empty.proto";
+import "google/protobuf/empty.proto";
 
 service Index {
-//    rpc GetIndexPath(google.protobuf.Empty) returns (blast.GetIndexPathResponse) {}
-//    rpc GetIndexMapping(google.protobuf.Empty) returns (blast.GetIndexMappingResponse) {}
-//    rpc GetIndexMeta(google.protobuf.Empty) returns (blast.GetIndexMetaResponse) {}
-    rpc PutDocument(blast.PutDocumentRequest) returns (blast.PutDocumentResponse) {}
+    rpc PutDocument(blast.PutDocumentRequest) returns (google.protobuf.Empty) {}
     rpc GetDocument(blast.GetDocumentRequest) returns (blast.GetDocumentResponse) {}
-    rpc DeleteDocument(blast.DeleteDocumentRequest) returns (blast.DeleteDocumentResponse) {}
+    rpc DeleteDocument(blast.DeleteDocumentRequest) returns (google.protobuf.Empty) {}
     rpc Bulk(blast.BulkRequest) returns (blast.BulkResponse) {}
     rpc Search(blast.SearchRequest) returns (blast.SearchResponse) {}
+
+    rpc GetIndexMapping (google.protobuf.Empty) returns (blast.GetIndexMappingResponse) {}
 }

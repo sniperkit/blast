@@ -62,12 +62,12 @@ func (h *DeleteDocumentHandler) ServeHTTP(w http.ResponseWriter, req *http.Reque
 	defer cancel()
 
 	// request
-	id, err := h.client.DeleteDocument(ctx, vars["id"])
+	err := h.client.DeleteDocument(ctx, vars["id"])
 	resp := struct {
 		Id    string `json:"id,omitempty"`
 		Error error  `json:"error,omitempty"`
 	}{
-		Id:    id,
+		Id:    vars["id"],
 		Error: err,
 	}
 

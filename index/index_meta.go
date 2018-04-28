@@ -25,8 +25,8 @@ import (
 )
 
 type IndexMeta struct {
-	IndexType string                 `json:"index_type"`
-	Storage   string                 `json:"storage"`
+	IndexType string                 `json:"index_type,omitempty"`
+	Storage   string                 `json:"storage,omitempty"`
 	Config    map[string]interface{} `json:"config,omitempty"`
 }
 

@@ -12,11 +12,9 @@ It is generated from these files:
 
 It has these top-level messages:
 	PutDocumentRequest
-	PutDocumentResponse
 	GetDocumentRequest
 	GetDocumentResponse
 	DeleteDocumentRequest
-	DeleteDocumentResponse
 	BulkRequest
 	BulkResponse
 	SearchRequest

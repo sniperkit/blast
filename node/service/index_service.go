@@ -18,6 +18,7 @@ import (
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/document"
 	"github.com/blevesearch/bleve/mapping"
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/mosuka/blast/index"
 	_ "github.com/mosuka/blast/node/builtin"
 	"github.com/mosuka/blast/protobuf"
@@ -101,57 +102,12 @@ func (s *IndexService) CloseIndex() error {
 	return nil
 }
 
-//func (s *IndexService) GetIndexPath(ctx context.Context, req *empty.Empty) (*protobuf.GetIndexPathResponse, error) {
-//	protoGetIndexPathResponse := &protobuf.GetIndexPathResponse{
-//		IndexPath: s.indexPath,
-//	}
-//
-//	return protoGetIndexPathResponse, nil
-//}
-
-//func (s *IndexService) GetIndexMapping(ctx context.Context, req *empty.Empty) (*protobuf.GetIndexMappingResponse, error) {
-//	indexMappingAny, err := protobuf.MarshalAny(s.indexMapping)
-//	if err != nil {
-//		log.WithFields(log.Fields{
-//			"indexMapping": s.indexMapping,
-//			"error":        err.Error(),
-//		}).Error("failed to marshal index mapping.")
-//		return nil, err
-//	}
-//
-//	protoGetIndexMappingResponse := &protobuf.GetIndexMappingResponse{
-//		IndexMapping: &indexMappingAny,
-//	}
-//
-//	return protoGetIndexMappingResponse, nil
-//}
-
-//func (s *IndexService) GetIndexMeta(ctx context.Context, req *empty.Empty) (*protobuf.GetIndexMetaResponse, error) {
-//	configAny, err := protobuf.MarshalAny(s.indexMeta.Config)
-//	if err != nil {
-//		log.WithFields(log.Fields{
-//			"indexMeta.Config": s.indexMeta.Config,
-//			"error":            err.Error(),
-//		}).Error("failed to marshal config.")
-//		return nil, err
-//	}
-//
-//	protoGetIndexTypeResponse := &protobuf.GetIndexMetaResponse{
-//		IndexType: s.indexMeta.IndexType,
-//		Storage:   s.indexMeta.Storage,
-//		Config:    &configAny,
-//	}
-//
-//	return protoGetIndexTypeResponse, nil
-//}
-
-func (s *IndexService) PutDocument(ctx context.Context, req *protobuf.PutDocumentRequest) (*protobuf.PutDocumentResponse, error) {
+func (s *IndexService) PutDocument(ctx context.Context, req *protobuf.PutDocumentRequest) (*empty.Empty, error) {
 	fields, err := protobuf.UnmarshalAny(req.Fields)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"id":     req.Id,
-			"fields": req.Fields,
-			"error":  err.Error(),
+			"id":    req.Id,
+			"error": err.Error(),
 		}).Error("failed to unmarshal fields.")
 
 		return nil, err
@@ -168,10 +124,7 @@ func (s *IndexService) PutDocument(ctx context.Context, req *protobuf.PutDocumen
 		return nil, err
 	}
 
-	return &protobuf.PutDocumentResponse{
-		Id:     req.Id,
-		Fields: req.Fields,
-	}, nil
+	return &empty.Empty{}, nil
 }
 
 func (s *IndexService) GetDocument(ctx context.Context, req *protobuf.GetDocumentRequest) (*protobuf.GetDocumentResponse, error) {
@@ -190,7 +143,7 @@ func (s *IndexService) GetDocument(ctx context.Context, req *protobuf.GetDocumen
 			"id": req.Id,
 		}).Info("document does not exist")
 
-		return nil, nil
+		return &protobuf.GetDocumentResponse{}, nil
 	}
 
 	fields := make(map[string]interface{})
@@ -246,7 +199,7 @@ func (s *IndexService) GetDocument(ctx context.Context, req *protobuf.GetDocumen
 	}, nil
 }
 
-func (s *IndexService) DeleteDocument(ctx context.Context, req *protobuf.DeleteDocumentRequest) (*protobuf.DeleteDocumentResponse, error) {
+func (s *IndexService) DeleteDocument(ctx context.Context, req *protobuf.DeleteDocumentRequest) (*empty.Empty, error) {
 	err := s.index.Delete(req.Id)
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -256,23 +209,20 @@ func (s *IndexService) DeleteDocument(ctx context.Context, req *protobuf.DeleteD
 		return nil, err
 	}
 
-	return &protobuf.DeleteDocumentResponse{
-		Id: req.Id,
-	}, nil
+	return &empty.Empty{}, nil
 }
 
 func (s *IndexService) Bulk(ctx context.Context, req *protobuf.BulkRequest) (*protobuf.BulkResponse, error) {
 	var (
-		processedCount   int32
-		putCount         int32
-		putErrorCount    int32
-		deleteCount      int32
-		methodErrorCount int32
+		processedCount int32
+		putCount       int32
+		deleteCount    int32
+		errorCount     int32
 	)
 
 	batch := s.index.NewBatch()
 
-	for _, updateRequest := range req.UpdateRequests {
+	for _, updateRequest := range req.Requests {
 		processedCount++
 
 		switch updateRequest.Method {
@@ -283,7 +233,7 @@ func (s *IndexService) Bulk(ctx context.Context, req *protobuf.BulkRequest) (*pr
 					"updateRequest": updateRequest,
 				}).Warn(err.Error())
 
-				putErrorCount++
+				errorCount++
 
 				continue
 			}
@@ -295,7 +245,7 @@ func (s *IndexService) Bulk(ctx context.Context, req *protobuf.BulkRequest) (*pr
 					"fields": fields,
 				}).Warn(err.Error())
 
-				putErrorCount++
+				errorCount++
 
 				continue
 			}
@@ -310,7 +260,7 @@ func (s *IndexService) Bulk(ctx context.Context, req *protobuf.BulkRequest) (*pr
 				"method": updateRequest.Method,
 			}).Warn("unknown method")
 
-			methodErrorCount++
+			errorCount++
 
 			continue
 		}
@@ -333,10 +283,9 @@ func (s *IndexService) Bulk(ctx context.Context, req *protobuf.BulkRequest) (*pr
 	}
 
 	return &protobuf.BulkResponse{
-		PutCount:         putCount,
-		PutErrorCount:    putErrorCount,
-		DeleteCount:      deleteCount,
-		MethodErrorCount: methodErrorCount,
+		PutCount:    putCount,
+		DeleteCount: deleteCount,
+		ErrorCount:  errorCount,
 	}, nil
 }
 
@@ -364,5 +313,17 @@ func (s *IndexService) Search(ctx context.Context, req *protobuf.SearchRequest) 
 
 	return &protobuf.SearchResponse{
 		SearchResult: &searchResultAny,
+	}, nil
+}
+
+func (s *IndexService) GetIndexMapping(ctx context.Context, req *empty.Empty) (*protobuf.GetIndexMappingResponse, error) {
+	// IndexMapping -> Any
+	any, err := protobuf.MarshalAny(s.index.Mapping())
+	if err != nil {
+		return nil, err
+	}
+
+	return &protobuf.GetIndexMappingResponse{
+		IndexMapping: &any,
 	}, nil
 }

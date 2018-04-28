@@ -29,7 +29,9 @@ type ClusterMeta struct {
 func NewClusterMeta() *ClusterMeta {
 	return &ClusterMeta{
 		Storage: file.Name,
-		Config:  make(map[string]interface{}),
+		Config: map[string]interface{}{
+			"base_path": "./etc/blast",
+		},
 	}
 }
 

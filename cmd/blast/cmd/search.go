@@ -21,6 +21,7 @@ import (
 	"github.com/blevesearch/bleve"
 	"github.com/buger/jsonparser"
 	blastgrpc "github.com/mosuka/blast/node/client/grpc"
+	"github.com/mosuka/blast/node/config"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"time"
@@ -42,10 +43,11 @@ type SearchCommandOptions struct {
 	highlightStyle    string
 	highlightFields   []string
 	includeLocations  bool
+	outputFormat      string
 }
 
 var searchCmdOpts = SearchCommandOptions{
-	grpcServerAddress: "localhost:5000",
+	grpcServerAddress: config.DefaultGRPCListenAddress,
 	dialTimeout:       15000,
 	requestTimeout:    15000,
 	request:           "",
@@ -60,111 +62,110 @@ var searchCmdOpts = SearchCommandOptions{
 	highlightStyle:    "",
 	highlightFields:   []string{},
 	includeLocations:  false,
+	outputFormat:      "json",
 }
 
 var searchCmd = &cobra.Command{
 	Use:   "search",
 	Short: "searches the documents",
 	Long:  `The search command searches the documents.`,
-	RunE:  runESearchCmd,
-}
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// read request
+		data := []byte(searchCmdOpts.request)
 
-func runESearchCmd(cmd *cobra.Command, args []string) error {
-	// read request
-	data := []byte(searchCmdOpts.request)
+		// get search_request from request
+		var searchRequest *bleve.SearchRequest
+		searchRequestBytes, _, _, err := jsonparser.Get(data, "search_request")
+		if err == nil {
+			err = json.Unmarshal(searchRequestBytes, &searchRequest)
+			if err != nil {
+				return err
+			}
+		} else {
+			searchRequest = bleve.NewSearchRequest(nil)
+		}
 
-	// get search_request from request
-	var searchRequest *bleve.SearchRequest
-	searchRequestBytes, _, _, err := jsonparser.Get(data, "search_request")
-	if err == nil {
-		err = json.Unmarshal(searchRequestBytes, &searchRequest)
+		// overwrite request by command line option
+		if cmd.Flag("query").Changed {
+			searchRequest.Query = bleve.NewQueryStringQuery(searchCmdOpts.query)
+		}
+		if cmd.Flag("size").Changed {
+			searchRequest.Size = searchCmdOpts.size
+		}
+		if cmd.Flag("from").Changed {
+			searchRequest.From = searchCmdOpts.from
+		}
+		if cmd.Flag("explain").Changed {
+			searchRequest.Explain = searchCmdOpts.explain
+		}
+		if cmd.Flag("field").Changed {
+			searchRequest.Fields = searchCmdOpts.fields
+		}
+		if cmd.Flag("sort").Changed {
+			searchRequest.SortBy(searchCmdOpts.sorts)
+		}
+		if cmd.Flag("facets").Changed {
+			facetRequest := bleve.FacetsRequest{}
+			err := json.Unmarshal([]byte(searchCmdOpts.facets), &facetRequest)
+			if err != nil {
+				return err
+			}
+			searchRequest.Facets = facetRequest
+		}
+		if cmd.Flag("highlight").Changed {
+			highlightRequest := bleve.NewHighlight()
+			err := json.Unmarshal([]byte(searchCmdOpts.highlight), highlightRequest)
+			if err != nil {
+				return err
+			}
+			searchRequest.Highlight = highlightRequest
+		}
+		if cmd.Flag("highlight-style").Changed || cmd.Flag("highlight-field").Changed {
+			highlightRequest := bleve.NewHighlightWithStyle(searchCmdOpts.highlightStyle)
+			highlightRequest.Fields = searchCmdOpts.highlightFields
+			searchRequest.Highlight = highlightRequest
+		}
+		if cmd.Flag("include-locations").Changed {
+			searchRequest.IncludeLocations = searchCmdOpts.includeLocations
+		}
+
+		// create client
+		c, err := blastgrpc.NewGRPCClient(context.Background(), searchCmdOpts.grpcServerAddress, grpc.WithInsecure())
 		if err != nil {
 			return err
 		}
-	} else {
-		searchRequest = bleve.NewSearchRequest(nil)
-	}
+		defer c.Close()
 
-	// overwrite request by command line option
-	if cmd.Flag("query").Changed {
-		searchRequest.Query = bleve.NewQueryStringQuery(searchCmdOpts.query)
-	}
-	if cmd.Flag("size").Changed {
-		searchRequest.Size = searchCmdOpts.size
-	}
-	if cmd.Flag("from").Changed {
-		searchRequest.From = searchCmdOpts.from
-	}
-	if cmd.Flag("explain").Changed {
-		searchRequest.Explain = searchCmdOpts.explain
-	}
-	if cmd.Flag("field").Changed {
-		searchRequest.Fields = searchCmdOpts.fields
-	}
-	if cmd.Flag("sort").Changed {
-		searchRequest.SortBy(searchCmdOpts.sorts)
-	}
-	if cmd.Flag("facets").Changed {
-		facetRequest := bleve.FacetsRequest{}
-		err := json.Unmarshal([]byte(searchCmdOpts.facets), &facetRequest)
-		if err != nil {
-			return err
+		// create context
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(searchCmdOpts.requestTimeout)*time.Millisecond)
+		defer cancel()
+
+		// search documents from index
+		searchResult, err := c.Search(ctx, searchRequest)
+		resp := struct {
+			SearchResult *bleve.SearchResult `json:"search_result,omitempty"`
+			Error        error               `json:"error,omitempty"`
+		}{
+			SearchResult: searchResult,
+			Error:        err,
 		}
-		searchRequest.Facets = facetRequest
-	}
-	if cmd.Flag("highlight").Changed {
-		highlightRequest := bleve.NewHighlight()
-		err := json.Unmarshal([]byte(searchCmdOpts.highlight), highlightRequest)
-		if err != nil {
-			return err
+
+		// output response
+		switch searchCmdOpts.outputFormat {
+		case "text":
+			fmt.Printf("%v\n", resp)
+		case "json":
+			output, err := json.MarshalIndent(resp, "", "  ")
+			if err != nil {
+				return err
+			}
+			fmt.Printf("%s\n", output)
+		default:
+			fmt.Printf("%v\n", resp)
 		}
-		searchRequest.Highlight = highlightRequest
-	}
-	if cmd.Flag("highlight-style").Changed || cmd.Flag("highlight-field").Changed {
-		highlightRequest := bleve.NewHighlightWithStyle(searchCmdOpts.highlightStyle)
-		highlightRequest.Fields = searchCmdOpts.highlightFields
-		searchRequest.Highlight = highlightRequest
-	}
-	if cmd.Flag("include-locations").Changed {
-		searchRequest.IncludeLocations = searchCmdOpts.includeLocations
-	}
 
-	// create client
-	c, err := blastgrpc.NewGRPCClient(context.Background(), searchCmdOpts.grpcServerAddress, grpc.WithInsecure())
-	if err != nil {
-		return err
-	}
-	defer c.Close()
-
-	// create context
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(searchCmdOpts.requestTimeout)*time.Millisecond)
-	defer cancel()
-
-	// search documents from index
-	searchResult, err := c.Search(ctx, searchRequest)
-	resp := struct {
-		SearchResult *bleve.SearchResult `json:"search_result,omitempty"`
-		Error        error               `json:"error,omitempty"`
-	}{
-		SearchResult: searchResult,
-		Error:        err,
-	}
-
-	// output response
-	switch rootCmdOpts.outputFormat {
-	case "text":
-		fmt.Printf("%v\n", resp)
-	case "json":
-		output, err := json.MarshalIndent(resp, "", "  ")
-		if err != nil {
-			return err
-		}
-		fmt.Printf("%s\n", output)
-	default:
-		fmt.Printf("%v\n", resp)
-	}
-
-	return nil
+		return nil
+	},
 }
 
 func init() {
@@ -185,6 +186,7 @@ func init() {
 	searchCmd.Flags().StringVar(&searchCmdOpts.highlightStyle, "highlight-style", searchCmdOpts.highlightStyle, "highlighting style")
 	searchCmd.Flags().StringSliceVar(&searchCmdOpts.highlightFields, "highlight-field", searchCmdOpts.highlightFields, "specify a set of fields to highlight")
 	searchCmd.Flags().BoolVar(&searchCmdOpts.includeLocations, "include-locations", searchCmdOpts.includeLocations, "include terms locations")
+	searchCmd.Flags().StringVar(&searchCmdOpts.outputFormat, "output-format", searchCmdOpts.outputFormat, "output format")
 
 	RootCmd.AddCommand(searchCmd)
 }

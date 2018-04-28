@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	blastgrpc "github.com/mosuka/blast/node/client/grpc"
+	"github.com/mosuka/blast/node/config"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"time"
@@ -32,7 +33,7 @@ type DeleteDocumentCommandOptions struct {
 }
 
 var deleteDocumentCmdOpts = DeleteDocumentCommandOptions{
-	grpcServerAddress: "localhost:5000",
+	grpcServerAddress: config.DefaultGRPCListenAddress,
 	dialTimeout:       5000,
 	requestTimeout:    5000,
 	id:                "",
@@ -42,51 +43,49 @@ var deleteDocumentCmd = &cobra.Command{
 	Use:   "document",
 	Short: "deletes the document",
 	Long:  `The delete document command deletes the document.`,
-	RunE:  runEDeleteDocumentCmd,
-}
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// check id
+		if deleteDocumentCmdOpts.id == "" {
+			return fmt.Errorf("required flag: --%s", cmd.Flag("id").Name)
+		}
 
-func runEDeleteDocumentCmd(cmd *cobra.Command, args []string) error {
-	// check id
-	if deleteDocumentCmdOpts.id == "" {
-		return fmt.Errorf("required flag: --%s", cmd.Flag("id").Name)
-	}
-
-	// create client
-	c, err := blastgrpc.NewGRPCClient(context.Background(), deleteDocumentCmdOpts.grpcServerAddress, grpc.WithInsecure())
-	if err != nil {
-		return err
-	}
-	defer c.Close()
-
-	// create context
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(deleteDocumentCmdOpts.requestTimeout)*time.Millisecond)
-	defer cancel()
-
-	// delete document from index
-	id, err := c.DeleteDocument(ctx, deleteDocumentCmdOpts.id)
-	resp := struct {
-		Id    string `json:"id,omitempty"`
-		Error error  `json:"error,omitempty"`
-	}{
-		Id:    id,
-		Error: err,
-	}
-
-	// output response
-	switch rootCmdOpts.outputFormat {
-	case "text":
-		fmt.Printf("%v\n", resp)
-	case "json":
-		output, err := json.MarshalIndent(resp, "", "  ")
+		// create client
+		c, err := blastgrpc.NewGRPCClient(context.Background(), deleteDocumentCmdOpts.grpcServerAddress, grpc.WithInsecure())
 		if err != nil {
 			return err
 		}
-		fmt.Printf("%s\n", output)
-	default:
-		fmt.Printf("%v\n", resp)
-	}
+		defer c.Close()
 
-	return nil
+		// create context
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(deleteDocumentCmdOpts.requestTimeout)*time.Millisecond)
+		defer cancel()
+
+		// delete document from index
+		err = c.DeleteDocument(ctx, deleteDocumentCmdOpts.id)
+		resp := struct {
+			Id    string `json:"id,omitempty"`
+			Error error  `json:"error,omitempty"`
+		}{
+			Id:    deleteDocumentCmdOpts.id,
+			Error: err,
+		}
+
+		// output response
+		switch deleteCmdOpts.outputFormat {
+		case "text":
+			fmt.Printf("%v\n", resp)
+		case "json":
+			output, err := json.MarshalIndent(resp, "", "  ")
+			if err != nil {
+				return err
+			}
+			fmt.Printf("%s\n", output)
+		default:
+			fmt.Printf("%v\n", resp)
+		}
+
+		return nil
+	},
 }
 
 func init() {

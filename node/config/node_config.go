@@ -14,17 +14,19 @@
 
 package config
 
-import "github.com/spf13/viper"
+import (
+	"github.com/spf13/viper"
+)
 
 const (
-	DefaultConfigPath        = "./etc/blast_node.yaml"
+	DefaultConfigPath        = ""
 	DefaultLogFormat         = "text"
 	DefaultLogOutput         = ""
 	DefaultLogLevel          = "info"
 	DefaultGRPCListenAddress = "0.0.0.0:5000"
 	DefaultIndexPath         = "./data/index"
-	DefaultIndexMappingPath  = "./etc/index_mapping.json"
-	DefaultIndexConfigPath   = "./etc/index_config.json"
+	DefaultIndexMappingPath  = ""
+	DefaultIndexConfigPath   = ""
 	DefaultHTTPListenAddress = "0.0.0.0:8000"
 	DefaultRESTURI           = "/rest"
 	DefaultMetricsURI        = "/metrics"
@@ -48,16 +50,11 @@ func NewConfig(configPath string) (*viper.Viper, error) {
 
 	if configPath != "" {
 		nodeConfig.SetConfigFile(configPath)
-	} else {
-		nodeConfig.SetConfigName("blast_node")
-		nodeConfig.SetConfigType("yaml")
-		nodeConfig.AddConfigPath("/etc")
-		nodeConfig.AddConfigPath("${HOME}/etc")
-		nodeConfig.AddConfigPath("./etc")
-	}
-	err := nodeConfig.ReadInConfig()
-	if err != nil {
-		return nil, err
+
+		err := nodeConfig.ReadInConfig()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return nodeConfig, nil

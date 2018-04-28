@@ -19,20 +19,21 @@ import (
 	"encoding/json"
 	"fmt"
 	blastgrpc "github.com/mosuka/blast/node/client/grpc"
+	"github.com/mosuka/blast/node/config"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"time"
 )
 
-type GetDocumentCommandOptions struct {
+type GetDocumentCmdOpts struct {
 	grpcServerAddress string
 	dialTimeout       int
 	requestTimeout    int
 	id                string
 }
 
-var getDocumentCmdOpts = GetDocumentCommandOptions{
-	grpcServerAddress: "localhost:5000",
+var getDocumentCmdOpts = GetDocumentCmdOpts{
+	grpcServerAddress: config.DefaultGRPCListenAddress,
 	dialTimeout:       5000,
 	requestTimeout:    5000,
 	id:                "",
@@ -42,53 +43,51 @@ var getDocumentCmd = &cobra.Command{
 	Use:   "document",
 	Short: "gets the document",
 	Long:  `The get document command gets the document.`,
-	RunE:  runEGetDocumentCmd,
-}
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// check id
+		if getDocumentCmdOpts.id == "" {
+			return fmt.Errorf("required flag: --%s", cmd.Flag("id").Name)
+		}
 
-func runEGetDocumentCmd(cmd *cobra.Command, args []string) error {
-	// check id
-	if getDocumentCmdOpts.id == "" {
-		return fmt.Errorf("required flag: --%s", cmd.Flag("id").Name)
-	}
-
-	// create client
-	c, err := blastgrpc.NewGRPCClient(context.Background(), getDocumentCmdOpts.grpcServerAddress, grpc.WithInsecure())
-	if err != nil {
-		return err
-	}
-	defer c.Close()
-
-	// create context
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(getDocumentCmdOpts.requestTimeout)*time.Millisecond)
-	defer cancel()
-
-	// get document from index
-	id, fields, err := c.GetDocument(ctx, getDocumentCmdOpts.id)
-	resp := struct {
-		Id     string                 `json:"id,omitempty"`
-		Fields map[string]interface{} `json:"fields,omitempty"`
-		Error  error                  `json:"error,omitempty"`
-	}{
-		Id:     id,
-		Fields: fields,
-		Error:  err,
-	}
-
-	// output response
-	switch rootCmdOpts.outputFormat {
-	case "text":
-		fmt.Printf("%v\n", resp)
-	case "json":
-		output, err := json.MarshalIndent(resp, "", "  ")
+		// create client
+		c, err := blastgrpc.NewGRPCClient(context.Background(), getDocumentCmdOpts.grpcServerAddress, grpc.WithInsecure())
 		if err != nil {
 			return err
 		}
-		fmt.Printf("%s\n", output)
-	default:
-		fmt.Printf("%v\n", resp)
-	}
+		defer c.Close()
 
-	return nil
+		// create context
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(getDocumentCmdOpts.requestTimeout)*time.Millisecond)
+		defer cancel()
+
+		// get document from index
+		id, fields, err := c.GetDocument(ctx, getDocumentCmdOpts.id)
+		resp := struct {
+			Id     string                 `json:"id,omitempty"`
+			Fields map[string]interface{} `json:"fields,omitempty"`
+			Error  error                  `json:"error,omitempty"`
+		}{
+			Id:     id,
+			Fields: fields,
+			Error:  err,
+		}
+
+		// output response
+		switch getCmdOpts.outputFormat {
+		case "text":
+			fmt.Printf("%v\n", resp)
+		case "json":
+			output, err := json.MarshalIndent(resp, "", "  ")
+			if err != nil {
+				return err
+			}
+			fmt.Printf("%s\n", output)
+		default:
+			fmt.Printf("%v\n", resp)
+		}
+
+		return nil
+	},
 }
 
 func init() {

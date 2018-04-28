@@ -20,8 +20,8 @@ grpc_listen_address: 0.0.0.0:5000
 http_listen_address: 0.0.0.0:8000
 
 index_path: ./data/index
-index_mapping_path: ./etc/index_mapping.json
-index_config_path: ./etc/index_config.json
+index_mapping_path: ./example/config/index_mapping.json
+index_meta_path: ./example/config/index_meta.json
 
 rest_uri: /rest
 metrics_uri: /metrics

@@ -17,12 +17,12 @@ package config
 import "github.com/spf13/viper"
 
 const (
-	DefaultConfigPath        = "./etc/blast_master.yaml"
+	DefaultConfigPath        = ""
 	DefaultLogFormat         = "text"
 	DefaultLogOutput         = ""
 	DefaultLogLevel          = "info"
 	DefaultGRPCListenAddress = "0.0.0.0:5000"
-	DefaultClusterMetaPath   = "./etc/supervise_config.json"
+	DefaultClusterMetaPath   = ""
 	DefaultHTTPListenAddress = "0.0.0.0:8000"
 	DefaultRESTURI           = "/rest"
 	DefaultMetricsURI        = "/metrics"
@@ -44,16 +44,11 @@ func NewConfig(configPath string) (*viper.Viper, error) {
 
 	if configPath != "" {
 		masterConfig.SetConfigFile(configPath)
-	} else {
-		masterConfig.SetConfigName("blast_master")
-		masterConfig.SetConfigType("yaml")
-		masterConfig.AddConfigPath("/etc")
-		masterConfig.AddConfigPath("${HOME}/etc")
-		masterConfig.AddConfigPath("./etc")
-	}
-	err := masterConfig.ReadInConfig()
-	if err != nil {
-		return nil, err
+
+		err := masterConfig.ReadInConfig()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return masterConfig, nil

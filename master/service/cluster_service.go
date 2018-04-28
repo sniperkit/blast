@@ -57,8 +57,6 @@ func (s *ClusterService) PutNode(ctx context.Context, req *protobuf.PutNodeReque
 
 	if req.NodeInfo == nil {
 		req.NodeInfo = &protobuf.NodeInfo{}
-		req.NodeInfo.Cluster = req.Cluster
-		req.NodeInfo.Node = req.Node
 		req.NodeInfo.Status = ""
 		req.NodeInfo.Role = ""
 		req.NodeInfo.Timestamp = time.Now().Format(time.RFC3339Nano)

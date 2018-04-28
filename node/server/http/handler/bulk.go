@@ -121,19 +121,17 @@ func (h *BulkHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer cancel()
 
 	// request
-	putCount, putErrorCount, deleteCount, methodErrorCount, err := h.client.Bulk(ctx, requests, int32(batchSize))
+	putCount, deleteCount, errorCount, err := h.client.Bulk(ctx, requests, int32(batchSize))
 	resp := struct {
-		PutCount         int32 `json:"put_count,omitempty"`
-		PutErrorCount    int32 `json:"put_error_count,omitempty"`
-		DeleteCount      int32 `json:"delete_count,omitempty"`
-		MethodErrorCount int32 `json:"method_error_count,omitempty"`
-		Error            error `json:"error,omitempty"`
+		PutCount    int32 `json:"put_count,omitempty"`
+		DeleteCount int32 `json:"delete_count,omitempty"`
+		ErrorCount  int32 `json:"error_count,omitempty"`
+		Error       error `json:"error,omitempty"`
 	}{
-		PutCount:         putCount,
-		PutErrorCount:    putErrorCount,
-		DeleteCount:      deleteCount,
-		MethodErrorCount: methodErrorCount,
-		Error:            err,
+		PutCount:    putCount,
+		DeleteCount: deleteCount,
+		ErrorCount:  errorCount,
+		Error:       err,
 	}
 
 	// output response

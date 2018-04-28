@@ -20,12 +20,13 @@ import (
 	"fmt"
 	"github.com/buger/jsonparser"
 	blastgrpc "github.com/mosuka/blast/node/client/grpc"
+	"github.com/mosuka/blast/node/config"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"time"
 )
 
-type PutDocumentCommandOptions struct {
+type PutDocumentCmdOpts struct {
 	grpcServerAddress string
 	dialTimeout       int
 	requestTimeout    int
@@ -34,8 +35,8 @@ type PutDocumentCommandOptions struct {
 	request           string
 }
 
-var putDocumentCmdOpts = PutDocumentCommandOptions{
-	grpcServerAddress: "localhost:5000",
+var putDocumentCmdOpts = PutDocumentCmdOpts{
+	grpcServerAddress: config.DefaultGRPCListenAddress,
 	dialTimeout:       5000,
 	requestTimeout:    5000,
 	id:                "",
@@ -47,81 +48,79 @@ var putDocumentCmd = &cobra.Command{
 	Use:   "document",
 	Short: "puts the document",
 	Long:  `The index document command puts the document.`,
-	RunE:  runEPutDocumentCmd,
-}
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// read request
+		data := []byte(putDocumentCmdOpts.request)
 
-func runEPutDocumentCmd(cmd *cobra.Command, args []string) error {
-	// read request
-	data := []byte(putDocumentCmdOpts.request)
-
-	// get id from request
-	id, err := jsonparser.GetString(data, "id")
-	if err != nil {
-		return err
-	}
-
-	// get fields request
-	fieldsBytes, _, _, err := jsonparser.Get(data, "fields")
-	if err != nil {
-		return err
-	}
-	var fields map[string]interface{}
-	err = json.Unmarshal(fieldsBytes, &fields)
-	if err != nil {
-		return err
-	}
-
-	// overwrite id by command line option
-	if cmd.Flag("id").Changed {
-		id = putDocumentCmdOpts.id
-	}
-
-	// overwrite fields by command line option
-	if cmd.Flag("fields").Changed {
-		err = json.Unmarshal([]byte(putDocumentCmdOpts.fields), &fields)
+		// get id from request
+		id, err := jsonparser.GetString(data, "id")
 		if err != nil {
 			return err
 		}
-	}
 
-	// create client
-	c, err := blastgrpc.NewGRPCClient(context.Background(), putDocumentCmdOpts.grpcServerAddress, grpc.WithInsecure())
-	if err != nil {
-		return err
-	}
-	defer c.Close()
-
-	// create context
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(putDocumentCmdOpts.requestTimeout)*time.Millisecond)
-	defer cancel()
-
-	// put document to index
-	putId, putFields, err := c.PutDocument(ctx, id, fields)
-	resp := struct {
-		Id     string                 `json:"id,omitempty"`
-		Fields map[string]interface{} `json:"fields,omitempty"`
-		Error  error                  `json:"error,omitempty"`
-	}{
-		Id:     putId,
-		Fields: putFields,
-		Error:  err,
-	}
-
-	// output response
-	switch rootCmdOpts.outputFormat {
-	case "text":
-		fmt.Printf("%v\n", resp)
-	case "json":
-		output, err := json.MarshalIndent(resp, "", "  ")
+		// get fields request
+		fieldsBytes, _, _, err := jsonparser.Get(data, "fields")
 		if err != nil {
 			return err
 		}
-		fmt.Printf("%s\n", output)
-	default:
-		fmt.Printf("%v\n", resp)
-	}
+		var fields map[string]interface{}
+		err = json.Unmarshal(fieldsBytes, &fields)
+		if err != nil {
+			return err
+		}
 
-	return nil
+		// overwrite id by command line option
+		if cmd.Flag("id").Changed {
+			id = putDocumentCmdOpts.id
+		}
+
+		// overwrite fields by command line option
+		if cmd.Flag("fields").Changed {
+			err = json.Unmarshal([]byte(putDocumentCmdOpts.fields), &fields)
+			if err != nil {
+				return err
+			}
+		}
+
+		// create client
+		c, err := blastgrpc.NewGRPCClient(context.Background(), putDocumentCmdOpts.grpcServerAddress, grpc.WithInsecure())
+		if err != nil {
+			return err
+		}
+		defer c.Close()
+
+		// create context
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(putDocumentCmdOpts.requestTimeout)*time.Millisecond)
+		defer cancel()
+
+		// put document to index
+		err = c.PutDocument(ctx, id, fields)
+		resp := struct {
+			Id     string                 `json:"id,omitempty"`
+			Fields map[string]interface{} `json:"fields,omitempty"`
+			Error  error                  `json:"error,omitempty"`
+		}{
+			Id:     id,
+			Fields: fields,
+			Error:  err,
+		}
+
+		// output response
+		switch putCmdOpts.outputFormat {
+		case "text":
+			fmt.Printf("%v\n", resp)
+		case "json":
+			output, err := json.MarshalIndent(resp, "", "  ")
+			if err != nil {
+				return err
+			}
+			fmt.Printf("%s\n", output)
+		default:
+			fmt.Printf("%v\n", resp)
+		}
+
+		return nil
+	},
 }
 
 func init() {

@@ -110,14 +110,14 @@ func (h *PutDocumentHandler) ServeHTTP(w http.ResponseWriter, req *http.Request)
 	defer cancel()
 
 	// request
-	putId, putFields, err := h.client.PutDocument(ctx, id, fields)
+	err = h.client.PutDocument(ctx, id, fields)
 	resp := struct {
 		Id     string                 `json:"id,omitempty"`
 		Fields map[string]interface{} `json:"fields,omitempty"`
 		Error  error                  `json:"error,omitempty"`
 	}{
-		Id:     putId,
-		Fields: putFields,
+		Id:     id,
+		Fields: fields,
 		Error:  err,
 	}
 
