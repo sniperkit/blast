@@ -36,7 +36,7 @@ type PutIndexMetaCmdOpts struct {
 }
 
 var putIndexMetaCmdOpts = PutIndexMetaCmdOpts{
-	grpcServerAddress: config.DefaultMasterGRPCListenAddress,
+	grpcServerAddress: config.DefaultGRPCListenAddress,
 	dialTimeout:       5000,
 	requestTimeout:    5000,
 	cluster:           "",
@@ -117,7 +117,7 @@ var putIndexMetaCmd = &cobra.Command{
 func init() {
 	putIndexMetaCmd.Flags().SortFlags = false
 
-	putIndexMetaCmd.Flags().StringVar(&putIndexMetaCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultMasterGRPCListenAddress, "Blast server to connect to using gRPC")
+	putIndexMetaCmd.Flags().StringVar(&putIndexMetaCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultGRPCListenAddress, "Blast server to connect to using gRPC")
 	putIndexMetaCmd.Flags().IntVar(&putIndexMetaCmdOpts.dialTimeout, "dial-timeout", putIndexMetaCmdOpts.dialTimeout, "dial timeout")
 	putIndexMetaCmd.Flags().IntVar(&putIndexMetaCmdOpts.requestTimeout, "request-timeout", putIndexMetaCmdOpts.requestTimeout, "request timeout")
 	putIndexMetaCmd.Flags().StringVar(&putIndexMetaCmdOpts.cluster, "cluster", putIndexMetaCmdOpts.cluster, "cluster")

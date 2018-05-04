@@ -24,11 +24,11 @@ func NewNodeConfig(configPath string) (*viper.Viper, error) {
 	nodeConfig.SetDefault("log_format", config.DefaultLogFormat)
 	nodeConfig.SetDefault("log_output", config.DefaultLogOutput)
 	nodeConfig.SetDefault("log_level", config.DefaultLogLevel)
-	nodeConfig.SetDefault("grpc_listen_address", config.DefaultNodeGRPCListenAddress)
+	nodeConfig.SetDefault("grpc_listen_address", config.DefaultGRPCListenAddress)
 	nodeConfig.SetDefault("index_path", config.DefaultIndexPath)
 	nodeConfig.SetDefault("index_mapping_path", config.DefaultIndexMappingPath)
 	nodeConfig.SetDefault("index_config_path", config.DefaultIndexConfigPath)
-	nodeConfig.SetDefault("http_listen_address", config.DefaultNodeHTTPListenAddress)
+	nodeConfig.SetDefault("http_listen_address", config.DefaultHTTPListenAddress)
 	nodeConfig.SetDefault("rest_uri", config.DefaultRESTURI)
 	nodeConfig.SetDefault("metrics_uri", config.DefaultMetricsURI)
 

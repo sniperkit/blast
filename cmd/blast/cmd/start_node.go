@@ -58,13 +58,13 @@ var startNodeCmdOpts = StartNodeCmdOpts{
 	logOutput: config.DefaultLogOutput,
 	logLevel:  config.DefaultLogLevel,
 
-	grpcListenAddress: config.DefaultNodeGRPCListenAddress,
+	grpcListenAddress: config.DefaultGRPCListenAddress,
 
 	indexPath:        config.DefaultIndexPath,
 	indexMappingPath: config.DefaultIndexMappingPath,
 	indexConfigPath:  config.DefaultIndexConfigPath,
 
-	httpListenAddress: config.DefaultNodeHTTPListenAddress,
+	httpListenAddress: config.DefaultHTTPListenAddress,
 
 	restURI:    config.DefaultRESTURI,
 	metricsURI: config.DefaultMetricsURI,
@@ -305,11 +305,11 @@ func init() {
 	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.logFormat, "log-format", config.DefaultLogFormat, "log format")
 	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.logOutput, "log-output", config.DefaultLogOutput, "log output")
 	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.logLevel, "log-level", config.DefaultLogLevel, "log level")
-	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.grpcListenAddress, "grpc-listen-address", config.DefaultNodeGRPCListenAddress, "address to listen for the gRPC")
+	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.grpcListenAddress, "grpc-listen-address", config.DefaultGRPCListenAddress, "address to listen for the gRPC")
 	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.indexPath, "index-path", config.DefaultIndexPath, "index directory path")
 	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.indexMappingPath, "index-mapping-path", config.DefaultIndexMappingPath, "index mapping path")
 	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.indexConfigPath, "index-config-path", config.DefaultIndexConfigPath, "index config path")
-	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.httpListenAddress, "http-listen-address", config.DefaultNodeHTTPListenAddress, "address to listen for the HTTP")
+	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.httpListenAddress, "http-listen-address", config.DefaultHTTPListenAddress, "address to listen for the HTTP")
 	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.restURI, "rest-uri", config.DefaultRESTURI, "base URI for REST endpoint")
 	startNodeCmd.Flags().StringVar(&startNodeCmdOpts.metricsURI, "metrics-uri", config.DefaultMetricsURI, "base URI for metrics endpoint")
 

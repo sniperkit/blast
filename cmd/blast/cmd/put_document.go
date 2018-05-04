@@ -36,7 +36,7 @@ type PutDocumentCmdOpts struct {
 }
 
 var putDocumentCmdOpts = PutDocumentCmdOpts{
-	grpcServerAddress: config.DefaultNodeGRPCListenAddress,
+	grpcServerAddress: config.DefaultGRPCListenAddress,
 	dialTimeout:       5000,
 	requestTimeout:    5000,
 	id:                "",
@@ -126,7 +126,7 @@ var putDocumentCmd = &cobra.Command{
 func init() {
 	putDocumentCmd.Flags().SortFlags = false
 
-	putDocumentCmd.Flags().StringVar(&putDocumentCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultNodeGRPCListenAddress, "Blast server to connect to using gRPC")
+	putDocumentCmd.Flags().StringVar(&putDocumentCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultGRPCListenAddress, "Blast server to connect to using gRPC")
 	putDocumentCmd.Flags().IntVar(&putDocumentCmdOpts.dialTimeout, "dial-timeout", putDocumentCmdOpts.dialTimeout, "dial timeout")
 	putDocumentCmd.Flags().IntVar(&putDocumentCmdOpts.requestTimeout, "request-timeout", putDocumentCmdOpts.requestTimeout, "request timeout")
 	putDocumentCmd.Flags().StringVar(&putDocumentCmdOpts.id, "id", putDocumentCmdOpts.id, "document id")

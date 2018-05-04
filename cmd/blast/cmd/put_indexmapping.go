@@ -37,7 +37,7 @@ type PutIndexMappingCmdOpts struct {
 }
 
 var putIndexMappingCmdOpts = PutIndexMappingCmdOpts{
-	grpcServerAddress: config.DefaultMasterGRPCListenAddress,
+	grpcServerAddress: config.DefaultGRPCListenAddress,
 	dialTimeout:       5000,
 	requestTimeout:    5000,
 	cluster:           "",
@@ -118,7 +118,7 @@ var putIndexMappingCmd = &cobra.Command{
 func init() {
 	putIndexMappingCmd.Flags().SortFlags = false
 
-	putIndexMappingCmd.Flags().StringVar(&putIndexMappingCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultMasterGRPCListenAddress, "Blast server to connect to using gRPC")
+	putIndexMappingCmd.Flags().StringVar(&putIndexMappingCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultGRPCListenAddress, "Blast server to connect to using gRPC")
 	putIndexMappingCmd.Flags().IntVar(&putIndexMappingCmdOpts.dialTimeout, "dial-timeout", putIndexMappingCmdOpts.dialTimeout, "dial timeout")
 	putIndexMappingCmd.Flags().IntVar(&putIndexMappingCmdOpts.requestTimeout, "request-timeout", putIndexMappingCmdOpts.requestTimeout, "request timeout")
 	putIndexMappingCmd.Flags().StringVar(&putIndexMappingCmdOpts.cluster, "cluster", putIndexMappingCmdOpts.cluster, "cluster")

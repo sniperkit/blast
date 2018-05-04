@@ -28,19 +28,17 @@ import (
 )
 
 type GetIndexMappingCmdOpts struct {
-	masterAddress  string
-	nodeAddress    string
-	dialTimeout    int
-	requestTimeout int
-	cluster        string
+	grpcServerAddress string
+	dialTimeout       int
+	requestTimeout    int
+	cluster           string
 }
 
 var getIndexMappingCmdOpts = GetIndexMappingCmdOpts{
-	masterAddress:  config.DefaultMasterGRPCListenAddress,
-	nodeAddress:    config.DefaultNodeGRPCListenAddress,
-	dialTimeout:    5000,
-	requestTimeout: 5000,
-	cluster:        "",
+	grpcServerAddress: config.DefaultGRPCListenAddress,
+	dialTimeout:       5000,
+	requestTimeout:    5000,
+	cluster:           "",
 }
 
 var getIndexMappingCmd = &cobra.Command{
@@ -56,15 +54,15 @@ var getIndexMappingCmd = &cobra.Command{
 
 		var indexMapping *mapping.IndexMappingImpl
 		var err error
-		if getIndexMappingCmdOpts.masterAddress != "" {
-			indexMapping, err = getIndexMappingFromMaster(getIndexMappingCmdOpts.masterAddress, getIndexMappingCmdOpts.requestTimeout, getIndexMappingCmdOpts.cluster)
+		if getIndexMappingCmdOpts.cluster != "" {
+			indexMapping, err = getIndexMappingFromMaster(getIndexMappingCmdOpts.grpcServerAddress, getIndexMappingCmdOpts.requestTimeout, getIndexMappingCmdOpts.cluster)
 			if err != nil {
 				return err
 			}
 			resp.Cluster = getIndexMappingCmdOpts.cluster
 			resp.IndexMapping = indexMapping
 		} else {
-			indexMapping, err = getIndexMappingFromNode(getIndexMappingCmdOpts.nodeAddress, getIndexMappingCmdOpts.requestTimeout)
+			indexMapping, err = getIndexMappingFromNode(getIndexMappingCmdOpts.grpcServerAddress, getIndexMappingCmdOpts.requestTimeout)
 			if err != nil {
 				return err
 			}
@@ -132,8 +130,7 @@ func getIndexMappingFromMaster(masterAddress string, requestTimeout int, cluster
 func init() {
 	getIndexMappingCmd.Flags().SortFlags = false
 
-	getIndexMappingCmd.Flags().StringVar(&getIndexMappingCmdOpts.masterAddress, "master-address", config.DefaultMasterGRPCListenAddress, "Blast master to connect to using gRPC")
-	getIndexMappingCmd.Flags().StringVar(&getIndexMappingCmdOpts.nodeAddress, "node-address", config.DefaultNodeGRPCListenAddress, "Blast node to connect to using gRPC")
+	getIndexMappingCmd.Flags().StringVar(&getIndexMappingCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultGRPCListenAddress, "Blast server to connect to using gRPC")
 	getIndexMappingCmd.Flags().IntVar(&getIndexMappingCmdOpts.dialTimeout, "dial-timeout", getIndexMappingCmdOpts.dialTimeout, "dial timeout")
 	getIndexMappingCmd.Flags().IntVar(&getIndexMappingCmdOpts.requestTimeout, "request-timeout", getIndexMappingCmdOpts.requestTimeout, "request timeout")
 	getIndexMappingCmd.Flags().StringVar(&getIndexMappingCmdOpts.cluster, "cluster", getIndexMappingCmdOpts.cluster, "cluster name. only used in connect to Blast master")

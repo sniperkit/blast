@@ -52,11 +52,11 @@ var startMasterCmdOpts = StartMasterCmdOpts{
 	logOutput: config.DefaultLogOutput,
 	logLevel:  config.DefaultLogLevel,
 
-	grpcListenAddress: config.DefaultMasterGRPCListenAddress,
+	grpcListenAddress: config.DefaultGRPCListenAddress,
 
 	clusterMetaPath: config.DefaultClusterMetaPath,
 
-	httpListenAddress: config.DefaultMasterHTTPListenAddress,
+	httpListenAddress: config.DefaultHTTPListenAddress,
 
 	restURI:    config.DefaultRESTURI,
 	metricsURI: config.DefaultMetricsURI,
@@ -235,9 +235,9 @@ func init() {
 	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.logFormat, "log-format", config.DefaultLogFormat, "log format")
 	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.logOutput, "log-output", config.DefaultLogOutput, "log output")
 	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.logLevel, "log-level", config.DefaultLogLevel, "log level")
-	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.grpcListenAddress, "grpc-listen-address", config.DefaultMasterGRPCListenAddress, "address to listen for the gRPC")
+	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.grpcListenAddress, "grpc-listen-address", config.DefaultGRPCListenAddress, "address to listen for the gRPC")
 	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.clusterMetaPath, "cluster-meta-path", config.DefaultClusterMetaPath, "cluster meta path")
-	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.httpListenAddress, "http-listen-address", config.DefaultMasterHTTPListenAddress, "address to listen for the HTTP")
+	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.httpListenAddress, "http-listen-address", config.DefaultHTTPListenAddress, "address to listen for the HTTP")
 	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.restURI, "rest-uri", config.DefaultRESTURI, "base URI for REST endpoint")
 	startMasterCmd.Flags().StringVar(&startMasterCmdOpts.metricsURI, "metrics-uri", config.DefaultMetricsURI, "base URI for metrics endpoint")
 

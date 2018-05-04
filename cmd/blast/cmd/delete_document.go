@@ -33,7 +33,7 @@ type DeleteDocumentCommandOptions struct {
 }
 
 var deleteDocumentCmdOpts = DeleteDocumentCommandOptions{
-	grpcServerAddress: config.DefaultNodeGRPCListenAddress,
+	grpcServerAddress: config.DefaultGRPCListenAddress,
 	dialTimeout:       5000,
 	requestTimeout:    5000,
 	id:                "",
@@ -91,7 +91,7 @@ var deleteDocumentCmd = &cobra.Command{
 func init() {
 	deleteDocumentCmd.Flags().SortFlags = false
 
-	deleteDocumentCmd.Flags().StringVar(&deleteDocumentCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultNodeGRPCListenAddress, "Blast server to connect to using gRPC")
+	deleteDocumentCmd.Flags().StringVar(&deleteDocumentCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultGRPCListenAddress, "Blast server to connect to using gRPC")
 	deleteDocumentCmd.Flags().IntVar(&deleteDocumentCmdOpts.dialTimeout, "dial-timeout", deleteDocumentCmdOpts.dialTimeout, "dial timeout")
 	deleteDocumentCmd.Flags().IntVar(&deleteDocumentCmdOpts.requestTimeout, "request-timeout", deleteDocumentCmdOpts.requestTimeout, "request timeout")
 	deleteDocumentCmd.Flags().StringVar(&deleteDocumentCmdOpts.id, "id", deleteDocumentCmdOpts.id, "document id")

@@ -47,7 +47,7 @@ type SearchCommandOptions struct {
 }
 
 var searchCmdOpts = SearchCommandOptions{
-	grpcServerAddress: config.DefaultNodeGRPCListenAddress,
+	grpcServerAddress: config.DefaultGRPCListenAddress,
 	dialTimeout:       15000,
 	requestTimeout:    15000,
 	request:           "",
@@ -171,7 +171,7 @@ var searchCmd = &cobra.Command{
 func init() {
 	searchCmd.Flags().SortFlags = false
 
-	searchCmd.Flags().StringVar(&searchCmdOpts.grpcServerAddress, "grpc-server-address", searchCmdOpts.grpcServerAddress, "Blast server to connect to using gRPC")
+	searchCmd.Flags().StringVar(&searchCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultGRPCListenAddress, "Blast server to connect to using gRPC")
 	searchCmd.Flags().IntVar(&searchCmdOpts.dialTimeout, "dial-timeout", searchCmdOpts.dialTimeout, "dial timeout")
 	searchCmd.Flags().IntVar(&searchCmdOpts.requestTimeout, "request-timeout", searchCmdOpts.requestTimeout, "request timeout")
 	searchCmd.Flags().StringVar(&searchCmdOpts.request, "request", searchCmdOpts.request, "resource file")

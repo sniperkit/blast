@@ -34,7 +34,7 @@ type GetNodeCmdOpts struct {
 }
 
 var getNodeCmdOpts = GetNodeCmdOpts{
-	grpcServerAddress: config.DefaultMasterGRPCListenAddress,
+	grpcServerAddress: config.DefaultGRPCListenAddress,
 	dialTimeout:       5000,
 	requestTimeout:    5000,
 	cluster:           "",
@@ -105,7 +105,7 @@ var getNodeCmd = &cobra.Command{
 func init() {
 	getNodeCmd.Flags().SortFlags = false
 
-	getNodeCmd.Flags().StringVar(&getNodeCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultMasterGRPCListenAddress, "Blast server to connect to using gRPC")
+	getNodeCmd.Flags().StringVar(&getNodeCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultGRPCListenAddress, "Blast server to connect to using gRPC")
 	getNodeCmd.Flags().IntVar(&getNodeCmdOpts.dialTimeout, "dial-timeout", getNodeCmdOpts.dialTimeout, "dial timeout")
 	getNodeCmd.Flags().IntVar(&getNodeCmdOpts.requestTimeout, "request-timeout", getNodeCmdOpts.requestTimeout, "request timeout")
 	getNodeCmd.Flags().StringVar(&getNodeCmdOpts.cluster, "cluster", getNodeCmdOpts.cluster, "cluster")

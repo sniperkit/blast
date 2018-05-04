@@ -34,7 +34,7 @@ type DeleteNodeCmdOpts struct {
 }
 
 var deleteNodeCmdOpts = DeleteNodeCmdOpts{
-	grpcServerAddress: config.DefaultMasterGRPCListenAddress,
+	grpcServerAddress: config.DefaultGRPCListenAddress,
 	dialTimeout:       5000,
 	requestTimeout:    5000,
 	cluster:           "",
@@ -103,7 +103,7 @@ var deleteNodeCmd = &cobra.Command{
 func init() {
 	deleteNodeCmd.Flags().SortFlags = false
 
-	deleteNodeCmd.Flags().StringVar(&getNodeCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultMasterGRPCListenAddress, "Blast server to connect to using gRPC")
+	deleteNodeCmd.Flags().StringVar(&getNodeCmdOpts.grpcServerAddress, "grpc-server-address", config.DefaultGRPCListenAddress, "Blast server to connect to using gRPC")
 	deleteNodeCmd.Flags().IntVar(&getNodeCmdOpts.dialTimeout, "dial-timeout", getNodeCmdOpts.dialTimeout, "dial timeout")
 	deleteNodeCmd.Flags().IntVar(&getNodeCmdOpts.requestTimeout, "request-timeout", getNodeCmdOpts.requestTimeout, "request timeout")
 	deleteNodeCmd.Flags().StringVar(&getNodeCmdOpts.cluster, "cluster", getNodeCmdOpts.cluster, "cluster")
