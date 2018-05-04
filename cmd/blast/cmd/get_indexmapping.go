@@ -54,42 +54,20 @@ var getIndexMappingCmd = &cobra.Command{
 			Error        error                     `json:"error,omitempty"`
 		}{}
 
-		// check cluster
-		if getIndexMappingCmdOpts.cluster == "" {
-			// create client
-			c, err := nodegrpc.NewGRPCClient(context.Background(), getIndexMappingCmdOpts.nodeAddress, grpc.WithInsecure())
+		var indexMapping *mapping.IndexMappingImpl
+		var err error
+		if getIndexMappingCmdOpts.masterAddress != "" {
+			indexMapping, err = getIndexMappingFromMaster(getIndexMappingCmdOpts.masterAddress, getIndexMappingCmdOpts.requestTimeout, getIndexMappingCmdOpts.cluster)
 			if err != nil {
 				return err
 			}
-			defer c.Close()
-
-			// create context
-			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(getIndexMappingCmdOpts.requestTimeout)*time.Millisecond)
-			defer cancel()
-
-			indexMapping, err := c.GetIndexMapping(ctx)
-			if err != nil {
-				return err
-			}
-
+			resp.Cluster = getIndexMappingCmdOpts.cluster
 			resp.IndexMapping = indexMapping
 		} else {
-			c, err := mastergrpc.NewGRPCClient(context.Background(), getIndexMappingCmdOpts.masterAddress, grpc.WithInsecure())
+			indexMapping, err = getIndexMappingFromNode(getIndexMappingCmdOpts.nodeAddress, getIndexMappingCmdOpts.requestTimeout)
 			if err != nil {
 				return err
 			}
-			defer c.Close()
-
-			// create context
-			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(getIndexMappingCmdOpts.requestTimeout)*time.Millisecond)
-			defer cancel()
-
-			indexMapping, err := c.GetIndexMapping(ctx, getIndexMappingCmdOpts.cluster)
-			if err != nil {
-				return err
-			}
-
-			resp.Cluster = getIndexMappingCmdOpts.cluster
 			resp.IndexMapping = indexMapping
 		}
 
@@ -109,6 +87,46 @@ var getIndexMappingCmd = &cobra.Command{
 
 		return nil
 	},
+}
+
+func getIndexMappingFromNode(nodeAddress string, requestTimeout int) (*mapping.IndexMappingImpl, error) {
+	// create client
+	c, err := nodegrpc.NewGRPCClient(context.Background(), nodeAddress, grpc.WithInsecure())
+	if err != nil {
+		return nil, err
+	}
+	defer c.Close()
+
+	// create context
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(requestTimeout)*time.Millisecond)
+	defer cancel()
+
+	indexMapping, err := c.GetIndexMapping(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return indexMapping, nil
+}
+
+func getIndexMappingFromMaster(masterAddress string, requestTimeout int, cluster string) (*mapping.IndexMappingImpl, error) {
+	// create client
+	c, err := mastergrpc.NewGRPCClient(context.Background(), masterAddress, grpc.WithInsecure())
+	if err != nil {
+		return nil, err
+	}
+	defer c.Close()
+
+	// create context
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(requestTimeout)*time.Millisecond)
+	defer cancel()
+
+	indexMapping, err := c.GetIndexMapping(ctx, cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	return indexMapping, nil
 }
 
 func init() {
