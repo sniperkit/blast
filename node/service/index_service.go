@@ -327,3 +327,15 @@ func (s *IndexService) GetIndexMapping(ctx context.Context, req *empty.Empty) (*
 		IndexMapping: &any,
 	}, nil
 }
+
+func (s *IndexService) GetIndexMeta(ctx context.Context, req *empty.Empty) (*protobuf.GetIndexMetaResponse, error) {
+	// IndexMeta -> Any
+	any, err := protobuf.MarshalAny(s.indexMeta)
+	if err != nil {
+		return nil, err
+	}
+
+	return &protobuf.GetIndexMetaResponse{
+		IndexMeta: &any,
+	}, nil
+}

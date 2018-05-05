@@ -20,7 +20,8 @@ import (
 	"fmt"
 	"github.com/mosuka/blast/config"
 	"github.com/mosuka/blast/index"
-	blastgrpc "github.com/mosuka/blast/master/client/grpc"
+	mastergrpc "github.com/mosuka/blast/master/client/grpc"
+	nodegrpc "github.com/mosuka/blast/node/client/grpc"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"time"
@@ -45,34 +46,26 @@ var getIndexMetaCmd = &cobra.Command{
 	Short: "gets the index meta",
 	Long:  `The get indexmeta command gets the index meta.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// check cluster
-		if getIndexMetaCmdOpts.cluster == "" {
-			return fmt.Errorf("required flag: --%s", cmd.Flag("cluster").Name)
-		}
-
-		// create client
-		c, err := blastgrpc.NewGRPCClient(context.Background(), getIndexMetaCmdOpts.grpcServerAddress, grpc.WithInsecure())
-		if err != nil {
-			return err
-		}
-		defer c.Close()
-
-		// create context
-		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(getIndexMetaCmdOpts.requestTimeout)*time.Millisecond)
-		defer cancel()
-
-		indexMeta, err := c.GetIndexMeta(ctx, getIndexMetaCmdOpts.cluster)
-		if err != nil {
-			return err
-		}
 		resp := struct {
 			Cluster   string           `json:"cluster,omitempty"`
 			IndexMeta *index.IndexMeta `json:"index_meta,omitempty"`
-			Error     error            `json:"error,omitempty"`
-		}{
-			Cluster:   getIndexMetaCmdOpts.cluster,
-			IndexMeta: indexMeta,
-			Error:     err,
+		}{}
+
+		var indexMeta *index.IndexMeta
+		var err error
+		if getIndexMetaCmdOpts.cluster != "" {
+			indexMeta, err = getIndexMetaFromMaster(getIndexMetaCmdOpts.grpcServerAddress, getIndexMetaCmdOpts.requestTimeout, getIndexMetaCmdOpts.cluster)
+			if err != nil {
+				return err
+			}
+			resp.Cluster = getIndexMetaCmdOpts.cluster
+			resp.IndexMeta = indexMeta
+		} else {
+			indexMeta, err = getIndexMetaFromNode(getIndexMetaCmdOpts.grpcServerAddress, getIndexMetaCmdOpts.requestTimeout)
+			if err != nil {
+				return err
+			}
+			resp.IndexMeta = indexMeta
 		}
 
 		// output response
@@ -91,6 +84,47 @@ var getIndexMetaCmd = &cobra.Command{
 
 		return nil
 	},
+}
+
+func getIndexMetaFromNode(nodeAddress string, requestTimeout int) (*index.IndexMeta, error) {
+	// create client
+	c, err := nodegrpc.NewGRPCClient(context.Background(), nodeAddress, grpc.WithInsecure())
+	if err != nil {
+		return nil, err
+	}
+	defer c.Close()
+
+	// create context
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(requestTimeout)*time.Millisecond)
+	defer cancel()
+
+	indexMeta, err := c.GetIndexMeta(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return indexMeta, nil
+
+}
+
+func getIndexMetaFromMaster(masterAddress string, requestTimeout int, cluster string) (*index.IndexMeta, error) {
+	// create client
+	c, err := mastergrpc.NewGRPCClient(context.Background(), masterAddress, grpc.WithInsecure())
+	if err != nil {
+		return nil, err
+	}
+	defer c.Close()
+
+	// create context
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(requestTimeout)*time.Millisecond)
+	defer cancel()
+
+	indexMeta, err := c.GetIndexMeta(ctx, cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	return indexMeta, nil
 }
 
 func init() {

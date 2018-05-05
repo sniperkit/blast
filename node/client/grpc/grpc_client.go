@@ -19,6 +19,7 @@ import (
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/mapping"
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/mosuka/blast/index"
 	"github.com/mosuka/blast/protobuf"
 	"google.golang.org/grpc"
 )
@@ -202,4 +203,20 @@ func (c *GRPCClient) GetIndexMapping(ctx context.Context, callOpts ...grpc.CallO
 	}
 
 	return indexMapping.(*mapping.IndexMappingImpl), nil
+}
+
+func (c *GRPCClient) GetIndexMeta(ctx context.Context, callOpts ...grpc.CallOption) (*index.IndexMeta, error) {
+	protoReq := &empty.Empty{}
+
+	protoResp, err := c.indexClient.GetIndexMeta(ctx, protoReq, callOpts...)
+	if err != nil {
+		return nil, err
+	}
+
+	indexMeta, err := protobuf.UnmarshalAny(protoResp.IndexMeta)
+	if err != nil {
+		return nil, err
+	}
+
+	return indexMeta.(*index.IndexMeta), nil
 }

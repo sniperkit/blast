@@ -29,4 +29,5 @@ service Index {
     rpc Search(blast.SearchRequest) returns (blast.SearchResponse) {}
 
     rpc GetIndexMapping (google.protobuf.Empty) returns (blast.GetIndexMappingResponse) {}
+    rpc GetIndexMeta (google.protobuf.Empty) returns (blast.GetIndexMetaResponse) {}
 }
