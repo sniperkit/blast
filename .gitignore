@@ -24,5 +24,3 @@
 bin
 data
 etc
-vendor/*
-!/vendor/manifest
