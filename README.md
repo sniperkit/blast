@@ -206,16 +206,14 @@ The result of the above `get index` command is:
 
 ```json
 {
-  "document": {
-    "id": "1",
-    "fields": {
-      "name": "Bleve",
-      "description": "Bleve is a full-text search and indexing library for Go.",
-      "category": "Library",
-      "popularity": 3.0,
-      "release": "2014-04-18T00:00:00Z",
-      "type": "document"
-    }
+  "id": "1",
+  "fields": {
+    "name": "Bleve",
+    "description": "Bleve is a full-text search and indexing library for Go.",
+    "category": "Library",
+    "popularity": 3.0,
+    "release": "2014-04-18T00:00:00Z",
+    "type": "document"
   }
 }
 ```
